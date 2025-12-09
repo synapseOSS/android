@@ -26,24 +26,6 @@
 * **Notifications:**
     * Real-time notifications
 
-## 🛠 Technology Stack
-
-For nerds, the application is built using a modern Android tech stack, prioritizing performance and maintainability:
-
-* **Language:** Kotlin
-* **UI Framework:** Jetpack Compose (Material 3 Design System) & XML (Legacy support)
-* **Architecture:** MVVM (Model-View-ViewModel) with Clean Architecture principles
-* **Asynchronous Processing:** Kotlin Coroutines & Flow
-* **Backend Services:**
-    * **Supabase:** Authentication, Database (PostgreSQL), Realtime subscriptions, and Storage.
-    * **Firebase Vertex AI:** Generative AI integration.
-* **Local Data:** Room Database & DataStore
-* **Media Handling:**
-    * **Image Loading:** Coil & Glide
-    * **Video Playback:** AndroidX Media3 (ExoPlayer)
-    * **Image Manipulation:** uCrop / Android Image Cropper
-* **Networking:** Ktor & OkHttp
-
 ## ⚖️ License and Usage
 
 **Source Available License**
