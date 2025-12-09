@@ -2,6 +2,8 @@
 
 **Synapse** is designed to provide a seamless mult-platform social experience, integrating real-time communication, media sharing, and AI-driven interactions with vast features and customizations.
 
+[![cover.png](https://i.postimg.cc/fbBJ22Py/cover.png)](https://postimg.cc/HJ8Yj2d1)
+
 ## ✨ Key highlights
 
 * **Social Feed & Discovery:**
@@ -23,6 +25,17 @@
     * QR Code profile sharing.
 * **Notifications:**
     * Real-time notifications
+
+## 🚀 Release Strategy
+
+We follow a dedicated channel-based release strategy to maintain stability and deliver new features reliably.
+
+* **Latest:** The **most stable version** available. Recommended for a consistent experience with minimal updates. Releases once a month at `11:59:01 PM +06`.
+* **Release Candidate (RC):** The final step of verification before a build is promoted to **Latest**.
+* **Beta:** Intended for **feature testing** and early adopters. Releases once a week with no specific time.
+* **Alpha:** Contains **early, often unstable features** for initial testing and bug hunting.
+* **Nightly:** The **freshest, most unstable build** directly from the main development branch.
+
 
 ## ⚖️ License and Usage
 
