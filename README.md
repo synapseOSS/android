@@ -1,5 +1,3 @@
-**Synapse** is a modern, feature-rich, cross-platform social media. This repository contains the source code for the Android client of Synapse, serving for keeping the project transparent.
-
 ## 📝 Overview
 
 **Synapse** is designed to provide a seamless mult-platform social experience, integrating real-time communication, media sharing, and AI-driven interactions with vast features and customizations.
