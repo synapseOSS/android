@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:orientation="horizontal"
+        android:animateLayoutChanges="true"
+        app:layout_constraintWidth_max="wrap"
+        app:layout_constraintWidth_percent="0.75"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Selection checkbox for multi-select mode -->
+        <CheckBox
+            android:id="@+id/selection_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_gravity="center_vertical"
+            android:visibility="gone"
+            style="@style/Widget.Material3.CompoundButton.CheckBox" />
+
+        <!-- Profile image for group chats -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/mProfileCard"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="8dp"
+            app:cardElevation="0dp"
+            android:visibility="gone"
+            app:cardCornerRadius="200dp">
+
+            <ImageView
+                android:id="@+id/mProfileImage"
+                android:focusable="false"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/avatar"
+                android:scaleType="centerCrop" />
+        </androidx.cardview.widget.CardView>
+
+        <LinearLayout
+            android:id="@+id/message_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <!-- Selection overlay -->
+                    <View
+                        android:id="@+id/selection_overlay"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="?attr/colorOnSurfaceContainer"
+                        android:alpha="0.1"
+                        android:visibility="gone" />
+                    <LinearLayout
+                        android:id="@+id/messageBG"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="0dp"
+                        android:layout_marginRight="0dp"
+                        android:padding="@dimen/message_bubble_padding"
+                        android:background="@android:color/transparent"
+                        android:clickable="false"
+                        android:focusable="false"
+                        android:orientation="vertical">
+
+                    <!-- Username for group chats -->
+                    <TextView
+                        android:id="@+id/senderUsername"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:textSize="12sp"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:maxWidth="200dp" />
+
+                    <!-- Forwarded indicator -->
+                    <LinearLayout
+                        android:id="@+id/forwardedIndicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_forward"
+                            android:layout_marginEnd="4dp"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Forwarded"
+                            android:textSize="11sp"
+                            android:textStyle="italic"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+                    </LinearLayout>
+
+                    <!-- Deleted message placeholder -->
+                    <LinearLayout
+                        android:id="@+id/deletedMessagePlaceholder"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:padding="8dp"
+                        android:background="?attr/colorSurfaceVariant">
+
+                        <TextView
+                            android:id="@+id/deletedMessageText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="This message was deleted"
+                            android:textSize="14sp"
+                            android:textStyle="italic"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+                    </LinearLayout>
+
+                    <!-- Message content container (hidden when deleted) -->
+                    <LinearLayout
+                        android:id="@+id/messageContentContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Audio player container -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/audioContainerCard"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minWidth="280dp"
+                            app:cardElevation="0dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardBackgroundColor="?attr/colorSurfaceVariant">
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                <!-- Audio file name -->
+                                <TextView
+                                    android:id="@+id/audioFileName"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="14sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textStyle="bold"
+                                    android:maxLines="1"
+                                    android:ellipsize="end"
+                                    android:layout_marginBottom="8dp"
+                                    tools:text="audio_recording.mp3" />
+
+                                <!-- Playback controls -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <!-- Play/Pause button -->
+                                    <ImageButton
+                                        android:id="@+id/playPauseButton"
+                                        android:layout_width="48dp"
+                                        android:layout_height="48dp"
+                                        android:background="?attr/selectableItemBackgroundBorderless"
+                                        android:src="@drawable/ic_play_circle_filled"
+                                        android:contentDescription="@string/play_audio"
+                                        android:tint="?attr/colorOnSurface" />
+
+                                    <!-- Current time -->
+                                    <TextView
+                                        android:id="@+id/currentTime"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="8dp"
+                                        android:textSize="12sp"
+                                        android:textColor="?attr/colorOnSurfaceVariant"
+                                        android:minWidth="40dp"
+                                        tools:text="0:00" />
+
+                                    <!-- Seek bar -->
+                                    <SeekBar
+                                        android:id="@+id/seekBar"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:layout_marginStart="8dp"
+                                        android:layout_marginEnd="8dp"
+                                        android:progressTint="?attr/colorOnSurface"
+                                        android:thumbTint="?attr/colorOnSurface" />
+
+                                    <!-- Total duration -->
+                                    <TextView
+                                        android:id="@+id/totalDuration"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:textSize="12sp"
+                                        android:textColor="?attr/colorOnSurfaceVariant"
+                                        android:minWidth="40dp"
+                                        tools:text="3:45" />
+                                </LinearLayout>
+
+                                <!-- Loading indicator -->
+                                <ProgressBar
+                                    android:id="@+id/loadingIndicator"
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="8dp"
+                                    android:visibility="gone"
+                                    android:indeterminateTint="?attr/colorOnSurface" />
+                            </LinearLayout>
+
+                            <!-- Upload progress overlay -->
+                            <LinearLayout
+                                android:id="@+id/uploadProgressOverlay"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:background="#80000000"
+                                android:visibility="gone"
+                                android:padding="16dp">
+                                <ProgressBar
+                                    android:id="@+id/uploadProgressBar"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:max="100"
+                                    android:progress="0"
+                                    android:progressTint="@android:color/white" />
+                                <TextView
+                                    android:id="@+id/uploadProgressText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:textColor="@android:color/white"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:text="Uploading... 0%" />
+                                <LinearLayout
+                                    android:id="@+id/uploadErrorLayout"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center"
+                                    android:visibility="gone"
+                                    android:layout_marginTop="8dp">
+                                    <ImageView
+                                        android:layout_width="24dp"
+                                        android:layout_height="24dp"
+                                        android:src="@android:drawable/ic_dialog_alert"
+                                        android:tint="@android:color/holo_red_light"
+                                        android:layout_marginEnd="8dp" />
+                                    <TextView
+                                        android:id="@+id/uploadErrorText"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:textColor="@android:color/holo_red_light"
+                                        android:textSize="14sp"
+                                        android:text="Upload failed" />
+                                </LinearLayout>
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/retryButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:text="Retry"
+                                    android:visibility="gone"
+                                    style="@style/Widget.Material3.Button.TextButton" />
+                                <ImageView
+                                    android:id="@+id/uploadSuccessIcon"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:src="@android:drawable/ic_menu_upload_you_tube"
+                                    android:tint="@android:color/holo_green_light"
+                                    android:visibility="gone" />
+                            </LinearLayout>
+                        </FrameLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Reply layout -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/mRepliedMessageLayout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="8dp"
+                            android:visibility="gone"
+                            app:cardElevation="0dp"
+                            app:cardCornerRadius="6dp">
+
+                            <LinearLayout
+                                android:id="@+id/linear2"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="8dp"
+                                android:orientation="horizontal">
+
+                                <LinearLayout
+                                    android:id="@+id/mRepliedMessageLayoutLeftBar"
+                                    android:layout_width="4dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="8dp"
+                                    android:background="?attr/colorOnSurface"
+                                    android:orientation="vertical" />
+
+                                <LinearLayout
+                                    android:id="@+id/mRepliedMessageLayoutRightBody"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:id="@+id/mRepliedMessageLayoutUsername"
+                                        android:focusable="false"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/ph_username"
+                                        android:textSize="12sp"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:singleLine="true" />
+
+                                    <ImageView
+                                        android:id="@+id/mRepliedMessageLayoutImage"
+                                        android:layout_width="60dp"
+                                        android:layout_height="60dp"
+                                        android:layout_marginTop="4dp"
+                                        android:layout_marginBottom="4dp"
+                                        android:scaleType="centerCrop"
+                                        android:background="@drawable/ph_imgbluredsqure"
+                                        android:visibility="gone"
+                                        android:clipToOutline="true" />
+
+                                    <TextView
+                                        android:id="@+id/mRepliedMessageLayoutMessage"
+                                        android:focusable="false"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:paddingRight="4dp"
+                                        android:text="@string/ph_replied_message"
+                                        android:textSize="16sp"
+                                        android:autoLink="all"
+                                        android:maxLines="3"
+                                        android:ellipsize="end"
+                                        android:textColorLink="?attr/colorOnSurface" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Caption text -->
+                        <com.synapse.social.studioasinc.animations.ShimmerFrameLayout
+                            android:id="@+id/shimmer_container"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone"
+                            app:shimmer_color="?attr/colorOutline">
+
+                            <TextView
+                                android:id="@+id/message_text"
+                                android:focusable="false"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="8dp"
+                                android:paddingTop="6dp"
+                                android:paddingRight="8dp"
+                                android:textSize="16sp"
+                                android:autoLink="all"
+                                android:textColorLink="?attr/colorOnSurface"
+                                tools:text="Audio caption" />
+                        </com.synapse.social.studioasinc.animations.ShimmerFrameLayout>
+                    </LinearLayout>
+                    <!-- End of messageContentContainer -->
+
+                    <!-- Message metadata -->
+                    <LinearLayout
+                        android:id="@+id/my_message_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/pendingIndicator"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pending"
+                            android:textSize="10sp"
+                            android:textStyle="italic"
+                            android:textColor="?attr/colorSecondary"
+                            android:layout_marginRight="4dp"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/editedIndicator"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="(edited)"
+                            android:textSize="10sp"
+                            android:textStyle="italic"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginRight="4dp"
+                            android:visibility="gone"
+                            android:clickable="true"
+                            android:focusable="true" />
+
+                        <TextView
+                            android:id="@+id/date"
+                            android:focusable="false"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="4dp"
+                            android:layout_marginRight="4dp"
+                            android:text="00:00"
+                            android:textSize="11sp"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <ImageView
+                            android:id="@+id/message_state"
+                            android:focusable="false"
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_marginRight="4dp"
+                            android:src="@drawable/ic_check_black"
+                            android:scaleType="centerInside" />
+                    </LinearLayout>
+                </LinearLayout>
+                </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

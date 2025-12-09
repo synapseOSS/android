@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ExoPlayer custom control IDs -->
+    <item name="exo_fullscreen" type="id" />
+    <item name="exo_play_pause" type="id" />
+</resources>

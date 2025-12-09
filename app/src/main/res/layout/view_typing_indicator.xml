@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="@dimen/spacing_normal"
+    android:layout_marginVertical="@dimen/spacing_normal"
+    android:background="@drawable/typing_indicator_background"
+    android:elevation="@dimen/elevation_small">
+
+    <TextView
+        android:id="@+id/typing_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/typing_indicator_text"
+        android:textSize="@dimen/text_size_small"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:layout_marginEnd="@dimen/spacing_normal"
+        android:fontFamily="sans-serif-medium" />
+
+    <com.synapse.social.studioasinc.widget.TypingAnimationView
+        android:id="@+id/typing_animation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

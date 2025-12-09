@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <!-- Video player for actual playback -->
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/mediaPlayerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:resize_mode="fit"
+        app:show_timeout="3000"
+        android:visibility="gone" />
+
+    <!-- Video thumbnail before playback -->
+    <ImageView
+        android:id="@+id/videoThumbnail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true" />
+
+    <!-- Play button overlay -->
+    <ImageView
+        android:id="@+id/playPauseButton"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_play_arrow"
+        android:tint="@android:color/white"
+        android:background="@drawable/reaction_summary_background"
+        android:padding="16dp"
+        android:alpha="0.9"
+        android:elevation="4dp"
+        android:contentDescription="Play video" />
+
+    <!-- Loading indicator -->
+    <ProgressBar
+        android:id="@+id/videoProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="?attr/colorOnSurface"
+        android:visibility="gone" />
+
+</FrameLayout>

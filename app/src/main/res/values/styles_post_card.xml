@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- MD3 Post Card Base Style -->
+    <style name="Widget.App.CardView.PostCard" parent="Widget.Material3.CardView.Filled">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">@dimen/post_card_elevation_default</item>
+        <item name="cardBackgroundColor">?attr/postCardBackgroundColor</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+        <item name="android:stateListAnimator">@animator/post_card_state_list_animator</item>
+    </style>
+
+    <!-- MD3 Post Card Elevated Style (for emphasis) -->
+    <style name="Widget.App.CardView.PostCard.Elevated" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">@dimen/post_card_elevation_elevated</item>
+        <item name="cardBackgroundColor">?attr/postCardBackgroundColor</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+        <item name="android:stateListAnimator">@animator/post_card_state_list_animator</item>
+    </style>
+
+    <!-- MD3 Post Card Outlined Style (alternative) -->
+    <style name="Widget.App.CardView.PostCard.Outlined" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">?attr/postCardBackgroundColor</item>
+        <item name="strokeColor">?attr/colorOutlineVariant</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
+
+    <!-- Post Card Content Text Styles -->
+    <style name="TextAppearance.App.PostCard.Username" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">?attr/postCardContentColor</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">@font/product_sans</item>
+        <item name="fontFamily">@font/product_sans</item>
+    </style>
+
+    <style name="TextAppearance.App.PostCard.Timestamp" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">?attr/postCardSecondaryContentColor</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.App.PostCard.Content" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">?attr/postCardContentColor</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+    </style>
+
+    <style name="TextAppearance.App.PostCard.ActionCount" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textColor">?attr/postCardActionColor</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <!-- Post Card Action Button Styles -->
+    <style name="Widget.App.Button.PostCard.Action" parent="Widget.Material3.Button.IconButton">
+        <item name="iconTint">?attr/postCardActionColor</item>
+        <item name="iconSize">20dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
+
+    <style name="Widget.App.Button.PostCard.Action.Like">
+        <item name="iconTint">?attr/postCardLikeColor</item>
+    </style>
+
+    <style name="Widget.App.Button.PostCard.Action.Liked">
+        <item name="iconTint">?attr/postCardLikedColor</item>
+    </style>
+
+    <!-- Post Card Avatar Style -->
+    <style name="Widget.App.ImageView.PostCard.Avatar" parent="">
+        <item name="shapeAppearance">@style/ShapeAppearance.App.PostCard.Avatar</item>
+        <item name="strokeColor">?attr/colorOutlineVariant</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="ShapeAppearance.App.PostCard.Avatar" parent="ShapeAppearance.Material3.Corner.Full">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- Post Card Image Container Style -->
+    <style name="Widget.App.ImageView.PostCard.Media" parent="">
+        <item name="shapeAppearance">@style/ShapeAppearance.App.PostCard.Media</item>
+    </style>
+
+    <style name="ShapeAppearance.App.PostCard.Media" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <!-- Post Card Shimmer Placeholder Style -->
+    <style name="Widget.App.PostCard.ShimmerPlaceholder" parent="">
+        <item name="android:background">?attr/postCardShimmerColor</item>
+    </style>
+</resources>

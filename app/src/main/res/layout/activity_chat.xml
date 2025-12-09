@@ -1,0 +1,284 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/relativelayout1"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<ImageView
+		android:id="@+id/ivBGimage"
+		android:layout_width="0dp"
+		android:layout_height="0dp"
+		android:src="@drawable/default_pattern"
+		android:scaleType="centerCrop"
+		app:layout_constraintTop_toTopOf="parent"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"/>
+	<LinearLayout
+		android:id="@+id/body"
+		android:layout_width="0dp"
+		android:layout_height="0dp"
+		android:background="@android:color/transparent"
+		android:gravity="center_horizontal|center_vertical"
+		android:orientation="vertical"
+		android:animateLayoutChanges="true"
+		app:layout_constraintTop_toTopOf="parent"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent">
+		<com.google.android.material.appbar.AppBarLayout
+			android:id="@+id/appBar"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:background="@android:color/transparent"
+			app:elevation="0dp">
+
+			<!-- Action Toolbar for Multi-Select Mode -->
+			<include layout="@layout/action_toolbar" />
+
+			<com.google.android.material.appbar.MaterialToolbar
+				android:id="@+id/toolbar"
+				android:layout_width="match_parent"
+				android:layout_height="?attr/actionBarSize"
+				android:paddingStart="0dp"
+				android:paddingEnd="0dp"
+				app:contentInsetStart="0dp"
+				app:contentInsetEnd="0dp">
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="center_vertical"
+					android:orientation="horizontal">
+
+					<ImageView
+						android:id="@+id/back"
+						android:layout_width="48dp"
+						android:layout_height="48dp"
+						android:padding="@dimen/spacing_medium"
+						android:src="@drawable/ic_arrow_back_ios_new_48px"
+						android:scaleType="fitCenter" />
+
+					<LinearLayout
+						android:id="@+id/topProfileLayout"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:gravity="center_horizontal|center_vertical"
+						android:orientation="horizontal">
+
+						<androidx.cardview.widget.CardView
+							android:id="@+id/topProfileCard"
+							android:layout_width="45dp"
+							android:layout_height="45dp"
+							android:layout_marginRight="@dimen/spacing_normal"
+							app:cardBackgroundColor="@android:color/transparent"
+							app:cardElevation="@dimen/elevation_small"
+							app:cardCornerRadius="300dp">
+
+							<ImageView
+								android:id="@+id/topProfileLayoutProfileImage"
+								android:layout_width="match_parent"
+								android:layout_height="match_parent"
+								android:src="@drawable/ph_imgbluredsqure"
+								android:scaleType="centerCrop"
+								android:background="@drawable/bg_profile_image_round"
+								android:clipToOutline="true" />
+						</androidx.cardview.widget.CardView>
+
+						<LinearLayout
+							android:id="@+id/topProfileLayoutRight"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:paddingRight="@dimen/spacing_normal"
+							android:gravity="center_vertical"
+							android:orientation="vertical">
+
+							<LinearLayout
+								android:id="@+id/topProfileLayoutRightTop"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:gravity="center_vertical"
+								android:orientation="horizontal"
+								android:layout_weight="1">
+
+								<TextView
+									android:id="@+id/topProfileLayoutUsername"
+									android:layout_width="100dp"
+									android:layout_height="wrap_content"
+									android:layout_marginRight="@dimen/spacing_small"
+									android:text="Name"
+									android:textSize="@dimen/text_size_medium"
+									android:textStyle="bold"
+									android:textColor="@color/md_theme_onBackground"
+									android:maxWidth="100dp"
+									android:ellipsize="marquee"
+									android:marqueeRepeatLimit="marquee_forever"
+									android:singleLine="true"
+									android:focusable="true"
+									android:focusableInTouchMode="true"
+									android:scrollHorizontally="true" />
+
+								<ImageView
+									android:id="@+id/topProfileLayoutGenderBadge"
+									android:layout_width="wrap_content"
+									android:layout_height="@dimen/spacing_medium"
+									android:layout_marginRight="@dimen/spacing_small"
+									android:src="@drawable/male_badge"
+									android:scaleType="centerInside" />
+
+								<ImageView
+									android:id="@+id/topProfileLayoutVerifiedBadge"
+									android:layout_width="@dimen/spacing_medium"
+									android:layout_height="@dimen/spacing_medium"
+									android:src="@drawable/verified_badge"
+									android:scaleType="centerInside"
+									android:visibility="gone" />
+							</LinearLayout>
+
+							<TextView
+								android:id="@+id/topProfileLayoutStatus"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:text="@string/status_text_minutes"
+								android:textSize="@dimen/text_size_normal"
+								android:textColor="@color/md_theme_onBackground"
+								android:singleLine="true" />
+						</LinearLayout>
+					</LinearLayout>
+
+					<LinearLayout
+						android:id="@+id/topProfileLayoutSpace"
+						android:layout_width="0dp"
+						android:layout_height="match_parent"
+						android:layout_marginLeft="@dimen/spacing_normal"
+						android:layout_marginRight="@dimen/spacing_normal"
+						android:padding="@dimen/spacing_normal"
+						android:orientation="vertical"
+						android:layout_weight="1" />
+
+					<ImageView
+						android:id="@+id/ic_video_call"
+						android:layout_width="@dimen/spacing_xlarge"
+						android:layout_height="match_parent"
+						android:padding="@dimen/dot_size"
+						android:src="@drawable/ic_video_chat_48px"
+						android:scaleType="fitCenter" />
+
+					<ImageView
+						android:id="@+id/ic_audio_call"
+						android:layout_width="@dimen/spacing_xlarge"
+						android:layout_height="match_parent"
+						android:layout_marginLeft="@dimen/spacing_normal"
+						android:layout_marginRight="@dimen/spacing_normal"
+						android:padding="@dimen/dot_size"
+						android:src="@drawable/ic_call_48px"
+						android:scaleType="fitCenter" />
+
+					<ImageView
+						android:id="@+id/ic_more"
+						android:layout_width="@dimen/spacing_xlarge"
+						android:layout_height="match_parent"
+						android:padding="@dimen/dot_size"
+						android:src="@drawable/ic_info_48px"
+						android:scaleType="fitCenter" />
+				</LinearLayout>
+			</com.google.android.material.appbar.MaterialToolbar>
+
+		</com.google.android.material.appbar.AppBarLayout>
+		
+		<!-- Connection Status Banner -->
+		<include layout="@layout/connection_status_banner" />
+		
+		<LinearLayout
+			android:id="@+id/middle"
+			android:layout_width="match_parent"
+			android:layout_height="0dp"
+			android:background="@android:color/transparent"
+			android:orientation="vertical"
+			android:layout_weight="1"
+			android:animateLayoutChanges="true">
+			<TextView
+				android:id="@+id/noChatText"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:padding="@dimen/spacing_normal"
+				android:background="@android:color/transparent"
+				android:gravity="center_horizontal|center_vertical"
+				android:text="No previous conversation"
+				android:textSize="@dimen/text_size_large"
+				android:textColor="@color/md_theme_outline"
+				android:layout_weight="1"
+				android:visibility="gone" />
+			<androidx.recyclerview.widget.RecyclerView
+				android:id="@+id/ChatMessagesListRecycler"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:background="@android:color/transparent"
+				android:listSelector="@drawable/no_highlight"
+				android:clipToPadding="false"
+				android:paddingBottom="80dp"
+				tools:listitem="@layout/chat_msg_cv_synapse" />
+		</LinearLayout>
+		<TextView
+			android:id="@+id/blocked_txt"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:padding="@dimen/spacing_normal"
+			android:background="?attr/colorPrimaryContainer"
+			android:gravity="center_horizontal|bottom"
+			android:text="@string/cant_reply"
+			android:textSize="@dimen/text_size_normal"
+			android:textColor="?attr/colorOnPrimaryContainer"
+			android:visibility="gone"
+			android:elevation="5dp" />
+	</LinearLayout>
+	<LinearLayout
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent">
+		<RelativeLayout
+			android:id="@+id/attachmentLayoutListHolder"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingTop="@dimen/spacing_normal"
+			android:paddingBottom="@dimen/spacing_normal"
+			android:background="@android:color/transparent"
+			android:visibility="gone">
+			<androidx.cardview.widget.CardView
+				android:id="@+id/card_attactmentListRVHolder"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginLeft="@dimen/spacing_normal"
+				android:layout_marginRight="@dimen/spacing_normal"
+				app:cardElevation="@dimen/elevation_small"
+				app:cardCornerRadius="20dp">
+				<androidx.recyclerview.widget.RecyclerView
+					android:id="@+id/rv_attacmentList"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:paddingTop="@dimen/spacing_small"
+					android:paddingBottom="@dimen/spacing_small"
+					android:clipToPadding="false"
+					tools:listitem="@layout/chat_attactment" />
+			</androidx.cardview.widget.CardView>
+			<ImageView
+				android:id="@+id/close_attachments_btn"
+				android:layout_width="28dp"
+				android:layout_height="28dp"
+				android:layout_alignParentTop="true"
+				android:layout_alignParentEnd="true"
+				android:layout_marginEnd="@dimen/spacing_small"
+				android:layout_marginTop="@dimen/spacing_small"
+				android:padding="@dimen/spacing_small"
+				android:src="@drawable/ic_close_48px"
+				android:background="@drawable/circle_background_dark"
+				app:tint="@color/white"
+				android:elevation="@dimen/elevation_small" />
+		</RelativeLayout>
+		<include layout="@layout/message_input_layout" />
+	</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

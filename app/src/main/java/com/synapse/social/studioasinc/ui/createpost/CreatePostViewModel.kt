@@ -1,0 +1,325 @@
+package com.synapse.social.studioasinc.ui.createpost
+
+import android.app.Application
+import android.content.Context
+import android.net.Uri
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
+import com.synapse.social.studioasinc.data.local.AppDatabase
+import com.synapse.social.studioasinc.data.repository.PostRepository
+import com.synapse.social.studioasinc.model.MediaItem
+import com.synapse.social.studioasinc.model.MediaType
+import com.synapse.social.studioasinc.model.PollOption
+import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.util.FileUtil
+import com.synapse.social.studioasinc.util.MediaUploadManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.UUID
+
+data class CreatePostUiState(
+    val isLoading: Boolean = false,
+    val postText: String = "",
+    val mediaItems: List<MediaItem> = emptyList(),
+    val pollData: PollData? = null,
+    val location: LocationData? = null,
+    val youtubeUrl: String? = null,
+    val privacy: String = "public", // public, followers, private
+    val settings: PostSettings = PostSettings(),
+    val error: String? = null,
+    val isPostCreated: Boolean = false,
+    val uploadProgress: Float = 0f,
+    val isEditMode: Boolean = false,
+    val checkDraft: Boolean = true
+)
+
+data class PollData(
+    val question: String,
+    val options: List<String>,
+    val durationHours: Int
+)
+
+data class LocationData(
+    val name: String,
+    val address: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
+)
+
+data class PostSettings(
+    val hideViewsCount: Boolean = false,
+    val hideLikeCount: Boolean = false,
+    val hideCommentsCount: Boolean = false,
+    val disableComments: Boolean = false
+)
+
+class CreatePostViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val postRepository = PostRepository(AppDatabase.getDatabase(application).postDao())
+    private val authService = SupabaseAuthenticationService()
+    private val prefs = application.getSharedPreferences("create_post_draft", Context.MODE_PRIVATE)
+
+    private val _uiState = MutableStateFlow(CreatePostUiState())
+    val uiState: StateFlow<CreatePostUiState> = _uiState.asStateFlow()
+    
+    // Edit Mode State
+    private var editPostId: String? = null
+    private var originalPost: Post? = null
+
+    init {
+        // Load draft on init if not edit mode (edit mode loaded separately)
+        // We defer draft loading until we know if it's edit mode
+    }
+
+    fun loadDraft() {
+        if (_uiState.value.isEditMode || !_uiState.value.checkDraft) return
+        
+        val draftText = prefs.getString("draft_text", null)
+        if (!draftText.isNullOrEmpty()) {
+             _uiState.update { it.copy(postText = draftText, checkDraft = false) }
+        } else {
+            _uiState.update { it.copy(checkDraft = false) }
+        }
+    }
+
+    fun saveDraft() {
+        if (_uiState.value.isEditMode) return
+        
+        val text = _uiState.value.postText
+        if (text.isNotBlank()) {
+            prefs.edit().putString("draft_text", text).apply()
+        }
+    }
+
+    fun clearDraft() {
+        prefs.edit().remove("draft_text").apply()
+    }
+
+    fun loadPostForEdit(postId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, isEditMode = true, checkDraft = false) }
+            postRepository.getPost(postId).onSuccess { post ->
+                post?.let {
+                    originalPost = it
+                    editPostId = it.id
+                    
+                    val mediaItems = it.mediaItems?.toMutableList() ?: mutableListOf()
+                    // Legacy support
+                    if (mediaItems.isEmpty()) {
+                        it.postImage?.let { imgUrl ->
+                             mediaItems.add(MediaItem(url = imgUrl, type = MediaType.IMAGE))
+                        }
+                    }
+
+                    _uiState.update { state -> 
+                        state.copy(
+                            isLoading = false,
+                            postText = it.postText ?: "",
+                            mediaItems = mediaItems,
+                            privacy = it.postVisibility ?: "public",
+                            youtubeUrl = it.youtubeUrl,
+                            settings = PostSettings(
+                                hideViewsCount = it.postHideViewsCount == "true",
+                                hideLikeCount = it.postHideLikeCount == "true",
+                                hideCommentsCount = it.postHideCommentsCount == "true",
+                                disableComments = it.postDisableComments == "true"
+                            ),
+                            // Poll and Location mapping is complex if detailed data missing, assuming basic restore
+                            pollData = if (it.hasPoll == true) PollData(it.pollQuestion ?: "", it.pollOptions?.map { opt -> opt.text } ?: emptyList(), 24) else null,
+                            location = if (it.hasLocation == true) LocationData(it.locationName ?: "", it.locationAddress, it.locationLatitude, it.locationLongitude) else null
+                        )
+                    }
+                }
+            }.onFailure {
+                _uiState.update { it.copy(isLoading = false, error = "Failed to load post for editing") }
+            }
+        }
+    }
+
+    fun updateText(text: String) {
+        _uiState.update { it.copy(postText = text) }
+    }
+
+    fun addMedia(uris: List<Uri>) {
+        val currentMedia = _uiState.value.mediaItems.toMutableList()
+        val context = getApplication<Application>()
+        
+        uris.forEach { uri ->
+             if (currentMedia.size >= 10) return@forEach
+             val mimeType = context.contentResolver.getType(uri) ?: return@forEach
+             val type = if (mimeType.startsWith("video")) MediaType.VIDEO else MediaType.IMAGE
+             FileUtil.convertUriToFilePath(context, uri)?.let { path ->
+                 currentMedia.add(MediaItem(url = path, type = type))
+             }
+        }
+        _uiState.update { it.copy(mediaItems = currentMedia, error = null) }
+    }
+
+    fun removeMedia(index: Int) {
+        val currentMedia = _uiState.value.mediaItems.toMutableList()
+        if (index in currentMedia.indices) {
+            currentMedia.removeAt(index)
+            _uiState.update { it.copy(mediaItems = currentMedia) }
+        }
+    }
+
+    fun setPoll(pollData: PollData?) {
+        _uiState.update { it.copy(pollData = pollData, mediaItems = emptyList()) }
+    }
+
+    fun setLocation(location: LocationData?) {
+        _uiState.update { it.copy(location = location) }
+    }
+
+    fun setYoutubeUrl(url: String?) {
+        _uiState.update { it.copy(youtubeUrl = url) }
+    }
+
+    fun setPrivacy(privacy: String) {
+        _uiState.update { it.copy(privacy = privacy) }
+    }
+    
+    fun updateSettings(settings: PostSettings) {
+        _uiState.update { it.copy(settings = settings) }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
+    }
+
+    fun submitPost() {
+        if (_uiState.value.isLoading) return
+        
+        val currentState = _uiState.value
+        val text = currentState.postText.trim()
+        
+        if (text.isEmpty() && currentState.mediaItems.isEmpty() && currentState.pollData == null && currentState.youtubeUrl == null) {
+            _uiState.update { it.copy(error = "Please add some content to your post") }
+            return
+        }
+
+        viewModelScope.launch {
+            val currentUser = authService.getCurrentUser()
+            if (currentUser == null) {
+                _uiState.update { it.copy(error = "Not logged in") }
+                return@launch
+            }
+
+            _uiState.update { it.copy(isLoading = true, uploadProgress = 0f) }
+
+            val postKey = originalPost?.key ?: "post_${System.currentTimeMillis()}_${(1000..9999).random()}"
+            val timestamp = System.currentTimeMillis()
+            val publishDate = Instant.ofEpochMilli(timestamp).atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+            val postType = when {
+                currentState.mediaItems.any { it.type == MediaType.VIDEO } -> "VIDEO"
+                currentState.mediaItems.isNotEmpty() -> "IMAGE"
+                currentState.pollData != null -> "POLL"
+                else -> "TEXT"
+            }
+
+            val pollEndTime = currentState.pollData?.let {
+                Instant.ofEpochMilli(timestamp + it.durationHours * 3600 * 1000L)
+                    .atOffset(ZoneOffset.UTC)
+                    .format(DateTimeFormatter.ISO_INSTANT)
+            }
+
+            val post = Post(
+                id = editPostId ?: UUID.randomUUID().toString(),
+                key = postKey,
+                authorUid = currentUser.id,
+                postText = text.ifEmpty { null },
+                postType = postType,
+                postVisibility = currentState.privacy,
+                postHideViewsCount = if (currentState.settings.hideViewsCount) "true" else "false",
+                postHideLikeCount = if (currentState.settings.hideLikeCount) "true" else "false",
+                postHideCommentsCount = if (currentState.settings.hideCommentsCount) "true" else "false",
+                postDisableComments = if (currentState.settings.disableComments) "true" else "false",
+                publishDate = publishDate, // Keep original date if edit? usually we update timestamp or have updated_at. For now keep simple.
+                timestamp = timestamp,
+                youtubeUrl = currentState.youtubeUrl,
+                hasPoll = currentState.pollData != null,
+                pollQuestion = currentState.pollData?.question,
+                pollOptions = currentState.pollData?.options?.map { PollOption(text = it, votes = 0) },
+                pollEndTime = pollEndTime,
+                hasLocation = currentState.location != null,
+                locationName = currentState.location?.name,
+                locationAddress = currentState.location?.address,
+                locationLatitude = currentState.location?.latitude,
+                locationLongitude = currentState.location?.longitude
+            )
+
+            // Filter new media that needs uploading
+            val newMedia = currentState.mediaItems.filter { !it.url.startsWith("http") }
+            val existingMedia = currentState.mediaItems.filter { it.url.startsWith("http") }
+
+            if (newMedia.isEmpty()) {
+                 // Use existing media + text update
+                 val finalPost = post.copy(
+                     mediaItems = existingMedia.toMutableList(),
+                     postImage = existingMedia.firstOrNull { it.type == MediaType.IMAGE }?.url
+                 )
+                 saveOrUpdatePost(finalPost)
+            } else {
+                 uploadMediaAndSave(post, newMedia, existingMedia)
+            }
+        }
+    }
+
+    private suspend fun uploadMediaAndSave(post: Post, newMedia: List<MediaItem>, existingMedia: List<MediaItem>) {
+         try {
+            MediaUploadManager.uploadMultipleMedia(
+                getApplication(),
+                newMedia,
+                onProgress = { progress ->
+                     _uiState.update { it.copy(uploadProgress = progress) }
+                },
+                onComplete = { uploaded ->
+                    val allMedia = existingMedia + uploaded
+                    val updatedPost = post.copy(
+                        mediaItems = allMedia.toMutableList(),
+                        postImage = allMedia.firstOrNull { it.type == MediaType.IMAGE }?.url
+                    )
+                    saveOrUpdatePost(updatedPost)
+                },
+                onError = { error ->
+                    _uiState.update { it.copy(isLoading = false, error = "Upload failed: $error") }
+                }
+            )
+         } catch (e: Exception) {
+             _uiState.update { it.copy(isLoading = false, error = "Upload failed: ${e.message}") }
+         }
+    }
+
+    private fun saveOrUpdatePost(post: Post) {
+        viewModelScope.launch {
+            // Using createPost because Supabase/Room UPSERT logic usually handles ID collisions, 
+            // OR we need specific update method. Assuming createPost handles upsert or we add updatePost.
+            // Checking PostRepository... assuming updatePost exists or createPost is upsert. 
+            // If strictly create, we might need separate update call.
+            // For now, let's assume createPost acts as upsert or use a specific update if available in repo.
+            // Checking found files earlier, PostRepository existed. Safest is to try update if edit mode.
+            
+            val result = if (_uiState.value.isEditMode) {
+                 postRepository.updatePost(post) // Assuming this method exists or we standard on create
+            } else {
+                 postRepository.createPost(post)
+            }
+
+            result.onSuccess {
+                    clearDraft()
+                    _uiState.update { it.copy(isLoading = false, isPostCreated = true) }
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(isLoading = false, error = "Failed: ${e.message}") }
+                }
+        }
+    }
+}

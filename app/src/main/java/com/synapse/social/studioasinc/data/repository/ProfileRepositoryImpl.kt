@@ -1,0 +1,295 @@
+package com.synapse.social.studioasinc.data.repository
+
+import com.synapse.social.studioasinc.data.model.UserProfile
+import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.model.MediaItem
+import com.synapse.social.studioasinc.model.MediaType
+import com.synapse.social.studioasinc.model.PollOption
+import com.synapse.social.studioasinc.ui.profile.utils.NetworkOptimizer
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.json.*
+
+/**
+ * Implementation of ProfileRepository with Supabase backend integration.
+ * 
+ * Features:
+ * - Request caching with 1-minute TTL
+ * - Automatic retry with exponential backoff
+ * - RLS policy compliance
+ * 
+ * Uses SupabaseClient singleton for all database operations.
+ */
+class ProfileRepositoryImpl : ProfileRepository {
+    private val client = SupabaseClient.client
+
+    private companion object {
+        // JSON field keys
+        const val KEY_UID = "uid"
+        const val KEY_USERNAME = "username"
+        const val KEY_DISPLAY_NAME = "display_name"
+        const val KEY_BIO = "bio"
+        const val KEY_AVATAR = "avatar"
+        const val KEY_COVER_IMAGE = "cover_image"
+        const val KEY_VERIFY = "verify"
+        const val KEY_IS_PRIVATE = "is_private"
+        const val KEY_POSTS_COUNT = "posts_count"
+        const val KEY_FOLLOWERS_COUNT = "followers_count"
+        const val KEY_FOLLOWING_COUNT = "following_count"
+        const val KEY_LOCATION = "location"
+        const val KEY_WEBSITE = "website"
+        const val KEY_GENDER = "gender"
+        const val KEY_PRONOUNS = "pronouns"
+        const val KEY_ID = "id"
+        const val KEY_AUTHOR_UID = "author_uid"
+        const val KEY_POST_TEXT = "post_text"
+        const val KEY_POST_IMAGE = "post_image"
+        const val KEY_POST_TYPE = "post_type"
+        const val KEY_TIMESTAMP = "timestamp"
+        const val KEY_LIKES_COUNT = "likes_count"
+        const val KEY_COMMENTS_COUNT = "comments_count"
+        const val KEY_VIEWS_COUNT = "views_count"
+        const val KEY_HAS_POLL = "has_poll"
+        const val KEY_POLL_QUESTION = "poll_question"
+        const val KEY_POLL_OPTIONS = "poll_options"
+        const val KEY_MEDIA_ITEMS = "media_items"
+        const val KEY_USERS = "users"
+        const val KEY_URL = "url"
+        const val KEY_TYPE = "type"
+        const val KEY_THUMBNAIL_URL = "thumbnailUrl" // Backend uses camelCase for this field
+        const val KEY_TEXT = "text"
+        const val KEY_VOTES = "votes"
+        
+        // Storage buckets
+        const val BUCKET_POST_MEDIA = "post-media"
+        const val BUCKET_USER_AVATARS = "user-avatars"
+        
+        // Media types
+        const val MEDIA_TYPE_VIDEO = "VIDEO"
+        const val MEDIA_TYPE_IMAGE = "IMAGE"
+    }
+
+    private fun constructStorageUrl(storagePath: String, bucket: String): String {
+        if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) return storagePath
+        return "${SupabaseClient.getUrl()}/storage/v1/object/public/$bucket/$storagePath"
+    }
+
+    private fun constructMediaUrl(storagePath: String): String = constructStorageUrl(storagePath, BUCKET_POST_MEDIA)
+    
+    private fun constructAvatarUrl(storagePath: String): String = constructStorageUrl(storagePath, BUCKET_USER_AVATARS)
+
+    private fun JsonObject.getString(key: String, default: String = ""): String = 
+        this[key]?.jsonPrimitive?.contentOrNull ?: default
+
+    private fun JsonObject.getNullableString(key: String): String? = 
+        this[key]?.jsonPrimitive?.contentOrNull
+
+    private fun JsonObject.getBoolean(key: String, default: Boolean = false): Boolean = 
+        this[key]?.jsonPrimitive?.booleanOrNull ?: default
+
+    private fun JsonObject.getInt(key: String, default: Int = 0): Int = 
+        this[key]?.jsonPrimitive?.intOrNull ?: default
+
+    private fun JsonObject.getLong(key: String, default: Long = 0L): Long = 
+        this[key]?.jsonPrimitive?.longOrNull ?: default
+
+    override fun getProfile(userId: String): Flow<Result<UserProfile>> = flow {
+        val cacheKey = "profile_$userId"
+        NetworkOptimizer.getCached<UserProfile>(cacheKey)?.let {
+            emit(Result.success(it))
+            return@flow
+        }
+        
+        try {
+            val response = NetworkOptimizer.withRetry {
+                client.from("users").select() { 
+                    filter { eq(KEY_UID, userId) } 
+                }.decodeSingleOrNull<JsonObject>()
+            }
+            
+            if (response == null) {
+                emit(Result.failure(Exception("Profile not found")))
+                return@flow
+            }
+            
+            // Query actual post count from posts table
+            val postCount = try {
+                client.from("posts").select(columns = Columns.raw("count")) {
+                    filter { eq(KEY_AUTHOR_UID, userId) }
+                    count(io.github.jan.supabase.postgrest.query.Count.EXACT)
+                }.countOrNull() ?: 0
+            } catch (e: Exception) {
+                0
+            }
+            
+            val profile = UserProfile(
+                id = response.getString(KEY_UID, userId),
+                username = response.getString(KEY_USERNAME),
+                name = response.getNullableString(KEY_DISPLAY_NAME),
+                bio = response.getNullableString(KEY_BIO),
+                profileImageUrl = response.getNullableString(KEY_AVATAR)?.let { constructAvatarUrl(it) },
+                coverImageUrl = response.getNullableString(KEY_COVER_IMAGE)?.let { constructMediaUrl(it) },
+                isVerified = response.getBoolean(KEY_VERIFY),
+                isPrivate = response.getBoolean(KEY_IS_PRIVATE),
+                postCount = postCount.toInt(),
+                followerCount = response.getInt(KEY_FOLLOWERS_COUNT),
+                followingCount = response.getInt(KEY_FOLLOWING_COUNT),
+                location = response.getNullableString(KEY_LOCATION),
+                website = response.getNullableString(KEY_WEBSITE),
+                gender = response.getNullableString(KEY_GENDER),
+                pronouns = response.getNullableString(KEY_PRONOUNS)
+            )
+            NetworkOptimizer.cache(cacheKey, profile)
+            emit(Result.success(profile))
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+    override suspend fun updateProfile(userId: String, profile: UserProfile): Result<UserProfile> = try {
+        val updated = client.from("users").update(profile) { filter { eq("uid", userId) } }.decodeSingle<UserProfile>()
+        Result.success(updated)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun followUser(userId: String, targetUserId: String): Result<Unit> = try {
+        client.from("follows").insert(mapOf("follower_id" to userId, "following_id" to targetUserId))
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun unfollowUser(userId: String, targetUserId: String): Result<Unit> = try {
+        client.from("follows").delete { filter { eq("follower_id", userId); eq("following_id", targetUserId) } }
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun getFollowers(userId: String, limit: Int, offset: Int): Result<List<UserProfile>> = try {
+        val followers = client.from("follows").select() { 
+            filter { eq("follower_id", userId) }
+            limit(limit.toLong())
+            range(offset.toLong(), (offset + limit - 1).toLong())
+        }.decodeList<Map<String, UserProfile>>().mapNotNull { it["following_id"] }
+        Result.success(followers)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun getFollowing(userId: String, limit: Int, offset: Int): Result<List<UserProfile>> = try {
+        val following = client.from("follows").select() { 
+            filter { eq("following_id", userId) }
+            limit(limit.toLong())
+            range(offset.toLong(), (offset + limit - 1).toLong())
+        }.decodeList<Map<String, UserProfile>>().mapNotNull { it["follower_id"] }
+        Result.success(following)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun getProfilePosts(userId: String, limit: Int, offset: Int): Result<List<Any>> = try {
+        val response = client.from("posts").select(
+            columns = Columns.raw("*, users!posts_author_uid_fkey($KEY_UID, $KEY_USERNAME, $KEY_AVATAR, $KEY_VERIFY)")
+        ) { 
+            filter { eq(KEY_AUTHOR_UID, userId) }
+            limit(limit.toLong())
+            range(offset.toLong(), (offset + limit - 1).toLong())
+        }.decodeList<JsonObject>()
+        
+        val posts = response.mapNotNull { data -> parsePost(data) }
+        Result.success(posts)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    private suspend fun getMediaItemsByType(userId: String, limit: Int, offset: Int, isVideo: Boolean): Result<List<com.synapse.social.studioasinc.ui.profile.components.MediaItem>> = try {
+        val response = client.from("posts").select(
+            columns = Columns.raw("$KEY_ID, $KEY_MEDIA_ITEMS")
+        ) { 
+            filter { eq(KEY_AUTHOR_UID, userId) }
+            limit(limit.toLong())
+            range(offset.toLong(), (offset + limit - 1).toLong())
+        }.decodeList<JsonObject>()
+        
+        val mediaItems = response.flatMap { data ->
+            val postId = data[KEY_ID]?.jsonPrimitive?.contentOrNull ?: return@flatMap emptyList()
+            data[KEY_MEDIA_ITEMS]?.takeIf { it !is JsonNull }?.jsonArray?.mapNotNull { item ->
+                val mediaMap = item.jsonObject
+                val url = mediaMap[KEY_URL]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                val typeStr = mediaMap[KEY_TYPE]?.jsonPrimitive?.contentOrNull ?: MEDIA_TYPE_IMAGE
+                val isVideoType = typeStr.equals(MEDIA_TYPE_VIDEO, ignoreCase = true)
+                if (isVideoType != isVideo) return@mapNotNull null
+                com.synapse.social.studioasinc.ui.profile.components.MediaItem(
+                    id = mediaMap[KEY_ID]?.jsonPrimitive?.contentOrNull ?: postId,
+                    url = constructMediaUrl(url),
+                    isVideo = isVideo
+                )
+            } ?: emptyList()
+        }
+        Result.success(mediaItems)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun getProfilePhotos(userId: String, limit: Int, offset: Int): Result<List<Any>> = 
+        getMediaItemsByType(userId, limit, offset, isVideo = false)
+
+    override suspend fun getProfileReels(userId: String, limit: Int, offset: Int): Result<List<Any>> = 
+        getMediaItemsByType(userId, limit, offset, isVideo = true)
+
+    override suspend fun isFollowing(userId: String, targetUserId: String): Result<Boolean> = try {
+        val result = client.from("follows").select() { 
+            filter { eq("follower_id", userId); eq("following_id", targetUserId) } 
+        }.decodeList<JsonObject>()
+        Result.success(result.isNotEmpty())
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    private fun parsePost(data: JsonObject): Post? {
+        val post = Post(
+            id = data.getNullableString(KEY_ID) ?: return null,
+            authorUid = data.getString(KEY_AUTHOR_UID),
+            postText = data.getNullableString(KEY_POST_TEXT),
+            postImage = data.getNullableString(KEY_POST_IMAGE)?.let { constructMediaUrl(it) },
+            postType = data.getNullableString(KEY_POST_TYPE),
+            timestamp = data.getLong(KEY_TIMESTAMP),
+            likesCount = data.getInt(KEY_LIKES_COUNT),
+            commentsCount = data.getInt(KEY_COMMENTS_COUNT),
+            viewsCount = data.getInt(KEY_VIEWS_COUNT),
+            hasPoll = data.getBoolean(KEY_HAS_POLL),
+            pollQuestion = data.getNullableString(KEY_POLL_QUESTION),
+            pollOptions = data[KEY_POLL_OPTIONS]?.jsonArray?.mapNotNull {
+                val obj = it.jsonObject
+                val text = obj.getNullableString(KEY_TEXT) ?: return@mapNotNull null
+                PollOption(text, obj.getInt(KEY_VOTES))
+            }
+        )
+        
+        data[KEY_USERS]?.jsonObject?.let { userData ->
+            post.username = userData.getNullableString(KEY_USERNAME)
+            post.avatarUrl = userData.getNullableString(KEY_AVATAR)?.let { constructAvatarUrl(it) }
+            post.isVerified = userData.getBoolean(KEY_VERIFY)
+        }
+        
+        data[KEY_MEDIA_ITEMS]?.takeIf { it !is JsonNull }?.jsonArray?.let { mediaData ->
+            post.mediaItems = mediaData.mapNotNull { item ->
+                val mediaMap = item.jsonObject
+                val url = mediaMap.getNullableString(KEY_URL) ?: return@mapNotNull null
+                MediaItem(
+                    id = mediaMap.getString(KEY_ID),
+                    url = constructMediaUrl(url),
+                    type = if (mediaMap.getNullableString(KEY_TYPE).equals(MEDIA_TYPE_VIDEO, true)) MediaType.VIDEO else MediaType.IMAGE,
+                    thumbnailUrl = mediaMap.getNullableString(KEY_THUMBNAIL_URL)?.let { constructMediaUrl(it) }
+                )
+            }.toMutableList()
+        }
+        
+        return post
+    }
+}
