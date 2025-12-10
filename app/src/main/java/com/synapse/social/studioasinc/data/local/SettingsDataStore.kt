@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.synapse.social.studioasinc.ui.settings.AppearanceSettings
@@ -456,7 +457,7 @@ class SettingsDataStore private constructor(private val context: Context) {
             preferences.remove(KEY_READ_RECEIPTS_ENABLED)
             preferences.remove(KEY_TYPING_INDICATORS_ENABLED)
             preferences.remove(KEY_MEDIA_AUTO_DOWNLOAD)
-            preferences.remove(KEY_CHAT_FONT_SCALE)
+            preferences.remove<Float>(KEY_CHAT_FONT_SCALE)
             
             // Data saver
             preferences.remove(KEY_DATA_SAVER_ENABLED)

@@ -31,7 +31,8 @@ import com.synapse.social.studioasinc.R
 @Composable
 fun AppearanceScreen(
     viewModel: AppearanceViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToChatCustomization: () -> Unit = {}
 ) {
     val appearanceSettings by viewModel.appearanceSettings.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
