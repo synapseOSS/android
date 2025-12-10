@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.synapse.social.studioasinc.ui.inbox.InboxScreen
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 
 /**
  * Activity for the new Compose-based Inbox.
@@ -26,6 +27,9 @@ import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 class InboxComposeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Setup edge-to-edge display before setContent
+        EdgeToEdgeUtils.setupEdgeToEdgeActivity(this)
         
         setContent {
             // Get appearance settings to apply theme preferences
@@ -46,7 +50,8 @@ class InboxComposeActivity : ComponentActivity() {
             
             SynapseTheme(
                 darkTheme = darkTheme,
-                dynamicColor = dynamicColor
+                dynamicColor = dynamicColor,
+                enableEdgeToEdge = true
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

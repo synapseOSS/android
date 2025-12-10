@@ -90,38 +90,30 @@ fun SettingsScreen(
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(start = 12.dp, bottom = 4.dp)
                     )
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    SettingsGroup {
                         SettingRow(
                             icon = R.drawable.ic_person,
                             title = stringResource(R.string.settings_account),
                             subtitle = stringResource(R.string.settings_account_subtitle),
                             imageUrl = currentUser?.profileImageUrl,
                             onClick = onAccountClick,
-                            cornerRadius = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                            position = SettingsItemPosition.Top
                         )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
+                        SettingsDivider()
                         SettingRow(
                             icon = R.drawable.ic_shield_lock,
                             title = stringResource(R.string.settings_privacy),
                             subtitle = stringResource(R.string.settings_privacy_subtitle),
                             onClick = onPrivacyClick,
-                            cornerRadius = RoundedCornerShape(0.dp)
+                            position = SettingsItemPosition.Middle
                         )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
+                        SettingsDivider()
                         SettingRow(
                             icon = R.drawable.ic_notifications,
                             title = stringResource(R.string.settings_notifications),
                             subtitle = stringResource(R.string.settings_notifications_subtitle),
                             onClick = onNotificationsClick,
-                            cornerRadius = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
+                            position = SettingsItemPosition.Bottom
                         )
                     }
                 }
@@ -285,62 +277,66 @@ private fun SettingRow(
     subtitle: String?,
     imageUrl: String? = null,
     showChevron: Boolean = true,
-    cornerRadius: RoundedCornerShape = RoundedCornerShape(0.dp),
+    position: SettingsItemPosition = SettingsItemPosition.Single,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(cornerRadius)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = position.getShape(),
+        color = MaterialTheme.colorScheme.surfaceContainer
     ) {
-        if (imageUrl != null) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(icon),
-                error = painterResource(icon)
-            )
-        } else {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Column(
+        Row(
             modifier = Modifier
-                .weight(1f)
-                .padding(start = 16.dp)
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
-            if (subtitle != null) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            if (imageUrl != null) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(icon),
+                    error = painterResource(icon)
+                )
+            } else {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-        if (showChevron) {
-            Icon(
-                painter = painterResource(R.drawable.ic_chevron_right),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            if (showChevron) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
         }
     }
 }

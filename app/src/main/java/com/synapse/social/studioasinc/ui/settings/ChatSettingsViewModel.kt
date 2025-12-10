@@ -192,6 +192,86 @@ class ChatSettingsViewModel(
         // Navigation will be handled by the screen composable
     }
 
+    /**
+     * Handles navigation to chat customization screen.
+     * This allows users to customize chat bubble colors and themes.
+     */
+    fun navigateToChatCustomization() {
+        android.util.Log.d("ChatSettingsViewModel", "Navigate to chat customization")
+        // Navigation will be handled by the screen composable
+    }
+
+    /**
+     * Handles navigation to chat wallpapers screen.
+     * This allows users to set custom backgrounds for conversations.
+     */
+    fun navigateToChatWallpapers() {
+        android.util.Log.d("ChatSettingsViewModel", "Navigate to chat wallpapers")
+        // Navigation will be handled by the screen composable
+    }
+
+    // ========================================================================
+    // Chat Font Size
+    // ========================================================================
+
+    /**
+     * Sets the chat font scale for message text.
+     * 
+     * @param scale The font scale multiplier (0.8f to 1.4f)
+     */
+    fun setChatFontScale(scale: Float) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                settingsRepository.setChatFontScale(scale)
+                android.util.Log.d("ChatSettingsViewModel", "Chat font scale set to $scale")
+            } catch (e: Exception) {
+                android.util.Log.e("ChatSettingsViewModel", "Failed to set chat font scale", e)
+                _error.value = "Failed to update chat font size"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Converts chat font scale to slider value (0-3).
+     */
+    fun getChatFontSizeSliderValue(scale: Float): Float {
+        return when {
+            scale <= 0.8f -> 0f
+            scale <= 1.0f -> 1f
+            scale <= 1.2f -> 2f
+            else -> 3f
+        }
+    }
+
+    /**
+     * Converts slider value (0-3) to chat font scale.
+     */
+    fun getChatFontScaleFromSliderValue(value: Float): Float {
+        return when (value.toInt()) {
+            0 -> 0.8f
+            1 -> 1.0f
+            2 -> 1.2f
+            3 -> 1.4f
+            else -> 1.0f
+        }
+    }
+
+    /**
+     * Gets preview text for chat font scale.
+     */
+    fun getChatFontScalePreviewText(scale: Float): String {
+        return when {
+            scale <= 0.8f -> "Small"
+            scale <= 1.0f -> "Default"
+            scale <= 1.2f -> "Large"
+            else -> "Extra Large"
+        }
+    }
+
     // ========================================================================
     // Helper Methods
     // ========================================================================

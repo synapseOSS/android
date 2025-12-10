@@ -31,8 +31,7 @@ import com.synapse.social.studioasinc.R
 @Composable
 fun AppearanceScreen(
     viewModel: AppearanceViewModel,
-    onNavigateBack: () -> Unit,
-    onNavigateToChatCustomization: () -> Unit
+    onNavigateBack: () -> Unit
 ) {
     val appearanceSettings by viewModel.appearanceSettings.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -137,21 +136,7 @@ fun AppearanceScreen(
                 }
             }
 
-            // Customization Section
-            item {
-                SettingsSection(title = "Customization") {
-                    SettingsNavigationItem(
-                        title = "Chat Customization",
-                        subtitle = "Customize chat bubble colors and backgrounds",
-                        icon = R.drawable.ic_message,
-                        onClick = {
-                            viewModel.navigateToChatCustomization()
-                            onNavigateToChatCustomization()
-                        },
-                        enabled = !isLoading
-                    )
-                }
-            }
+
 
             // Bottom spacing
             item {

@@ -20,6 +20,7 @@ import com.synapse.social.studioasinc.ui.profile.ProfileViewModel
 import com.synapse.social.studioasinc.ui.profile.ProfileViewModelFactory
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.runBlocking
 
@@ -40,6 +41,9 @@ class ProfileComposeActivity : ComponentActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Setup edge-to-edge display before setContent
+        EdgeToEdgeUtils.setupEdgeToEdgeActivity(this)
         
         val targetUserId = intent.getStringExtra("uid") ?: run {
             finish()
@@ -76,7 +80,8 @@ class ProfileComposeActivity : ComponentActivity() {
             
             SynapseTheme(
                 darkTheme = darkTheme,
-                dynamicColor = dynamicColor
+                dynamicColor = dynamicColor,
+                enableEdgeToEdge = true
             ) {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     ProfileScreen(

@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 
 /**
  * Authentication feature theme.
@@ -18,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 fun AuthTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
+    enableEdgeToEdge: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -31,6 +33,15 @@ fun AuthTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        content = content
+        content = {
+            // Automatically setup edge-to-edge if enabled
+            if (enableEdgeToEdge) {
+                EdgeToEdgeUtils.SetupEdgeToEdge(
+                    colorScheme = colorScheme,
+                    darkTheme = darkTheme
+                )
+            }
+            content()
+        }
     )
 }

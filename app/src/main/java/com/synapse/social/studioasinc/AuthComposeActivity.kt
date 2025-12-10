@@ -5,7 +5,8 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.synapse.social.studioasinc.data.repository.AuthRepository
@@ -13,6 +14,7 @@ import com.synapse.social.studioasinc.data.repository.UsernameRepository
 import com.synapse.social.studioasinc.ui.auth.AuthScreen
 import com.synapse.social.studioasinc.ui.auth.AuthViewModel
 import com.synapse.social.studioasinc.ui.theme.AuthTheme
+import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 
 /**
  * Modern Compose-based AuthActivity.
@@ -21,7 +23,9 @@ import com.synapse.social.studioasinc.ui.theme.AuthTheme
 class AuthComposeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        
+        // Setup edge-to-edge display before setContent
+        EdgeToEdgeUtils.setupEdgeToEdgeActivity(this)
 
         val authRepository = AuthRepository()
         val sharedPreferences = getSharedPreferences("auth_prefs", MODE_PRIVATE)
@@ -35,7 +39,7 @@ class AuthComposeActivity : ComponentActivity() {
         viewModel.handleDeepLink(intent.data)
 
         setContent {
-            AuthTheme {
+            AuthTheme(enableEdgeToEdge = true) {
                 AuthScreen(
                     viewModel = viewModel,
                     onNavigateToMain = {

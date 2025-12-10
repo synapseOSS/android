@@ -151,15 +151,15 @@ class SupabaseChatService {
                 
                 if (existingChat == null) {
                     // Try to insert new chat
-                    // Convert milliseconds to seconds for PostgreSQL timestamptz
-                    val timestampSeconds = System.currentTimeMillis() / 1000
+                    // Use ISO 8601 format for PostgreSQL timestamptz
+                    val isoTimestamp = java.time.Instant.now().toString()
                     val chatData = mapOf(
                         "chat_id" to chatId,
                         "is_group" to false,
                         "created_by" to userId1,
                         "participants_count" to 2,
                         "is_active" to true,
-                        "created_at" to timestampSeconds
+                        "created_at" to isoTimestamp
                     )
                     
                     val insertResult = databaseService.insert("chats", chatData)
@@ -260,9 +260,8 @@ class SupabaseChatService {
                 }
                 
                 val messageId = UUID.randomUUID().toString()
-                val timestamp = System.currentTimeMillis()
-                // Convert milliseconds to seconds for PostgreSQL timestamptz
-                val timestampSeconds = timestamp / 1000
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 
                 // Determine message type based on attachments
                 val finalMessageType = if (!attachments.isNullOrEmpty()) {
@@ -276,8 +275,8 @@ class SupabaseChatService {
                     "sender_id" to senderId,
                     "content" to content,
                     "message_type" to finalMessageType,
-                    "created_at" to timestampSeconds,
-                    "updated_at" to timestampSeconds,
+                    "created_at" to isoTimestamp,
+                    "updated_at" to isoTimestamp,
                     "message_state" to "sent",  // Set initial state to SENT
                     "delivered_at" to null,      // Initially null
                     "read_at" to null,           // Initially null
@@ -323,7 +322,7 @@ class SupabaseChatService {
                         } else {
                             content
                         }
-                        updateChatLastMessage(chatId, lastMessageText, timestampSeconds, senderId)
+                        updateChatLastMessage(chatId, lastMessageText, isoTimestamp, senderId)
                         Result.success(messageId)
                     },
                     onFailure = { error -> Result.failure(error) }
@@ -340,7 +339,7 @@ class SupabaseChatService {
     private suspend fun updateChatLastMessage(
         chatId: String,
         lastMessage: String,
-        timestamp: Long,
+        timestamp: String,
         senderId: String
     ): Result<Unit> {
         return try {
@@ -479,8 +478,6 @@ class SupabaseChatService {
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val timestamp = System.currentTimeMillis()
-                
                 // Get messages to mark as read
                 val messagesToUpdate = if (messageIds != null) {
                     messageIds
@@ -507,14 +504,14 @@ class SupabaseChatService {
                 
                 android.util.Log.d(TAG, "Marking ${messagesToUpdate.size} messages as read in chat: $chatId")
                 
-                // Convert milliseconds to seconds for PostgreSQL timestamptz
-                val timestampSeconds = timestamp / 1000
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 
                 // Batch update all messages in a single operation using buildJsonObject
                 val updateData = buildJsonObject {
                     put("message_state", "read")
-                    put("read_at", timestampSeconds)
-                    put("updated_at", timestampSeconds)
+                    put("read_at", isoTimestamp)
+                    put("updated_at", isoTimestamp)
                 }
                 
                 // Update messages using batch operation
@@ -526,7 +523,7 @@ class SupabaseChatService {
                 
                 // Update last_read_at for the participant using buildJsonObject
                 val participantUpdateData = buildJsonObject {
-                    put("last_read_at", timestampSeconds)
+                    put("last_read_at", isoTimestamp)
                 }
                 
                 client.from("chat_participants").update(participantUpdateData) {
@@ -574,18 +571,17 @@ class SupabaseChatService {
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val timestamp = System.currentTimeMillis()
-                // Convert milliseconds to seconds for PostgreSQL timestamptz
-                val timestampSeconds = timestamp / 1000
-                
                 android.util.Log.d(TAG, "Updating message $messageId to DELIVERED state")
+                
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 
                 // Update message state to DELIVERED
                 val updateData = mapOf(
                     "message_state" to "delivered",
-                    "delivered_at" to timestampSeconds,
+                    "delivered_at" to isoTimestamp,
                     "delivery_status" to "delivered",
-                    "updated_at" to timestampSeconds
+                    "updated_at" to isoTimestamp
                 )
                 
                 databaseService.update("messages", updateData, "id", messageId).fold(
@@ -625,12 +621,12 @@ class SupabaseChatService {
      */
     suspend fun deleteMessage(messageId: String, deleteForEveryone: Boolean = true): Result<Unit> {
         return try {
-            // Convert milliseconds to seconds for PostgreSQL timestamptz
-            val timestampSeconds = System.currentTimeMillis() / 1000
+            // Use ISO 8601 format for PostgreSQL timestamptz
+            val isoTimestamp = java.time.Instant.now().toString()
             val updateData = mapOf(
                 "is_deleted" to true,
                 "delete_for_everyone" to deleteForEveryone,
-                "deleted_at" to timestampSeconds
+                "deleted_at" to isoTimestamp
             )
             databaseService.update("messages", updateData, "id", messageId)
         } catch (e: Exception) {
@@ -764,9 +760,8 @@ class SupabaseChatService {
     suspend fun editMessage(messageId: String, newContent: String): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val timestamp = System.currentTimeMillis()
-                // Convert milliseconds to seconds for PostgreSQL timestamptz
-                val timestampSeconds = timestamp / 1000
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 
                 // Get current message content before editing
                 val currentMessage = client.from("messages")
@@ -788,7 +783,7 @@ class SupabaseChatService {
                         "message_id" to messageId,
                         "previous_content" to previousContent,
                         "edited_by" to senderId,
-                        "edited_at" to timestampSeconds
+                        "edited_at" to isoTimestamp
                     )
                     val historyResult = databaseService.insert("message_edit_history", historyData)
                     if (historyResult.isFailure) {
@@ -801,8 +796,8 @@ class SupabaseChatService {
                 val updateData = mapOf(
                     "content" to newContent,
                     "is_edited" to true,
-                    "edited_at" to timestampSeconds,
-                    "updated_at" to timestampSeconds
+                    "edited_at" to isoTimestamp,
+                    "updated_at" to isoTimestamp
                 )
                 databaseService.update("messages", updateData, "id", messageId)
             } catch (e: Exception) {
@@ -830,13 +825,13 @@ class SupabaseChatService {
                     return@withContext Result.failure(Exception("Supabase not configured"))
                 }
                 if (isTyping) {
-                    // Convert milliseconds to seconds for PostgreSQL timestamptz
-                    val timestampSeconds = System.currentTimeMillis() / 1000
+                    // Use ISO 8601 format for PostgreSQL timestamptz
+                    val isoTimestamp = java.time.Instant.now().toString()
                     val typingData = mapOf(
                         "chat_id" to chatId,
                         "user_id" to userId,
                         "is_typing" to isTyping,
-                        "timestamp" to timestampSeconds
+                        "timestamp" to isoTimestamp
                     )
                     databaseService.upsert("typing_status", typingData)
                 } else {
@@ -867,8 +862,8 @@ class SupabaseChatService {
     suspend fun getTypingUsers(chatId: String, excludeUserId: String): Result<List<String>> {
         return withContext(Dispatchers.IO) {
             try {
-                // Convert milliseconds to seconds for PostgreSQL timestamptz comparison
-                val fiveSecondsAgo = (System.currentTimeMillis() - 5000) / 1000
+                // Get timestamp from 5 seconds ago in ISO format
+                val fiveSecondsAgo = java.time.Instant.now().minusSeconds(5).toString()
                 
                 val typingUsers = client.from("typing_status")
                     .select(columns = Columns.raw("user_id")) {
@@ -921,11 +916,11 @@ class SupabaseChatService {
         status: String
     ): Result<Unit> {
         return try {
-            // Convert milliseconds to seconds for PostgreSQL timestamptz
-            val timestampSeconds = System.currentTimeMillis() / 1000
+            // Use ISO 8601 format for PostgreSQL timestamptz
+            val isoTimestamp = java.time.Instant.now().toString()
             val updateData = mapOf(
                 "delivery_status" to status,
-                "updated_at" to timestampSeconds
+                "updated_at" to isoTimestamp
             )
             databaseService.update("messages", updateData, "id", messageId)
         } catch (e: Exception) {
@@ -982,14 +977,14 @@ class SupabaseChatService {
         return withContext(Dispatchers.IO) {
             try {
                 val reactionId = UUID.randomUUID().toString()
-                // Convert milliseconds to seconds for PostgreSQL timestamptz
-                val timestampSeconds = System.currentTimeMillis() / 1000
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 val reactionData = mapOf(
                     "id" to reactionId,
                     "message_id" to messageId,
                     "user_id" to userId,
                     "emoji" to emoji,
-                    "created_at" to timestampSeconds
+                    "created_at" to isoTimestamp
                 )
                 
                 databaseService.insert("message_reactions", reactionData).fold(

@@ -5,6 +5,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 
 private val LightColorScheme = lightColorScheme(
     primary = LightPrimary,
@@ -74,6 +75,7 @@ private val DarkColorScheme = darkColorScheme(
 fun SynapseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
+    enableEdgeToEdge: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -88,6 +90,15 @@ fun SynapseTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = SynapseTypography,
-        content = content
+        content = {
+            // Automatically setup edge-to-edge if enabled
+            if (enableEdgeToEdge) {
+                EdgeToEdgeUtils.SetupEdgeToEdge(
+                    colorScheme = colorScheme,
+                    darkTheme = darkTheme
+                )
+            }
+            content()
+        }
     )
 }

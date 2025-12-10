@@ -276,3 +276,37 @@ object SettingsTypography {
         @ReadOnlyComposable
         get() = MaterialTheme.typography.labelLarge
 }
+
+/**
+ * Position of a settings item within a group for Material 3 Expressive corner radius styling.
+ */
+enum class SettingsItemPosition {
+    /** Single item (all corners rounded) */
+    Single,
+    /** First item in group (top corners rounded) */
+    Top,
+    /** Middle item in group (no corners rounded) */
+    Middle,
+    /** Last item in group (bottom corners rounded) */
+    Bottom;
+
+    /**
+     * Get the appropriate shape for this position.
+     */
+    fun getShape(): Shape = when (this) {
+        Single -> SettingsShapes.itemShape
+        Top -> RoundedCornerShape(
+            topStart = 16.dp,
+            topEnd = 16.dp,
+            bottomStart = 0.dp,
+            bottomEnd = 0.dp
+        )
+        Middle -> RoundedCornerShape(0.dp)
+        Bottom -> RoundedCornerShape(
+            topStart = 0.dp,
+            topEnd = 0.dp,
+            bottomStart = 16.dp,
+            bottomEnd = 16.dp
+        )
+    }
+}

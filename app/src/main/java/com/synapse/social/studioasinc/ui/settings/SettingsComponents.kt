@@ -35,10 +35,7 @@ import com.synapse.social.studioasinc.R
 // ============================================================================
 
 /**
- * A toggle settings item with a Material 3 Switch.
- * 
- * Displays a title, optional subtitle, optional icon, and a toggle switch.
- * Uses consistent 16dp horizontal and vertical padding.
+ * Enhanced toggle settings item with Material 3 Expressive corner radius support.
  * 
  * @param title The main title text
  * @param subtitle Optional descriptive text below the title
@@ -46,6 +43,7 @@ import com.synapse.social.studioasinc.R
  * @param checked Current toggle state
  * @param onCheckedChange Callback when toggle state changes
  * @param enabled Whether the item is interactive
+ * @param position Position in group for corner radius styling
  * 
  * Requirements: 1.4, 2.1, 3.1, 4.1, 5.1, 6.1
  */
@@ -56,85 +54,90 @@ fun SettingsToggleItem(
     @DrawableRes icon: Int? = null,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    position: SettingsItemPosition = SettingsItemPosition.Single
 ) {
     val toggleDescription = stringResource(R.string.settings_toggle_description)
     val fullDescription = "$title, $toggleDescription, ${if (checked) "enabled" else "disabled"}"
     
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled) { onCheckedChange(!checked) }
-            .semantics(mergeDescendants = true) {
-                contentDescription = fullDescription
-            }
-            .padding(
-                horizontal = SettingsSpacing.itemHorizontalPadding,
-                vertical = SettingsSpacing.itemVerticalPadding
-            )
-            .heightIn(min = SettingsSpacing.minTouchTarget),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = position.getShape(),
+        color = SettingsColors.cardBackground
     ) {
-        // Leading icon
-        if (icon != null) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = null, // Merged into parent semantics
-                modifier = Modifier.size(SettingsSpacing.iconSize),
-                tint = SettingsColors.itemIcon
-            )
-            Spacer(modifier = Modifier.width(SettingsSpacing.iconTextSpacing))
-        }
-        
-        // Title and subtitle
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = title,
-                style = SettingsTypography.itemTitle,
-                color = if (enabled) MaterialTheme.colorScheme.onSurface 
-                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-            )
-            if (subtitle != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = subtitle,
-                    style = SettingsTypography.itemSubtitle,
-                    color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
-                           else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled) { onCheckedChange(!checked) }
+                .semantics(mergeDescendants = true) {
+                    contentDescription = fullDescription
+                }
+                .padding(
+                    horizontal = SettingsSpacing.itemHorizontalPadding,
+                    vertical = SettingsSpacing.itemVerticalPadding
                 )
+                .heightIn(min = SettingsSpacing.minTouchTarget),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Leading icon
+            if (icon != null) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null, // Merged into parent semantics
+                    modifier = Modifier.size(SettingsSpacing.iconSize),
+                    tint = SettingsColors.itemIcon
+                )
+                Spacer(modifier = Modifier.width(SettingsSpacing.iconTextSpacing))
             }
-        }
-        
-        Spacer(modifier = Modifier.width(16.dp))
-        
-        // Material 3 Switch with primary thumb and primaryContainer track
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.primary,
-                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+            
+            // Title and subtitle
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = SettingsTypography.itemTitle,
+                    color = if (enabled) MaterialTheme.colorScheme.onSurface 
+                           else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                )
+                if (subtitle != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = subtitle,
+                        style = SettingsTypography.itemSubtitle,
+                        color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                               else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            // Material 3 Switch with primary thumb and primaryContainer track
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                enabled = enabled,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
             )
-        )
+        }
     }
 }
 
 /**
- * A navigation settings item with a chevron icon.
- * 
- * Displays a title, optional subtitle, optional icon, and a chevron indicating navigation.
- * Uses consistent 16dp horizontal and vertical padding.
+ * Enhanced navigation settings item with Material 3 Expressive corner radius support.
  * 
  * @param title The main title text
  * @param subtitle Optional descriptive text below the title
  * @param icon Optional leading icon resource
  * @param onClick Callback when the item is clicked
  * @param enabled Whether the item is interactive
+ * @param position Position in group for corner radius styling
  * 
  * Requirements: 1.4, 2.1, 3.1, 4.1, 5.1, 6.1
  */
@@ -144,60 +147,75 @@ fun SettingsNavigationItem(
     subtitle: String? = null,
     @DrawableRes icon: Int? = null,
     onClick: () -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    position: SettingsItemPosition = SettingsItemPosition.Single
 ) {
     val chevronDescription = stringResource(R.string.settings_chevron_description)
     val fullDescription = "$title, $chevronDescription"
     
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled, onClick = onClick)
-            .semantics(mergeDescendants = true) {
-                contentDescription = fullDescription
-            }
-            .padding(
-                horizontal = SettingsSpacing.itemHorizontalPadding,
-                vertical = SettingsSpacing.itemVerticalPadding
-            )
-            .heightIn(min = SettingsSpacing.minTouchTarget),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = position.getShape(),
+        color = SettingsColors.cardBackground
     ) {
-        // Leading icon
-        if (icon != null) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled, onClick = onClick)
+                .semantics(mergeDescendants = true) {
+                    contentDescription = fullDescription
+                }
+                .padding(
+                    horizontal = SettingsSpacing.itemHorizontalPadding,
+                    vertical = SettingsSpacing.itemVerticalPadding
+                )
+                .heightIn(min = SettingsSpacing.minTouchTarget),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Leading icon
+            if (icon != null) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null, // Merged into parent semantics
+                    modifier = Modifier.size(SettingsSpacing.iconSize),
+                    tint = SettingsColors.itemIcon
+                )
+                Spacer(modifier = Modifier.width(SettingsSpacing.iconTextSpacing))
+            }
+            
+            // Title and subtitle
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = SettingsTypography.itemTitle,
+                    color = if (enabled) MaterialTheme.colorScheme.onSurface 
+                           else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                )
+                if (subtitle != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = subtitle,
+                        style = SettingsTypography.itemSubtitle,
+                        color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                               else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            // Chevron icon with onSurfaceVariant at 0.5 alpha
             Icon(
-                painter = painterResource(icon),
+                painter = painterResource(R.drawable.ic_chevron_right),
                 contentDescription = null, // Merged into parent semantics
                 modifier = Modifier.size(SettingsSpacing.iconSize),
-                tint = SettingsColors.itemIcon
+                tint = SettingsColors.chevronIcon
             )
-            Spacer(modifier = Modifier.width(SettingsSpacing.iconTextSpacing))
         }
-        
-        // Title and subtitle
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = title,
-                style = SettingsTypography.itemTitle,
-                color = if (enabled) MaterialTheme.colorScheme.onSurface 
-                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-            )
-            if (subtitle != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = subtitle,
-                    style = SettingsTypography.itemSubtitle,
-                    color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
-                           else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                )
-            }
-        }
-        
-        Spacer(modifier = Modifier.width(16.dp))
-        
-        // Chevron icon with onSurfaceVariant at 0.5 alpha
+    }
+}
         Icon(
             painter = painterResource(R.drawable.ic_chevron_right),
             contentDescription = null, // Merged into parent semantics
@@ -208,10 +226,7 @@ fun SettingsNavigationItem(
 }
 
 /**
- * A selection settings item with an ExposedDropdownMenuBox.
- * 
- * Displays a title, optional subtitle, optional icon, and a dropdown menu for selection.
- * Uses consistent 16dp horizontal and vertical padding.
+ * Enhanced selection settings item with Material 3 Expressive corner radius support.
  * 
  * @param title The main title text
  * @param subtitle Optional descriptive text below the title
@@ -220,6 +235,7 @@ fun SettingsNavigationItem(
  * @param selectedOption Currently selected option
  * @param onSelect Callback when an option is selected
  * @param enabled Whether the item is interactive
+ * @param position Position in group for corner radius styling
  * 
  * Requirements: 1.4, 2.1, 3.1, 4.1, 5.1, 6.1
  */
@@ -232,96 +248,103 @@ fun SettingsSelectionItem(
     options: List<String>,
     selectedOption: String,
     onSelect: (String) -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    position: SettingsItemPosition = SettingsItemPosition.Single
 ) {
     var expanded by remember { mutableStateOf(false) }
     val dropdownDescription = stringResource(R.string.settings_dropdown_description)
     
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {
-                contentDescription = "$title, $dropdownDescription, $selectedOption"
-            }
-            .padding(
-                horizontal = SettingsSpacing.itemHorizontalPadding,
-                vertical = SettingsSpacing.itemVerticalPadding
-            )
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = position.getShape(),
+        color = SettingsColors.cardBackground
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // Leading icon
-            if (icon != null) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(SettingsSpacing.iconSize),
-                    tint = SettingsColors.itemIcon
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics(mergeDescendants = true) {
+                    contentDescription = "$title, $dropdownDescription, $selectedOption"
+                }
+                .padding(
+                    horizontal = SettingsSpacing.itemHorizontalPadding,
+                    vertical = SettingsSpacing.itemVerticalPadding
                 )
-                Spacer(modifier = Modifier.width(SettingsSpacing.iconTextSpacing))
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Leading icon
+                if (icon != null) {
+                    Icon(
+                        painter = painterResource(icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(SettingsSpacing.iconSize),
+                        tint = SettingsColors.itemIcon
+                    )
+                    Spacer(modifier = Modifier.width(SettingsSpacing.iconTextSpacing))
+                }
+                
+                // Title
+                Text(
+                    text = title,
+                    style = SettingsTypography.itemTitle,
+                    color = if (enabled) MaterialTheme.colorScheme.onSurface 
+                           else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                    modifier = Modifier.weight(1f)
+                )
             }
             
-            // Title
-            Text(
-                text = title,
-                style = SettingsTypography.itemTitle,
-                color = if (enabled) MaterialTheme.colorScheme.onSurface 
-                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                modifier = Modifier.weight(1f)
-            )
-        }
-        
-        if (subtitle != null) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = subtitle,
-                style = SettingsTypography.itemSubtitle,
-                color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
-                       else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
-                modifier = Modifier.padding(start = if (icon != null) 40.dp else 0.dp)
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Dropdown menu
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { if (enabled) expanded = !expanded },
-            modifier = Modifier.padding(start = if (icon != null) 40.dp else 0.dp)
-        ) {
-            OutlinedTextField(
-                value = selectedOption,
-                onValueChange = {},
-                readOnly = true,
-                enabled = enabled,
-                trailingIcon = { 
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) 
-                },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
-                shape = SettingsShapes.inputShape,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                ),
-                textStyle = SettingsTypography.itemSubtitle
-            )
-            ExposedDropdownMenu(
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    style = SettingsTypography.itemSubtitle,
+                    color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                           else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+                    modifier = Modifier.padding(start = if (icon != null) 40.dp else 0.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Dropdown menu
+            ExposedDropdownMenuBox(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onExpandedChange = { if (enabled) expanded = !expanded },
+                modifier = Modifier.padding(start = if (icon != null) 40.dp else 0.dp)
             ) {
-                options.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option) },
-                        onClick = {
-                            onSelect(option)
-                            expanded = false
-                        }
-                    )
+                OutlinedTextField(
+                    value = selectedOption,
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = enabled,
+                    trailingIcon = { 
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) 
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    shape = SettingsShapes.inputShape,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    ),
+                    textStyle = SettingsTypography.itemSubtitle
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    options.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                onSelect(option)
+                                expanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -329,10 +352,7 @@ fun SettingsSelectionItem(
 }
 
 /**
- * A slider settings item with a Material 3 Slider and preview text.
- * 
- * Displays a title, optional subtitle, a slider, and preview text showing the current value.
- * Uses consistent 16dp horizontal and vertical padding.
+ * Enhanced slider settings item with Material 3 Expressive corner radius support.
  * 
  * @param title The main title text
  * @param subtitle Optional descriptive text below the title
@@ -342,6 +362,7 @@ fun SettingsSelectionItem(
  * @param onValueChange Callback when value changes
  * @param valueLabel Function to format the value for display
  * @param enabled Whether the item is interactive
+ * @param position Position in group for corner radius styling
  * 
  * Requirements: 1.4, 2.1, 3.1, 4.1, 5.1, 6.1
  */
@@ -354,50 +375,73 @@ fun SettingsSliderItem(
     steps: Int = 0,
     onValueChange: (Float) -> Unit,
     valueLabel: (Float) -> String = { it.toString() },
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    position: SettingsItemPosition = SettingsItemPosition.Single
 ) {
     val sliderDescription = stringResource(R.string.settings_slider_description)
     
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {
-                contentDescription = "$title, $sliderDescription, ${valueLabel(value)}"
-            }
-            .padding(
-                horizontal = SettingsSpacing.itemHorizontalPadding,
-                vertical = SettingsSpacing.itemVerticalPadding
-            )
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = position.getShape(),
+        color = SettingsColors.cardBackground
     ) {
-        // Title
-        Text(
-            text = title,
-            style = SettingsTypography.itemTitle,
-            color = if (enabled) MaterialTheme.colorScheme.onSurface 
-                   else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        )
-        
-        if (subtitle != null) {
-            Spacer(modifier = Modifier.height(4.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics(mergeDescendants = true) {
+                    contentDescription = "$title, $sliderDescription, ${valueLabel(value)}"
+                }
+                .padding(
+                    horizontal = SettingsSpacing.itemHorizontalPadding,
+                    vertical = SettingsSpacing.itemVerticalPadding
+                )
+        ) {
+            // Title
             Text(
-                text = subtitle,
+                text = title,
+                style = SettingsTypography.itemTitle,
+                color = if (enabled) MaterialTheme.colorScheme.onSurface 
+                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            )
+            
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    style = SettingsTypography.itemSubtitle,
+                    color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                           else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Slider
+            Slider(
+                value = value,
+                onValueChange = onValueChange,
+                valueRange = valueRange,
+                steps = steps,
+                enabled = enabled,
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            // Preview text
+            Text(
+                text = valueLabel(value),
                 style = SettingsTypography.itemSubtitle,
-                color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
-                       else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // Slider
-        Slider(
-            value = value,
-            onValueChange = onValueChange,
-            valueRange = valueRange,
-            steps = steps,
-            enabled = enabled,
-            colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
+    }
+}
                 activeTrackColor = MaterialTheme.colorScheme.primary,
                 inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
             )
@@ -492,10 +536,10 @@ fun SettingsHeaderItem(
 // ============================================================================
 
 /**
- * A card container for grouping related settings items.
+ * A card container for grouping related settings items with Material 3 Expressive styling.
  * 
  * Uses surfaceContainer background with 24dp corner radius.
- * Automatically adds dividers between child items.
+ * Automatically applies top, middle, bottom corner radius styling to child items.
  * 
  * @param modifier Optional modifier for the card
  * @param content The settings items to display in the card
@@ -522,10 +566,10 @@ fun SettingsCard(
 }
 
 /**
- * A section container with a header and card content.
+ * A section container with a header and card content using Material 3 Expressive design.
  * 
  * Displays a titleMedium header in primary color followed by a SettingsCard.
- * Uses 24dp spacing between sections.
+ * Uses 24dp spacing between sections and proper corner radius grouping.
  * 
  * @param title The section header text
  * @param modifier Optional modifier for the section
@@ -551,6 +595,39 @@ fun SettingsSection(
         )
         SettingsCard {
             content()
+        }
+    }
+}
+
+/**
+ * Enhanced settings group with automatic corner radius styling for Material 3 Expressive design.
+ * 
+ * Automatically applies:
+ * - Top corners (16dp) to first item
+ * - No corners (0dp) to middle items  
+ * - Bottom corners (16dp) to last item
+ * - Dividers between items
+ * 
+ * @param modifier Optional modifier for the group
+ * @param items List of settings items to display
+ * 
+ * Requirements: 1.1, 1.4
+ */
+@Composable
+fun SettingsGroup(
+    modifier: Modifier = Modifier,
+    items: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = SettingsShapes.sectionShape,
+        color = SettingsColors.cardBackground,
+        tonalElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items()
         }
     }
 }

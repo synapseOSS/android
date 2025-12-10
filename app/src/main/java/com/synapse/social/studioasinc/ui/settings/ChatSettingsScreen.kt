@@ -94,7 +94,8 @@ fun ChatSettingsScreen(
                         onCheckedChange = { enabled ->
                             viewModel.toggleReadReceipts(enabled)
                         },
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        position = SettingsItemPosition.Top
                     )
 
                     SettingsDivider()
@@ -108,7 +109,8 @@ fun ChatSettingsScreen(
                         onCheckedChange = { enabled ->
                             viewModel.toggleTypingIndicators(enabled)
                         },
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        position = SettingsItemPosition.Bottom
                     )
                 }
             }
@@ -129,7 +131,56 @@ fun ChatSettingsScreen(
                                 .find { it.displayName() == selectedName }
                             selectedSetting?.let { viewModel.setMediaAutoDownload(it) }
                         },
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        position = SettingsItemPosition.Single
+                    )
+                }
+            }
+
+            // Customization Section
+            item {
+                SettingsSection(title = "Customization") {
+                    // Chat Themes & Backgrounds
+                    SettingsNavigationItem(
+                        title = "Chat Themes",
+                        subtitle = "Customize chat bubble colors and backgrounds",
+                        icon = R.drawable.ic_rounded_corner,
+                        onClick = { viewModel.navigateToChatCustomization() },
+                        enabled = !isLoading,
+                        position = SettingsItemPosition.Top
+                    )
+
+                    SettingsDivider()
+
+                    // Chat Wallpapers
+                    SettingsNavigationItem(
+                        title = "Chat Wallpapers",
+                        subtitle = "Set custom backgrounds for conversations",
+                        icon = R.drawable.ic_image,
+                        onClick = { viewModel.navigateToChatWallpapers() },
+                        enabled = !isLoading,
+                        position = SettingsItemPosition.Middle
+                    )
+
+                    SettingsDivider()
+
+                    // Font Size for Chat
+                    SettingsSliderItem(
+                        title = "Chat Font Size",
+                        subtitle = "Adjust text size in chat messages",
+                        value = viewModel.getChatFontSizeSliderValue(chatSettings.chatFontScale),
+                        valueRange = 0f..3f,
+                        steps = 2,
+                        onValueChange = { value ->
+                            val scale = viewModel.getChatFontScaleFromSliderValue(value)
+                            viewModel.setChatFontScale(scale)
+                        },
+                        valueLabel = { value ->
+                            val scale = viewModel.getChatFontScaleFromSliderValue(value)
+                            viewModel.getChatFontScalePreviewText(scale)
+                        },
+                        enabled = !isLoading,
+                        position = SettingsItemPosition.Bottom
                     )
                 }
             }
@@ -143,7 +194,8 @@ fun ChatSettingsScreen(
                         subtitle = "Manage message requests from non-followers",
                         icon = R.drawable.ic_message,
                         onClick = { viewModel.navigateToMessageRequests() },
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        position = SettingsItemPosition.Top
                     )
 
                     SettingsDivider()
@@ -157,7 +209,8 @@ fun ChatSettingsScreen(
                             viewModel.navigateToChatPrivacy()
                             onNavigateToChatPrivacy()
                         },
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        position = SettingsItemPosition.Bottom
                     )
                 }
             }

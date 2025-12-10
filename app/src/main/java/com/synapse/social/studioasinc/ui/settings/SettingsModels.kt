@@ -239,7 +239,8 @@ data class NotificationPreferences(
 data class ChatSettings(
     val readReceiptsEnabled: Boolean = true,
     val typingIndicatorsEnabled: Boolean = true,
-    val mediaAutoDownload: MediaAutoDownload = MediaAutoDownload.WIFI_ONLY
+    val mediaAutoDownload: MediaAutoDownload = MediaAutoDownload.WIFI_ONLY,
+    val chatFontScale: Float = 1.0f
 )
 
 // ============================================================================

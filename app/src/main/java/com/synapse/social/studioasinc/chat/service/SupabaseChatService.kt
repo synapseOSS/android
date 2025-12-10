@@ -28,7 +28,8 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
         return withContext(Dispatchers.IO) {
             try {
                 val messageId = UUID.randomUUID().toString()
-                val currentTime = System.currentTimeMillis()
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 
                 val messageData = mapOf(
                     "id" to messageId,
@@ -40,7 +41,7 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
                     "message_state" to MessageState.SENT,
                     "delivered_at" to null,  // Initially null
                     "read_at" to null,       // Initially null
-                    "push_date" to currentTime,
+                    "push_date" to isoTimestamp,
                     "replied_message_id" to repliedMessageId,
                     "attachments" to attachments?.map { attachment ->
                         mapOf(
@@ -53,8 +54,8 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
                         )
                     },
                     "is_edited" to false,
-                    "created_at" to currentTime,
-                    "updated_at" to currentTime
+                    "created_at" to isoTimestamp,
+                    "updated_at" to isoTimestamp
                 )
                 
                 val result = databaseService.insert("messages", messageData)
@@ -62,10 +63,10 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
                 result.fold(
                     onSuccess = {
                         // Update chat room with last message info
-                        updateChatLastMessage(chatId, messageId, messageText ?: "", senderId, currentTime)
+                        updateChatLastMessage(chatId, messageId, messageText ?: "", senderId, isoTimestamp)
                         
                         // Update user chats
-                        updateUserChats(chatId, senderId, receiverId, messageText ?: "", currentTime)
+                        updateUserChats(chatId, senderId, receiverId, messageText ?: "", isoTimestamp)
                         
                         Result.success(messageId)
                     },
@@ -179,7 +180,8 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
         return withContext(Dispatchers.IO) {
             try {
                 val chatId = UUID.randomUUID().toString()
-                val currentTime = System.currentTimeMillis()
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 
                 val chatRoomData = mapOf(
                     "id" to chatId,
@@ -187,8 +189,8 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
                     "is_group" to isGroup,
                     "group_name" to groupName,
                     "group_avatar" to groupAvatar,
-                    "created_at" to currentTime,
-                    "updated_at" to currentTime
+                    "created_at" to isoTimestamp,
+                    "updated_at" to isoTimestamp
                 )
                 
                 val result = databaseService.insert("chat_rooms", chatRoomData)
@@ -200,7 +202,7 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
                             val userChatData = kotlinx.serialization.json.buildJsonObject {
                                 put("user_id", kotlinx.serialization.json.JsonPrimitive(participantId))
                                 put("chat_id", kotlinx.serialization.json.JsonPrimitive(chatId))
-                                put("joined_at", kotlinx.serialization.json.JsonPrimitive(currentTime))
+                                put("joined_at", kotlinx.serialization.json.JsonPrimitive(isoTimestamp))
                                 put("last_read_message_id", kotlinx.serialization.json.JsonNull)
                                 put("unread_count", kotlinx.serialization.json.JsonPrimitive(0))
                             }
@@ -294,7 +296,8 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val timestamp = System.currentTimeMillis()
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 
                 if (messageIds.isEmpty()) {
                     return@withContext Result.success(Unit)
@@ -304,8 +307,8 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
                 messageIds.forEach { messageId ->
                     val updateData = mapOf(
                         "message_state" to MessageState.READ,
-                        "read_at" to timestamp,
-                        "updated_at" to timestamp
+                        "read_at" to isoTimestamp,
+                        "updated_at" to isoTimestamp
                     )
                     databaseService.update("messages", updateData, "id", messageId)
                 }
@@ -313,7 +316,7 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
                 // Reset unread count for user
                 val userChatUpdate = mapOf(
                     "unread_count" to 0,
-                    "last_read_at" to timestamp
+                    "last_read_at" to isoTimestamp
                 )
                 
                 // Find and update user_chat record
@@ -350,11 +353,13 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
     suspend fun updateTypingStatus(chatId: String, userId: String, isTyping: Boolean): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 val typingData = mapOf(
                     "chat_id" to chatId,
                     "user_id" to userId,
                     "is_typing" to isTyping,
-                    "timestamp" to System.currentTimeMillis()
+                    "timestamp" to isoTimestamp
                 )
                 
                 val result = databaseService.upsert("typing_status", typingData)
@@ -382,13 +387,14 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val timestamp = System.currentTimeMillis()
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
                 
                 // Update message state to DELIVERED
                 val updateData = mapOf(
                     "message_state" to MessageState.DELIVERED,
-                    "delivered_at" to timestamp,
-                    "updated_at" to timestamp
+                    "delivered_at" to isoTimestamp,
+                    "updated_at" to isoTimestamp
                 )
                 
                 val result = databaseService.update("messages", updateData, "id", messageId)
@@ -433,14 +439,14 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
                             "last_message_text" to null,
                             "last_message_time" to null,
                             "last_message_sender_id" to null,
-                            "updated_at" to System.currentTimeMillis()
+                            "updated_at" to java.time.Instant.now().toString()
                         )
                         databaseService.update("chat_rooms", updateData, "id", chatId)
                         
                         // Reset unread count for user
                         val userChatUpdate = mapOf(
                             "unread_count" to 0,
-                            "last_read_at" to System.currentTimeMillis()
+                            "last_read_at" to java.time.Instant.now().toString()
                         )
                         
                         // Find and update user_chat record
@@ -473,7 +479,7 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
         messageId: String,
         messageText: String,
         senderId: String,
-        timestamp: Long
+        timestamp: String
     ) {
         val updateData = mapOf(
             "last_message_id" to messageId,
@@ -491,7 +497,7 @@ class SupabaseChatService(private val databaseService: SupabaseDatabaseService) 
         senderId: String,
         receiverId: String?,
         messageText: String,
-        timestamp: Long
+        timestamp: String
     ) {
         // Update unread count for receiver
         if (receiverId != null) {
