@@ -1,0 +1,51 @@
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/layoutChatInputRoot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="@dimen/spacing_normal"
+        android:background="@android:color/transparent"
+        android:gravity="center_horizontal|center_vertical"
+        android:orientation="horizontal">
+        <LinearLayout
+                android:id="@+id/layoutMessageInputContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:padding="3dp"
+                android:background="@drawable/bg_message_input"
+                android:orientation="vertical">
+                <!-- Reply Preview Container (integrated inline) -->
+                <include layout="@layout/chat_reply_layout" />
+                <com.synapse.social.studioasinc.FadeEditText
+                        android:id="@+id/etMessageInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:layout_marginLeft="7dp"
+                        android:padding="@dimen/spacing_normal"
+                        android:background="@android:color/transparent"
+                        android:gravity="top|start"
+                        android:textSize="@dimen/text_size_large"
+                        android:textColor="@color/md_theme_onBackground"
+                        android:hint="@string/write_message"
+                        android:textColorHint="@color/hint_text_color"
+                        android:maxHeight="180dp"
+                        android:maxLines="6"
+                        android:scrollbars="vertical"
+                        android:inputType="textMultiLine|textCapSentences" />
+        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSendMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:gravity="center_horizontal|center_vertical"
+                android:textSize="@dimen/text_size_small"
+                style="?attr/materialIconButtonFilledStyle"
+                app:icon="@drawable/ic_send"
+                app:materialSizeOverlay="@style/SizeOverlay.Material3Expressive.Button.IconButton.Medium" />
+</LinearLayout>

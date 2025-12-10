@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Animation Durations (in milliseconds) -->
+    <integer name="animation_duration_very_short">100</integer>
+    <integer name="animation_duration_short">200</integer>
+    <integer name="animation_duration_medium">300</integer>
+    <integer name="animation_duration_long">500</integer>
+    
+    <!-- Touch feedback animations -->
+    <integer name="touch_feedback_duration">100</integer>
+    <integer name="transition_duration">300</integer>
+    <integer name="crossfade_duration">300</integer>
+    
+    <!-- Loading and progress animations -->
+    <integer name="loading_animation_duration">1000</integer>
+    <integer name="progress_update_interval">50</integer>
+    
+    <!-- Gallery and image transitions -->
+    <integer name="gallery_transition_duration">300</integer>
+    <integer name="image_fade_duration">200</integer>
+</resources>

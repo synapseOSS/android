@@ -1,0 +1,208 @@
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
+
+	<androidx.cardview.widget.CardView
+		android:id="@+id/menu_card"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_margin="8dp"
+		app:cardElevation="8dp"
+		app:cardCornerRadius="12dp"
+		app:cardBackgroundColor="#FFFFFF">
+
+		<LinearLayout
+			android:id="@+id/body"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:padding="4dp">
+
+			<!-- Compact action buttons -->
+			<LinearLayout
+				android:id="@+id/edit"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:padding="8dp"
+				android:background="?attr/selectableItemBackgroundBorderless"
+				android:clickable="true"
+				android:focusable="true"
+				android:gravity="center_vertical"
+				android:orientation="horizontal">
+
+				<ImageView
+					android:id="@+id/edit_icon"
+					android:focusable="false"
+					android:layout_width="20dp"
+					android:layout_height="20dp"
+					android:layout_marginEnd="8dp"
+					android:src="@drawable/ic_edit_note_48px"
+					android:scaleType="fitCenter" />
+
+				<TextView
+					android:id="@+id/edit_title"
+					android:focusable="false"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:textSize="16sp"
+					android:textColor="#000000"
+					tools:replace="android:text"
+					android:text="@string/m_edit" />
+			</LinearLayout>
+
+			<LinearLayout
+				android:id="@+id/reply"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:padding="8dp"
+				android:background="?attr/selectableItemBackgroundBorderless"
+				android:clickable="true"
+				android:focusable="true"
+				android:gravity="center_vertical"
+				android:orientation="horizontal">
+
+				<ImageView
+					android:id="@+id/reply_icon"
+					android:focusable="false"
+					android:layout_width="20dp"
+					android:layout_height="20dp"
+					android:layout_marginEnd="8dp"
+					android:src="@drawable/ic_reply"
+					android:scaleType="fitCenter" />
+
+				<TextView
+					android:id="@+id/reply_title"
+					android:focusable="false"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:textSize="16sp"
+					android:textColor="#000000"
+					tools:replace="android:text"
+					android:text="@string/m_reply" />
+			</LinearLayout>
+
+			<LinearLayout
+				android:id="@+id/summary"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:padding="8dp"
+				android:background="?attr/selectableItemBackgroundBorderless"
+				android:clickable="true"
+				android:focusable="true"
+				android:gravity="center_vertical"
+				android:orientation="horizontal">
+
+				<ImageView
+					android:id="@+id/summary_icon"
+					android:focusable="false"
+					android:layout_width="20dp"
+					android:layout_height="20dp"
+					android:layout_marginEnd="8dp"
+					android:src="@drawable/ic_edit_note_48px"
+					android:scaleType="fitCenter" />
+
+				<TextView
+					android:id="@+id/summary_title"
+					android:focusable="false"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="@string/gemini_summary_title"
+					android:textSize="16sp"
+					android:textColor="#000000" />
+			</LinearLayout>
+			<LinearLayout
+				android:id="@+id/explain"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:padding="8dp"
+				android:background="?attr/selectableItemBackgroundBorderless"
+				android:clickable="true"
+				android:focusable="true"
+				android:gravity="center_vertical"
+				android:orientation="horizontal">
+				<ImageView
+					android:id="@+id/explain_icon"
+					android:focusable="false"
+					android:layout_width="20dp"
+					android:layout_height="20dp"
+					android:layout_marginEnd="8dp"
+					android:src="@drawable/ic_info_48px"
+					android:scaleType="fitCenter" />
+				<TextView
+					android:id="@+id/explain_title"
+					android:focusable="false"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="@string/explain_button_text"
+					android:textSize="16sp"
+					android:textColor="#000000" />
+			</LinearLayout>
+
+			<LinearLayout
+				android:id="@+id/copy"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:padding="8dp"
+				android:background="?attr/selectableItemBackgroundBorderless"
+				android:clickable="true"
+				android:focusable="true"
+				android:gravity="center_vertical"
+				android:orientation="horizontal">
+
+				<ImageView
+					android:id="@+id/copy_icon"
+					android:focusable="false"
+					android:layout_width="20dp"
+					android:layout_height="20dp"
+					android:layout_marginEnd="8dp"
+					android:src="@drawable/ic_content_copy_48px"
+					android:scaleType="fitCenter" />
+
+				<TextView
+					android:id="@+id/copy_title"
+					android:focusable="false"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:textSize="16sp"
+					android:textColor="#000000"
+					tools:replace="android:text"
+					android:text="@string/m_copy" />
+			</LinearLayout>
+
+			<LinearLayout
+				android:id="@+id/delete"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:padding="8dp"
+				android:background="?attr/selectableItemBackgroundBorderless"
+				android:clickable="true"
+				android:focusable="true"
+				android:gravity="center_vertical"
+				android:orientation="horizontal">
+
+				<ImageView
+					android:id="@+id/delete_icon"
+					android:focusable="false"
+					android:layout_width="20dp"
+					android:layout_height="20dp"
+					android:layout_marginEnd="8dp"
+					android:src="@drawable/ic_delete_48px"
+					android:scaleType="fitCenter" />
+
+				<TextView
+					android:id="@+id/delete_title"
+					android:focusable="false"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:textSize="16sp"
+					android:textColor="#000000"
+					tools:replace="android:text"
+					android:text="@string/m_delete" />
+			</LinearLayout>
+		</LinearLayout>
+	</androidx.cardview.widget.CardView>
+</LinearLayout>

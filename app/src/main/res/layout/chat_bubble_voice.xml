@@ -1,0 +1,202 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content">
+	<LinearLayout
+		android:id="@+id/body"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:paddingLeft="8dp"
+		android:paddingRight="8dp"
+		android:orientation="horizontal"
+		android:animateLayoutChanges="true"
+		app:layout_constraintWidth_max="wrap"
+		app:layout_constraintWidth_percent="0.75"
+		app:layout_constraintTop_toTopOf="parent">
+		<androidx.cardview.widget.CardView
+			android:id="@+id/mProfileCard"
+			android:layout_width="34dp"
+			android:layout_height="34dp"
+			android:layout_marginLeft="2dp"
+			android:layout_marginTop="8dp"
+			app:cardElevation="0dp"
+			android:visibility="gone"
+			app:cardCornerRadius="200dp">
+			<ImageView
+				android:id="@+id/mProfileImage"
+				android:focusable="false"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:src="@drawable/avatar"
+				android:scaleType="centerCrop" />
+		</androidx.cardview.widget.CardView>
+		<LinearLayout
+			android:id="@+id/message_layout"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">
+			<LinearLayout
+				android:id="@+id/menuView_d"
+				android:layout_width="match_parent"
+				android:layout_height="0dp"
+				android:orientation="horizontal" />
+			<!-- Username for group chats -->
+			<TextView
+				android:id="@+id/senderUsername"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="4dp"
+				android:textSize="12sp"
+				android:textColor="?attr/colorOnSurface"
+				android:textStyle="bold"
+				android:visibility="gone"
+				android:singleLine="true"
+				android:ellipsize="end"
+				android:maxWidth="200dp" />
+			<!-- Forwarded indicator -->
+			<LinearLayout
+				android:id="@+id/forwardedIndicator"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:orientation="horizontal"
+				android:gravity="center_vertical"
+				android:layout_marginBottom="4dp"
+				android:visibility="gone">
+				<ImageView
+					android:layout_width="14dp"
+					android:layout_height="14dp"
+					android:src="@drawable/ic_forward"
+					android:layout_marginEnd="4dp"
+					app:tint="?attr/colorOnSurfaceVariant" />
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="Forwarded"
+					android:textSize="11sp"
+					android:textStyle="italic"
+					android:textColor="?attr/colorOnSurfaceVariant" />
+			</LinearLayout>
+			<LinearLayout
+				android:id="@+id/messageBG"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:maxWidth="@dimen/message_bubble_max_width"
+				android:layout_marginLeft="0dp"
+				android:layout_marginTop="@dimen/message_vertical_spacing"
+				android:layout_marginRight="0dp"
+				android:paddingLeft="12dp"
+				android:paddingTop="10dp"
+				android:paddingRight="12dp"
+				android:paddingBottom="10dp"
+				android:background="@android:color/transparent"
+				android:clickable="false"
+				android:focusable="false"
+				android:orientation="vertical">
+				<!-- Deleted message placeholder -->
+				<LinearLayout
+					android:id="@+id/deletedMessagePlaceholder"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:orientation="vertical"
+					android:visibility="gone"
+					android:padding="12dp"
+					android:background="?attr/colorSurfaceVariant">
+					<TextView
+						android:id="@+id/deletedMessageText"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="This message was deleted"
+						android:textSize="14sp"
+						android:textStyle="italic"
+						android:textColor="?attr/colorOnSurfaceVariant" />
+				</LinearLayout>
+				<!-- Message content container (hidden when deleted) -->
+				<LinearLayout
+					android:id="@+id/messageContentContainer"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:orientation="vertical">
+				<!-- Voice controls in horizontal layout -->
+				<LinearLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal"
+					android:gravity="center_vertical">
+					<ImageView
+						android:id="@+id/play_pause_button"
+						android:layout_width="40dp"
+						android:layout_height="40dp"
+						android:src="@drawable/ic_send"
+						android:scaleType="fitCenter"
+						android:layout_marginEnd="8dp"/>
+					<SeekBar
+						android:id="@+id/voice_seekbar"
+						android:layout_width="150dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:layout_gravity="center_vertical"/>
+					<TextView
+						android:id="@+id/voice_duration"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="0:00"
+						android:textSize="12sp"
+						android:layout_marginStart="8dp"/>
+				</LinearLayout>
+				</LinearLayout>
+				<!-- End of messageContentContainer -->
+				<!-- Metadata moved inside bubble -->
+				<LinearLayout
+					android:id="@+id/my_message_info"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="4dp"
+					android:layout_marginRight="8dp"
+					android:gravity="right|center_vertical"
+					android:orientation="horizontal"
+					android:layout_gravity="end">
+					<TextView
+						android:id="@+id/pendingIndicator"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="Pending"
+						android:textSize="10sp"
+						android:textStyle="italic"
+						android:textColor="?attr/colorSecondary"
+						android:layout_marginRight="4dp"
+						android:visibility="gone" />
+					<TextView
+						android:id="@+id/editedIndicator"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="(edited)"
+						android:textSize="10sp"
+						android:textStyle="italic"
+						android:textColor="?attr/colorOnSurfaceVariant"
+						android:layout_marginRight="4dp"
+						android:visibility="gone"
+						android:clickable="true"
+						android:focusable="true" />
+					<TextView
+						android:id="@+id/date"
+						android:focusable="false"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_marginRight="4dp"
+						android:text="00:00"
+						android:textSize="11sp"
+						android:textColor="?attr/colorOnSurfaceVariant" />
+					<ImageView
+						android:id="@+id/message_state"
+						android:focusable="false"
+						android:layout_width="12dp"
+						android:layout_height="12dp"
+						android:src="@drawable/ic_check_black"
+						android:scaleType="centerInside" />
+				</LinearLayout>
+			</LinearLayout>
+		</LinearLayout>
+	</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

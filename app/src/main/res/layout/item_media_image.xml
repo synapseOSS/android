@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <!-- PhotoView for pinch-to-zoom -->
+    <com.github.chrisbanes.photoview.PhotoView
+        android:id="@+id/mediaImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true" />
+
+    <!-- Loading indicator -->
+    <ProgressBar
+        android:id="@+id/imageProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="?attr/colorOnSurface"
+        android:visibility="gone" />
+
+</FrameLayout>

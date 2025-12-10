@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.appbar.MaterialToolbar
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/action_toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="?attr/colorSurfaceContainer"
+    android:elevation="4dp"
+    android:visibility="gone"
+    app:navigationIcon="@drawable/ic_close_48px"
+    app:menu="@menu/message_action_menu"
+    style="@style/Widget.Material3.Toolbar">
+    
+    <TextView
+        android:id="@+id/selection_count_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:textColor="?attr/colorOnSurface"
+        android:text="1" />
+        
+</com.google.android.material.appbar.MaterialToolbar>

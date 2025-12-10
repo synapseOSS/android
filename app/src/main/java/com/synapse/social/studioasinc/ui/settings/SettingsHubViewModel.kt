@@ -1,0 +1,189 @@
+package com.synapse.social.studioasinc.ui.settings
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.synapse.social.studioasinc.R
+import com.synapse.social.studioasinc.UserProfileManager
+import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+/**
+ * ViewModel for the Settings Hub screen.
+ * 
+ * Manages the state for the main settings hub, including user profile summary
+ * and the list of settings categories. Handles navigation events to sub-screens.
+ * 
+ * Requirements: 1.5
+ */
+class SettingsHubViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val _userProfileSummary = MutableStateFlow<UserProfileSummary?>(null)
+    val userProfileSummary: StateFlow<UserProfileSummary?> = _userProfileSummary.asStateFlow()
+
+    private val _settingsCategories = MutableStateFlow<List<SettingsCategory>>(emptyList())
+    val settingsCategories: StateFlow<List<SettingsCategory>> = _settingsCategories.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    init {
+        loadUserProfile()
+        loadSettingsCategories()
+    }
+
+    /**
+     * Loads the current user's profile summary from UserProfileManager.
+     * 
+     * Requirements: 1.5
+     */
+    private fun loadUserProfile() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val currentUser = UserProfileManager.getCurrentUserProfile()
+                if (currentUser != null) {
+                    val displayName = currentUser.displayName?.takeIf { it.isNotBlank() }
+                        ?: currentUser.username?.takeIf { it.isNotBlank() }
+                        ?: "User"
+                    
+                    _userProfileSummary.value = UserProfileSummary(
+                        id = currentUser.uid,
+                        displayName = displayName,
+                        email = currentUser.email ?: "",
+                        avatarUrl = currentUser.profileImageUrl
+                    )
+                } else {
+                    // Fallback to Auth Service if profile is missing in DB
+                    try {
+                        val authService = SupabaseAuthenticationService.getInstance(getApplication())
+                        val authUser = authService.getCurrentUser()
+
+                        if (authUser != null) {
+                            _userProfileSummary.value = UserProfileSummary(
+                                id = authUser.id,
+                                displayName = "User", // Fallback name
+                                email = authUser.email,
+                                avatarUrl = null
+                            )
+                        } else {
+                            // Set default profile if no user found in Auth
+                            _userProfileSummary.value = UserProfileSummary(
+                                id = "",
+                                displayName = "User",
+                                email = "",
+                                avatarUrl = null
+                            )
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("SettingsHubViewModel", "Failed to load auth user", e)
+                         _userProfileSummary.value = UserProfileSummary(
+                            id = "",
+                            displayName = "User",
+                            email = "",
+                            avatarUrl = null
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("SettingsHubViewModel", "Failed to load user profile", e)
+                // Set default profile if loading fails
+                _userProfileSummary.value = UserProfileSummary(
+                    id = "",
+                    displayName = "User",
+                    email = "",
+                    avatarUrl = null
+                )
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Loads the list of settings categories for the hub.
+     * 
+     * Requirements: 1.1, 1.4
+     */
+    private fun loadSettingsCategories() {
+        _settingsCategories.value = listOf(
+            SettingsCategory(
+                id = "account",
+                title = "Account",
+                subtitle = "Profile, email, password, and account management",
+                icon = R.drawable.ic_person,
+                destination = SettingsDestination.Account
+            ),
+            SettingsCategory(
+                id = "privacy",
+                title = "Privacy & Security",
+                subtitle = "Control who can see your content and secure your account",
+                icon = R.drawable.ic_shield_lock,
+                destination = SettingsDestination.Privacy
+            ),
+            SettingsCategory(
+                id = "appearance",
+                title = "Appearance",
+                subtitle = "Theme, colors, and display preferences",
+                icon = R.drawable.ic_rounded_corner,
+                destination = SettingsDestination.Appearance
+            ),
+            SettingsCategory(
+                id = "notifications",
+                title = "Notifications",
+                subtitle = "Manage alerts and notification preferences",
+                icon = R.drawable.ic_notifications,
+                destination = SettingsDestination.Notifications
+            ),
+            SettingsCategory(
+                id = "chat",
+                title = "Chat",
+                subtitle = "Messaging behavior and privacy settings",
+                icon = R.drawable.ic_message,
+                destination = SettingsDestination.Chat
+            ),
+            SettingsCategory(
+                id = "storage",
+                title = "Storage & Data",
+                subtitle = "Cache, data usage, and storage providers",
+                icon = R.drawable.ic_sd_card_white,
+                destination = SettingsDestination.Storage
+            ),
+            SettingsCategory(
+                id = "language",
+                title = "Language & Region",
+                subtitle = "Language preferences and regional settings",
+                icon = R.drawable.ic_category,
+                destination = SettingsDestination.Language
+            ),
+            SettingsCategory(
+                id = "about",
+                title = "About & Support",
+                subtitle = "App info, help, and legal information",
+                icon = R.drawable.ic_info_48px,
+                destination = SettingsDestination.About
+            )
+        )
+    }
+
+    /**
+     * Handles navigation to a settings category.
+     * 
+     * @param destination The destination to navigate to
+     */
+    fun onNavigateToCategory(destination: SettingsDestination) {
+        // Navigation is handled by the composable through callbacks
+        // This method can be used for analytics or side effects
+        android.util.Log.d("SettingsHubViewModel", "Navigating to: ${destination.route}")
+    }
+
+    /**
+     * Refreshes the user profile data.
+     */
+    fun refreshUserProfile() {
+        loadUserProfile()
+    }
+}

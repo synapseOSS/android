@@ -1,0 +1,22 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_48px"
+        android:title="Search"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_inbox"
+        android:icon="@drawable/ic_comment_48px"
+        android:title="Inbox"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_add_post"
+        android:icon="@drawable/ic_add"
+        android:title="Add Post"
+        app:showAsAction="ifRoom" />
+
+</menu>

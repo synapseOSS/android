@@ -1,0 +1,66 @@
+<FrameLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+		android:id="@+id/swipeLayout"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:contentDescription="@string/pull_to_refresh">
+		<LinearLayout
+			android:id="@+id/swipeLayoutBody"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:orientation="vertical">
+			<LinearLayout
+				android:id="@+id/shimmer_container"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:visibility="gone">
+			</LinearLayout>
+			<LinearLayout
+				android:id="@+id/PublicPostsBody"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical">
+				<androidx.recyclerview.widget.RecyclerView
+					android:id="@+id/PublicPostsList"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					tools:listitem="@layout/synapse_post_cv" />
+			</LinearLayout>
+		</LinearLayout>
+	</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+	<LinearLayout
+		android:id="@+id/loadingBody"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:padding="8dp"
+		android:gravity="center"
+		android:orientation="horizontal"
+		android:visibility="gone">
+		<ProgressBar
+			android:id="@+id/loading_bar"
+			android:layout_width="48dp"
+			android:layout_height="48dp"
+			style="?android:progressBarStyle" />
+	</LinearLayout>
+	<LinearLayout
+		android:id="@+id/empty_state"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:gravity="center"
+		android:orientation="vertical"
+		android:padding="32dp"
+		android:visibility="gone">
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/no_posts"
+			android:textSize="18sp"
+			android:textColor="?android:textColorSecondary" />
+	</LinearLayout>
+</FrameLayout>

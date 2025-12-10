@@ -1,0 +1,133 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:id="@+id/_main"
+	android:background="@android:color/transparent">
+
+	<androidx.constraintlayout.widget.ConstraintLayout
+		android:id="@+id/top"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:paddingLeft="8dp"
+		android:paddingTop="30dp"
+		android:paddingRight="8dp"
+		android:paddingBottom="8dp"
+		app:layout_constraintTop_toTopOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent">
+
+		<ImageView
+			android:id="@+id/back"
+			android:layout_width="48dp"
+			android:layout_height="48dp"
+			android:layout_marginRight="8dp"
+			android:padding="12dp"
+			android:src="@drawable/ic_arrow_back_black"
+			android:scaleType="fitCenter"
+			app:layout_constraintTop_toTopOf="parent"
+			app:layout_constraintBottom_toBottomOf="parent"
+			app:layout_constraintStart_toStartOf="parent"/>
+
+		<TextView
+			android:id="@+id/title"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:text="Share this video"
+			android:textSize="20sp"
+			android:textStyle="bold"
+			android:textColor="?attr/colorOnSurface"
+			app:layout_constraintTop_toTopOf="parent"
+			app:layout_constraintStart_toEndOf="@id/back"
+			app:layout_constraintEnd_toStartOf="@id/continueButton"
+			android:layout_marginRight="8dp"/>
+		<TextView
+			android:id="@+id/subtitle"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:text="Complete post details"
+			android:textSize="14sp"
+			android:textColor="?attr/colorOnSurfaceVariant"
+			app:layout_constraintTop_toBottomOf="@id/title"
+			app:layout_constraintStart_toStartOf="@id/title"
+			app:layout_constraintEnd_toEndOf="@id/title"/>
+
+		<TextView
+			android:id="@+id/continueButton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginRight="8dp"
+			android:paddingLeft="16dp"
+			android:paddingTop="6dp"
+			android:paddingRight="16dp"
+			android:paddingBottom="6dp"
+			android:background="?attr/colorPrimaryContainer"
+			android:text="Share"
+			android:textSize="20sp"
+			android:textColor="?attr/colorOnPrimaryContainer"
+			app:layout_constraintTop_toTopOf="parent"
+			app:layout_constraintBottom_toBottomOf="parent"
+			app:layout_constraintEnd_toEndOf="parent"/>
+	</androidx.constraintlayout.widget.ConstraintLayout>
+
+	<View
+		android:id="@+id/topSpace"
+		android:layout_width="0dp"
+		android:layout_height="1dp"
+		android:background="?attr/colorSurfaceContainer"
+		app:layout_constraintTop_toBottomOf="@id/top"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"/>
+
+	<ScrollView
+		android:id="@+id/scroll"
+		android:layout_width="0dp"
+		android:layout_height="0dp"
+		app:layout_constraintTop_toBottomOf="@id/topSpace"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintEnd_toEndOf="parent">
+		<androidx.constraintlayout.widget.ConstraintLayout
+			android:id="@+id/scrollBody"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+
+			<EditText
+				android:id="@+id/postDescription"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_margin="16dp"
+				android:padding="16dp"
+				android:background="?attr/colorSurfaceContainer"
+				android:textSize="18sp"
+				android:textColor="?attr/colorOnSurface"
+				android:textColorHint="?attr/colorOnSurfaceVariant"
+				tools:replace="android:hint"
+				android:hint="@string/create_complete_post_description"
+				android:maxLength="250"
+				app:layout_constraintTop_toTopOf="parent"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintEnd_toEndOf="parent"/>
+
+			<View
+				android:id="@+id/topSpace2"
+				android:layout_width="0dp"
+				android:layout_height="1dp"
+				android:background="?attr/colorSurfaceContainer"
+				app:layout_constraintTop_toBottomOf="@id/postDescription"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintEnd_toEndOf="parent"/>
+
+			<androidx.recyclerview.widget.RecyclerView
+				android:id="@+id/recyclerview1"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:padding="8dp"
+				app:layout_constraintTop_toBottomOf="@id/topSpace2"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintEnd_toEndOf="parent"/>
+		</androidx.constraintlayout.widget.ConstraintLayout>
+	</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

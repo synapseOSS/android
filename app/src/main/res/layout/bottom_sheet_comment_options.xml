@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bottom_sheet_handle" />
+
+    <TextView
+        android:id="@+id/tvCommentOptionsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/comment_options"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnReply"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/reply"
+        android:gravity="start|center_vertical"
+        app:icon="@drawable/icon_reply_round"
+        app:iconGravity="start"
+        app:iconSize="24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCopy"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/copy"
+        android:gravity="start|center_vertical"
+        app:icon="@drawable/icon_content_copy_round"
+        app:iconGravity="start"
+        app:iconSize="24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnShare"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/share"
+        android:gravity="start|center_vertical"
+        app:icon="@drawable/icon_share_round"
+        app:iconGravity="start"
+        app:iconSize="24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnHide"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/hide_comment"
+        android:gravity="start|center_vertical"
+        app:icon="@drawable/icon_hide_source_round"
+        app:iconGravity="start"
+        app:iconSize="24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnReport"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/report"
+        android:gravity="start|center_vertical"
+        app:icon="@drawable/icon_report_problem_round"
+        app:iconGravity="start"
+        app:iconSize="24dp" />
+
+    <View
+        android:id="@+id/dividerOwnerActions"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="8dp"
+        android:background="?attr/colorOutlineVariant"
+        android:visibility="gone" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPin"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/pin_comment"
+        android:gravity="start|center_vertical"
+        android:visibility="gone"
+        app:icon="@drawable/icon_push_pin_round"
+        app:iconGravity="start"
+        app:iconSize="24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnEdit"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/edit"
+        android:gravity="start|center_vertical"
+        android:visibility="gone"
+        app:icon="@drawable/icon_drive_file_rename_outline_round"
+        app:iconGravity="start"
+        app:iconSize="24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDelete"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/delete"
+        android:gravity="start|center_vertical"
+        android:visibility="gone"
+        app:icon="@drawable/icon_delete_round"
+        app:iconGravity="start"
+        app:iconTint="?attr/colorError"
+        app:iconSize="24dp" />
+
+</LinearLayout>

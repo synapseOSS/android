@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="?attr/colorSurface"
+    android:elevation="2dp">
+
+    <!-- Audio file name -->
+    <TextView
+        android:id="@+id/audioFileName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
+        tools:text="audio_recording.mp3" />
+
+    <!-- Waveform visualization container -->
+    <FrameLayout
+        android:id="@+id/waveformContainer"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone">
+
+        <com.synapse.social.studioasinc.widget.WaveformView
+            android:id="@+id/waveformView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+    <!-- Playback controls -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
+
+        <!-- Play/Pause button -->
+        <ImageButton
+            android:id="@+id/playPauseButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_play"
+            android:contentDescription="@string/play_audio"
+            android:tint="?attr/colorOnSurface" />
+
+        <!-- Current time -->
+        <TextView
+            android:id="@+id/currentTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="12sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:minWidth="40dp"
+            tools:text="0:00" />
+
+        <!-- Seek bar -->
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:progressTint="?attr/colorOnSurface"
+            android:thumbTint="?attr/colorOnSurface" />
+
+        <!-- Total duration -->
+        <TextView
+            android:id="@+id/totalDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:minWidth="40dp"
+            tools:text="3:45" />
+    </LinearLayout>
+
+    <!-- Loading indicator -->
+    <ProgressBar
+        android:id="@+id/loadingIndicator"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        android:indeterminateTint="?attr/colorOnSurface" />
+
+</LinearLayout>

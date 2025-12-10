@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/bottom_home"
+        android:enabled="true"
+        android:icon="@drawable/icon_home_round"
+        android:title="@string/home_hello"/>
+    <item
+        android:id="@+id/bottom_search"
+        android:enabled="true"
+        android:icon="@drawable/icon_search_round"
+        android:title="@string/search"/>
+    <item
+        android:id="@+id/bottom_videos"
+        android:enabled="true"
+        android:icon="@drawable/icon_video_chat_round"
+        android:title="@string/video_posts"/>
+    <item
+        android:id="@+id/bottom_chats"
+        android:enabled="true"
+        android:icon="@drawable/icon_message_round"
+        android:title="@string/chat"/>
+    <item
+        android:id="@+id/bottom_profile"
+        android:enabled="true"
+        android:icon="@drawable/icon_account_circle_round"
+        android:title="@string/profile_tab"/>
+</menu>

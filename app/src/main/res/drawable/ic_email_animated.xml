@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="120dp"
+            android:height="120dp"
+            android:viewportWidth="120"
+            android:viewportHeight="120">
+            
+            <!-- Envelope body -->
+            <path
+                android:name="envelope"
+                android:fillColor="?attr/colorOnSurface"
+                android:pathData="M20,30 L100,30 L100,90 L20,90 Z" />
+            
+            <!-- Envelope flap -->
+            <path
+                android:name="flap"
+                android:fillColor="?attr/colorSurface"
+                android:pathData="M20,30 L60,60 L100,30 Z" />
+            
+            <!-- Letter inside -->
+            <path
+                android:name="letter"
+                android:fillColor="?attr/colorSurface"
+                android:pathData="M30,45 L90,45 L90,80 L30,80 Z"
+                android:alpha="0" />
+        </vector>
+    </aapt:attr>
+    
+    <!-- Animate the letter appearing -->
+    <target android:name="letter">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="alpha"
+                    android:duration="600"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:startOffset="300"
+                    android:interpolator="@android:interpolator/decelerate_quad" />
+                <objectAnimator
+                    android:propertyName="translateY"
+                    android:duration="600"
+                    android:valueFrom="20"
+                    android:valueTo="0"
+                    android:startOffset="300"
+                    android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+    
+    <!-- Animate the flap -->
+    <target android:name="flap">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="rotation"
+                android:duration="400"
+                android:valueFrom="0"
+                android:valueTo="-15"
+                android:pivotX="60"
+                android:pivotY="30"
+                android:interpolator="@android:interpolator/decelerate_quad" />
+        </aapt:attr>
+    </target>
+    
+    <!-- Animate the envelope with subtle bounce -->
+    <target android:name="envelope">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:duration="800"
+                    android:valueFrom="0.8"
+                    android:valueTo="1"
+                    android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:duration="800"
+                    android:valueFrom="0.8"
+                    android:valueTo="1"
+                    android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

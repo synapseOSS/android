@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Profile Screen Accessibility -->
+    <string name="accessibility_back_button">Navigate back</string>
+    <string name="accessibility_profile_menu">Profile options menu</string>
+    <string name="accessibility_qr_code">Show QR code</string>
+    <string name="accessibility_profile_image">Profile picture</string>
+    <string name="accessibility_cover_image">Cover photo</string>
+    <string name="accessibility_follow_button">Follow user</string>
+    <string name="accessibility_unfollow_button">Unfollow user</string>
+    <string name="accessibility_message_button">Send message</string>
+    <string name="accessibility_like_profile">Like profile</string>
+    <string name="accessibility_unlike_profile">Unlike profile</string>
+    <string name="accessibility_followers_count">%1$d followers</string>
+    <string name="accessibility_following_count">Following %1$d users</string>
+    <string name="accessibility_posts_count">%1$d posts</string>
+    <string name="accessibility_tab_posts">Posts tab</string>
+    <string name="accessibility_tab_media">Media tab</string>
+    <string name="accessibility_tab_about">About tab</string>
+</resources>

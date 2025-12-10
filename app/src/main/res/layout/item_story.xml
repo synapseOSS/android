@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:gravity="center">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/storyImageCard"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        app:cardCornerRadius="32dp"
+        app:cardElevation="2dp">
+
+        <ImageView
+            android:id="@+id/storyImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/avatar" />
+
+        <!-- Story ring indicator -->
+        <View
+            android:id="@+id/storyRing"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/story_ring"
+            android:visibility="gone" />
+
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/storyUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Username"
+        android:textSize="12sp"
+        android:textColor="?attr/colorOnSurface"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:maxWidth="64dp" />
+
+</LinearLayout>

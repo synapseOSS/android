@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Error Messages -->
+    <string name="error_network">No internet connection. Please check your network settings.</string>
+    <string name="error_authentication">Authentication failed. Please sign in again.</string>
+    <string name="error_permission">Permission denied. Please grant required permissions.</string>
+    <string name="error_validation">Invalid input. Please check your data.</string>
+    <string name="error_server">Server error. Please try again later.</string>
+    <string name="error_unknown">An unexpected error occurred.</string>
+    
+    <!-- Success Messages -->
+    <string name="success_message_edited">Message edited</string>
+    <string name="success_upload_complete">Upload complete</string>
+    
+    <!-- Action Labels -->
+    <string name="dismiss">Dismiss</string>
+    <string name="undo">Undo</string>
+    
+    <!-- Loading States -->
+    <string name="loading_older_messages">Loading older messages…</string>
+    <string name="uploading_media">Uploading media…</string>
+    <string name="processing">Processing…</string>
+    
+    <!-- Connection Status -->
+    <string name="connection_connecting">Connecting…</string>
+    <string name="connection_reconnecting">Reconnecting…</string>
+    <string name="connection_disconnected">Disconnected</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="connection_restored">Connection restored</string>
+    
+    <!-- Typing Indicators -->
+    <string name="typing_single">%s is typing…</string>
+    <string name="typing_multiple">%1$s and %2$s are typing…</string>
+    <string name="typing_many">Several people are typing…</string>
+    
+    <!-- Message States -->
+    <string name="message_sending">Sending</string>
+    <string name="message_delivered">Delivered</string>
+    <string name="message_read">Read</string>
+    <string name="message_failed">Failed to send</string>
+    
+    <!-- Scroll Hints -->
+    <string name="scroll_to_bottom">Scroll to bottom</string>
+    <string name="new_messages">New messages</string>
+    <string name="scroll_to_unread">%d unread messages</string>
+    
+    <!-- Upload Progress -->
+    <string name="upload_progress">Uploading %d%%</string>
+    <string name="upload_preparing">Preparing upload…</string>
+    <string name="upload_compressing">Compressing…</string>
+    <string name="upload_failed">Upload failed</string>
+    
+    <!-- Empty States -->
+    <string name="empty_chat">No messages yet</string>
+    <string name="empty_chat_subtitle">Start the conversation</string>
+    <string name="empty_search">No messages found</string>
+    <string name="empty_search_subtitle">Try different keywords</string>
+</resources>

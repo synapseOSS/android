@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/transparent">
+
+    <!-- Top controls bar -->
+    <LinearLayout
+        android:id="@+id/topControlsBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="@drawable/video_controls_gradient_top"
+        android:gravity="end">
+
+        <ImageButton
+            android:id="@id/exo_fullscreen"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_fullscreen"
+            android:contentDescription="@string/fullscreen_toggle"
+            android:tint="@android:color/white" />
+
+    </LinearLayout>
+
+    <!-- Center play/pause button -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ImageButton
+            android:id="@id/exo_play_pause"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_gravity="center"
+            android:background="@drawable/video_play_button_background"
+            android:src="@drawable/ic_play"
+            android:contentDescription="@string/play_pause"
+            android:tint="@android:color/white" />
+
+    </FrameLayout>
+
+    <!-- Bottom controls bar -->
+    <LinearLayout
+        android:id="@+id/bottomControlsBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:background="@drawable/video_controls_gradient_bottom">
+
+        <!-- Seek bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@id/exo_position"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:paddingEnd="8dp"
+                android:paddingStart="0dp"
+                tools:text="0:00" />
+
+            <androidx.media3.ui.DefaultTimeBar
+                android:id="@id/exo_progress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:played_color="@color/md_theme_primary"
+                app:scrubber_color="@color/md_theme_primary"
+                app:buffered_color="@color/md_theme_primaryContainer"
+                app:unplayed_color="@color/md_theme_surfaceVariant" />
+
+            <TextView
+                android:id="@id/exo_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                tools:text="5:00" />
+
+        </LinearLayout>
+
+        <!-- Control buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="4dp">
+
+            <ImageButton
+                android:id="@id/exo_rew"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_rewind"
+                android:contentDescription="@string/rewind"
+                android:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@id/exo_play"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_play"
+                android:contentDescription="@string/play"
+                android:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@id/exo_pause"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_pause"
+                android:contentDescription="@string/pause"
+                android:tint="@android:color/white"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:id="@id/exo_ffwd"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_forward"
+                android:contentDescription="@string/forward"
+                android:tint="@android:color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
