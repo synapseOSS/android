@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,12 +29,18 @@ class InboxComposeActivity : ComponentActivity() {
                 ) {
                     InboxScreen(
                         onNavigateBack = { finish() },
-                        onNavigateToChat = { chatId ->
+                        onNavigateToChat = { chatId, userId ->
                             // Navigate to existing ChatActivity
-                            // We need to keep this for now as ChatActivity migration is out of scope
+                            // ChatActivity expects "chatId" and "uid" as intent extras
+                            Log.d("InboxComposeActivity", "Navigating to chat - chatId: $chatId, userId: $userId")
+                            
                             val intent = Intent(this, ChatActivity::class.java).apply {
-                                putExtra("chat_id", chatId)
+                                // Use correct intent extra keys that ChatActivity expects
+                                putExtra("chatId", chatId)  // ChatActivity reads from "chatId" (line 132)
+                                putExtra("uid", userId)      // ChatActivity reads from "uid" (line 133)
                             }
+                            
+                            Log.d("InboxComposeActivity", "Starting ChatActivity with extras - chatId: $chatId, uid: $userId")
                             startActivity(intent)
                         }
                     )

@@ -21,6 +21,7 @@ object UserMapper {
             username = entity.username,
             email = entity.email,
             avatar = entity.avatarUrl,
+            profileImageUrl = entity.avatarUrl,
             verify = entity.isVerified
         )
     }

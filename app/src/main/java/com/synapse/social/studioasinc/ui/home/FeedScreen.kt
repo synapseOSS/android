@@ -89,7 +89,7 @@ fun FeedScreen(
                             onPostClick = { onPostClick(post.id) },
                             onMediaClick = onMediaClick,
                             onOptionsClick = { selectedPost = post },
-                            onPollVote = { /* Handle vote */ },
+                            onPollVote = { optionId -> viewModel.votePoll(post.id, optionId.toIntOrNull() ?: 0) },
                             onReactionSelected = { reaction -> viewModel.reactToPost(post, reaction) }
                         )
                     }

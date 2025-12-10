@@ -77,17 +77,65 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
+            // User Settings Section
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Account",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(start = 12.dp, bottom = 4.dp)
+                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        SettingRow(
+                            icon = R.drawable.ic_person,
+                            title = stringResource(R.string.settings_account),
+                            subtitle = stringResource(R.string.settings_account_subtitle),
+                            imageUrl = currentUser?.profileImageUrl,
+                            onClick = onAccountClick,
+                            cornerRadius = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+                        SettingRow(
+                            icon = R.drawable.ic_shield_lock,
+                            title = stringResource(R.string.settings_privacy),
+                            subtitle = stringResource(R.string.settings_privacy_subtitle),
+                            onClick = onPrivacyClick,
+                            cornerRadius = RoundedCornerShape(0.dp)
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+                        SettingRow(
+                            icon = R.drawable.ic_notifications,
+                            title = stringResource(R.string.settings_notifications),
+                            subtitle = stringResource(R.string.settings_notifications_subtitle),
+                            onClick = onNotificationsClick,
+                            cornerRadius = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
+                        )
+                    }
+                }
+            }
+
             // AI Configuration Section
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "AI Configuration",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 8.dp)
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(start = 12.dp, bottom = 4.dp)
                     )
                     AIConfigurationCard(
                         aiConfig = aiConfig,
@@ -100,12 +148,13 @@ fun SettingsScreen(
 
             // Storage & Data Section
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "Storage & Data",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 8.dp)
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(start = 12.dp, bottom = 4.dp)
                     )
                     StorageConfigurationCard(
                         storageConfig = storageConfig,
@@ -114,45 +163,6 @@ fun SettingsScreen(
                         onCloudinaryChange = { cloud, key, secret -> viewModel.updateCloudinaryConfig(cloud, key, secret) },
                         onR2Change = { acc, key, secret, bucket -> viewModel.updateR2Config(acc, key, secret, bucket) }
                     )
-                }
-            }
-
-            // General Preferences Section
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text = "General",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                    Column(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainer)
-                    ) {
-                        SettingRow(
-                            icon = R.drawable.ic_person,
-                            title = stringResource(R.string.settings_account),
-                            subtitle = stringResource(R.string.settings_account_subtitle),
-                            imageUrl = currentUser?.profileImageUrl,
-                            onClick = onAccountClick
-                        )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                        SettingRow(
-                            icon = R.drawable.ic_shield_lock,
-                            title = stringResource(R.string.settings_privacy),
-                            subtitle = stringResource(R.string.settings_privacy_subtitle),
-                            onClick = onPrivacyClick
-                        )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                        SettingRow(
-                            icon = R.drawable.ic_notifications,
-                            title = stringResource(R.string.settings_notifications),
-                            subtitle = stringResource(R.string.settings_notifications_subtitle),
-                            onClick = onNotificationsClick
-                        )
-                    }
                 }
             }
 
@@ -178,7 +188,7 @@ fun SettingsScreen(
             }
             
             item {
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -196,7 +206,7 @@ fun AIConfigurationCard(
     val providers = listOf("Gemini", "OpenAI", "Anthropic")
 
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -262,7 +272,7 @@ fun StorageConfigurationCard(
     val providers = listOf("ImgBB", "Cloudinary", "Cloudflare R2")
 
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -406,11 +416,14 @@ private fun SettingRow(
     subtitle: String?,
     imageUrl: String? = null,
     showChevron: Boolean = true,
+    cornerRadius: RoundedCornerShape = RoundedCornerShape(0.dp),
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(cornerRadius)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically

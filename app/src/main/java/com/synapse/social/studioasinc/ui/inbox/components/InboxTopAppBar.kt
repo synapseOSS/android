@@ -40,22 +40,32 @@ fun InboxTopAppBar(
             IconButton(onClick = onCameraClick) {
                 Icon(
                     imageVector = Icons.Default.CameraAlt,
-                    contentDescription = "Camera"
+                    contentDescription = "Camera",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             IconButton(onClick = onSearchClick) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
+                    contentDescription = "Search",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             IconButton(onClick = onMoreClick) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options"
+                    contentDescription = "More options",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
+        colors = TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
+        ),
         scrollBehavior = scrollBehavior,
         modifier = modifier
     )
@@ -85,10 +95,17 @@ fun InboxSearchTopAppBar(
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back"
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
+        ),
         modifier = modifier
     )
 }

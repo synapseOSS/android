@@ -282,6 +282,17 @@ class ProfileViewModel(
             }
         }
     }
+    
+    fun votePoll(postId: String, optionIndex: Int) {
+        viewModelScope.launch {
+            try {
+                val pollRepository = com.synapse.social.studioasinc.data.repository.PollRepository()
+                pollRepository.submitVote(postId, optionIndex)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     // Phase 4: Advanced Features
     fun showShareSheet() {

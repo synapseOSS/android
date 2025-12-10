@@ -70,6 +70,17 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+    
+    fun votePoll(postId: String, optionIndex: Int) {
+        viewModelScope.launch {
+            try {
+                val pollRepository = com.synapse.social.studioasinc.data.repository.PollRepository()
+                pollRepository.submitVote(postId, optionIndex)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun bookmarkPost(post: Post) {
         viewModelScope.launch {
