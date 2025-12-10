@@ -2,23 +2,23 @@ package com.synapse.social.studioasinc.ui.settings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.data.local.StorageConfig
+import com.synapse.social.studioasinc.ui.settings.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +39,7 @@ fun StorageProviderScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_arrow_back),
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -185,8 +185,8 @@ fun ImgBBConfigCard(
     apiKey: String,
     onApiKeyChange: (String) -> Unit
 ) {
-    ConfigSectionCard(title = "ImgBB Configuration", iconRes = R.drawable.ic_image) {
-        SecureTextField(
+    ConfigSectionCard(title = "ImgBB Configuration", iconVector = Icons.Default.Image) {
+        StorageSecureTextField(
             value = apiKey,
             onValueChange = onApiKeyChange,
             label = "API Key"
@@ -207,22 +207,22 @@ fun CloudinaryConfigCard(
     apiSecret: String,
     onConfigChange: (String, String, String) -> Unit
 ) {
-    ConfigSectionCard(title = "Cloudinary Configuration", iconRes = R.drawable.ic_cloud_upload) {
+    ConfigSectionCard(title = "Cloudinary Configuration", iconVector = Icons.Default.CloudUpload) {
         OutlinedTextField(
             value = cloudName,
-            onValueChange = { onConfigChange(it, apiKey, apiSecret) },
+            onValueChange = { newName -> onConfigChange(newName, apiKey, apiSecret) },
             label = { Text("Cloud Name") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         )
-        SecureTextField(
+        StorageSecureTextField(
             value = apiKey,
-            onValueChange = { onConfigChange(cloudName, it, apiSecret) },
+            onValueChange = { newKey -> onConfigChange(cloudName, newKey, apiSecret) },
             label = "API Key"
         )
-        SecureTextField(
+        StorageSecureTextField(
             value = apiSecret,
-            onValueChange = { onConfigChange(cloudName, apiKey, it) },
+            onValueChange = { newSecret -> onConfigChange(cloudName, apiKey, newSecret) },
             label = "API Secret"
         )
         Text(
@@ -242,27 +242,27 @@ fun R2ConfigCard(
     bucketName: String,
     onConfigChange: (String, String, String, String) -> Unit
 ) {
-    ConfigSectionCard(title = "Cloudflare R2 Configuration", iconRes = R.drawable.ic_cloud) {
+    ConfigSectionCard(title = "Cloudflare R2 Configuration", iconVector = Icons.Default.Cloud) {
         OutlinedTextField(
             value = accountId,
-            onValueChange = { onConfigChange(it, accessKeyId, secretAccessKey, bucketName) },
+            onValueChange = { newVal -> onConfigChange(newVal, accessKeyId, secretAccessKey, bucketName) },
             label = { Text("Account ID") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         )
-        SecureTextField(
+        StorageSecureTextField(
             value = accessKeyId,
-            onValueChange = { onConfigChange(accountId, it, secretAccessKey, bucketName) },
+            onValueChange = { newVal -> onConfigChange(accountId, newVal, secretAccessKey, bucketName) },
             label = "Access Key ID"
         )
-        SecureTextField(
+        StorageSecureTextField(
             value = secretAccessKey,
-            onValueChange = { onConfigChange(accountId, accessKeyId, it, bucketName) },
+            onValueChange = { newVal -> onConfigChange(accountId, accessKeyId, newVal, bucketName) },
             label = "Secret Access Key"
         )
         OutlinedTextField(
             value = bucketName,
-            onValueChange = { onConfigChange(accountId, accessKeyId, secretAccessKey, it) },
+            onValueChange = { newVal -> onConfigChange(accountId, accessKeyId, secretAccessKey, newVal) },
             label = { Text("Bucket Name") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
@@ -283,23 +283,23 @@ fun SupabaseConfigCard(
     bucketName: String,
     onConfigChange: (String, String, String) -> Unit
 ) {
-    ConfigSectionCard(title = "Supabase Storage", iconRes = R.drawable.ic_database) { // Assuming a DB icon or similar
+    ConfigSectionCard(title = "Supabase Storage", iconVector = Icons.Default.Storage) {
         OutlinedTextField(
             value = url,
-            onValueChange = { onConfigChange(it, apiKey, bucketName) },
+            onValueChange = { newVal -> onConfigChange(newVal, apiKey, bucketName) },
             label = { Text("Project URL") },
             placeholder = { Text("https://your-project.supabase.co") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         )
-        SecureTextField(
+        StorageSecureTextField(
             value = apiKey,
-            onValueChange = { onConfigChange(url, it, bucketName) },
+            onValueChange = { newVal -> onConfigChange(url, newVal, bucketName) },
             label = "Service Role / API Key"
         )
         OutlinedTextField(
             value = bucketName,
-            onValueChange = { onConfigChange(url, apiKey, it) },
+            onValueChange = { newVal -> onConfigChange(url, apiKey, newVal) },
             label = { Text("Bucket Name") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
@@ -316,7 +316,7 @@ fun SupabaseConfigCard(
 @Composable
 fun ConfigSectionCard(
     title: String,
-    @androidx.annotation.DrawableRes iconRes: Int,
+    iconVector: ImageVector,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
@@ -328,7 +328,7 @@ fun ConfigSectionCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
                 Icon(
-                    painter = painterResource(iconRes),
+                    imageVector = iconVector,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
@@ -347,15 +347,8 @@ fun ConfigSectionCard(
     }
 }
 
-// Reusing SecureTextField from SettingsScreen, duplicating here or making it shared. 
-// For now, I'll duplicate to keep this file self-contained or I need to move it to a common util.
-// Let's assume I should move it to a common Component but to avoid cross-file refactoring risk right now I will simple duplicate it 
-// or I can check if there is a common components file.
-// I'll quickly check if there is a 'components' package I can use.
-// No, I'll just keep it here as private.
-
 @Composable
-private fun SecureTextField(
+private fun StorageSecureTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String
@@ -369,10 +362,10 @@ private fun SecureTextField(
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         trailingIcon = {
-            val icon = if (passwordVisible) R.drawable.ic_visibility else R.drawable.ic_visibility_off
+            val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                  Icon(
-                     painter = painterResource(icon),
+                     imageVector = icon,
                      contentDescription = if (passwordVisible) "Hide password" else "Show password"
                  )
             }
