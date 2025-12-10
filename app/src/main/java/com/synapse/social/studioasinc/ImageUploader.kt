@@ -135,13 +135,15 @@ object ImageUploader {
 
     /**
      * Returns the list of providers configured for the given media type
+     * With single provider selection, this returns a list with one item if configured
      */
     private fun getProvidersForMediaType(config: StorageConfig, mediaType: MediaType): List<String> {
-        return when (mediaType) {
-            MediaType.PHOTO -> config.photoProviders.toList()
-            MediaType.VIDEO -> config.videoProviders.toList()
-            MediaType.OTHER -> config.otherProviders.toList()
+        val provider = when (mediaType) {
+            MediaType.PHOTO -> config.photoProvider
+            MediaType.VIDEO -> config.videoProvider
+            MediaType.OTHER -> config.otherProvider
         }
+        return listOfNotNull(provider)
     }
 
     private fun uploadToImgBB(apiKey: String, file: File): String {

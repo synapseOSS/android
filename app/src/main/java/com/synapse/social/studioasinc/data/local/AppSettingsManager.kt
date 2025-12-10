@@ -31,10 +31,10 @@ class AppSettingsManager private constructor(private val context: Context) {
         private val KEY_AI_API_KEY = stringPreferencesKey("ai_api_key")
         private val KEY_AI_ENDPOINT = stringPreferencesKey("ai_endpoint")
 
-        // Storage Configuration Keys - Multi-provider support by media type
-        private val KEY_PHOTO_PROVIDERS = stringPreferencesKey("photo_providers") // Comma-separated
-        private val KEY_VIDEO_PROVIDERS = stringPreferencesKey("video_providers") // Comma-separated
-        private val KEY_OTHER_PROVIDERS = stringPreferencesKey("other_providers") // Comma-separated
+        // Storage Configuration Keys - Single provider per media type
+        private val KEY_PHOTO_PROVIDER = stringPreferencesKey("photo_provider")
+        private val KEY_VIDEO_PROVIDER = stringPreferencesKey("video_provider")
+        private val KEY_OTHER_PROVIDER = stringPreferencesKey("other_provider")
         
         // ImgBB Keys
         private val KEY_IMGBB_API_KEY = stringPreferencesKey("imgbb_api_key")
@@ -79,12 +79,9 @@ class AppSettingsManager private constructor(private val context: Context) {
     // Storage Config
     val storageConfigFlow: Flow<StorageConfig> = dataStore.data.map { preferences ->
         StorageConfig(
-            photoProviders = preferences[KEY_PHOTO_PROVIDERS]?.split(",")?.filter { it.isNotBlank() }?.toSet()
-                ?: setOf("ImgBB"), // Default to ImgBB for photos
-            videoProviders = preferences[KEY_VIDEO_PROVIDERS]?.split(",")?.filter { it.isNotBlank() }?.toSet()
-                ?: setOf("Cloudinary"), // Default to Cloudinary for videos
-            otherProviders = preferences[KEY_OTHER_PROVIDERS]?.split(",")?.filter { it.isNotBlank() }?.toSet()
-                ?: setOf("Supabase"), // Default to Supabase for other files
+            photoProvider = preferences[KEY_PHOTO_PROVIDER]?.takeIf { it.isNotBlank() },
+            videoProvider = preferences[KEY_VIDEO_PROVIDER]?.takeIf { it.isNotBlank() },
+            otherProvider = preferences[KEY_OTHER_PROVIDER]?.takeIf { it.isNotBlank() },
             imgBBConfig = ImgBBConfig(
                 apiKey = preferences[KEY_IMGBB_API_KEY] ?: ""
             ),
@@ -107,21 +104,21 @@ class AppSettingsManager private constructor(private val context: Context) {
         )
     }
 
-    suspend fun updatePhotoProviders(providers: Set<String>) {
+    suspend fun updatePhotoProvider(provider: String?) {
         dataStore.edit { preferences ->
-            preferences[KEY_PHOTO_PROVIDERS] = providers.joinToString(",")
+            preferences[KEY_PHOTO_PROVIDER] = provider ?: ""
         }
     }
 
-    suspend fun updateVideoProviders(providers: Set<String>) {
+    suspend fun updateVideoProvider(provider: String?) {
         dataStore.edit { preferences ->
-            preferences[KEY_VIDEO_PROVIDERS] = providers.joinToString(",")
+            preferences[KEY_VIDEO_PROVIDER] = provider ?: ""
         }
     }
 
-    suspend fun updateOtherProviders(providers: Set<String>) {
+    suspend fun updateOtherProvider(provider: String?) {
         dataStore.edit { preferences ->
-            preferences[KEY_OTHER_PROVIDERS] = providers.joinToString(",")
+            preferences[KEY_OTHER_PROVIDER] = provider ?: ""
         }
     }
 
@@ -164,14 +161,41 @@ data class AIConfig(
 )
 
 data class StorageConfig(
-    val photoProviders: Set<String>,  // Providers for photos (e.g., ImgBB, Cloudinary)
-    val videoProviders: Set<String>,  // Providers for videos (e.g., Cloudinary, Supabase)
-    val otherProviders: Set<String>,  // Providers for other files (e.g., Supabase, Cloudflare R2)
+    val photoProvider: String?,  // Selected provider for photos (e.g., ImgBB, Cloudinary)
+    val videoProvider: String?,  // Selected provider for videos (e.g., Cloudinary, Supabase)
+    val otherProvider: String?,  // Selected provider for other files (e.g., Supabase, Cloudflare R2)
     val imgBBConfig: ImgBBConfig,
     val cloudinaryConfig: CloudinaryConfig,
     val r2Config: CloudflareR2Config,
     val supabaseConfig: SupabaseConfig
-)
+) {
+    // Helper functions to check if a provider is properly configured
+    fun isImgBBConfigured(): Boolean = imgBBConfig.apiKey.isNotBlank()
+    
+    fun isCloudinaryConfigured(): Boolean = 
+        cloudinaryConfig.cloudName.isNotBlank() && 
+        cloudinaryConfig.apiKey.isNotBlank() && 
+        cloudinaryConfig.apiSecret.isNotBlank()
+    
+    fun isR2Configured(): Boolean = 
+        r2Config.accountId.isNotBlank() &&
+        r2Config.accessKeyId.isNotBlank() &&
+        r2Config.secretAccessKey.isNotBlank() &&
+        r2Config.bucketName.isNotBlank()
+    
+    fun isSupabaseConfigured(): Boolean = 
+        supabaseConfig.url.isNotBlank() &&
+        supabaseConfig.apiKey.isNotBlank() &&
+        supabaseConfig.bucketName.isNotBlank()
+    
+    fun isProviderConfigured(providerName: String): Boolean = when (providerName) {
+        "ImgBB" -> isImgBBConfigured()
+        "Cloudinary" -> isCloudinaryConfigured()
+        "Cloudflare R2" -> isR2Configured()
+        "Supabase" -> isSupabaseConfigured()
+        else -> false
+    }
+}
 
 data class ImgBBConfig(
     val apiKey: String
