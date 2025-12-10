@@ -216,14 +216,6 @@ fun SettingsNavigationItem(
         }
     }
 }
-        Icon(
-            painter = painterResource(R.drawable.ic_chevron_right),
-            contentDescription = null, // Merged into parent semantics
-            modifier = Modifier.size(SettingsSpacing.iconSize),
-            tint = SettingsColors.chevronIcon
-        )
-    }
-}
 
 /**
  * Enhanced selection settings item with Material 3 Expressive corner radius support.
@@ -440,22 +432,6 @@ fun SettingsSliderItem(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
-    }
-}
-                activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        // Preview text
-        Text(
-            text = valueLabel(value),
-            style = SettingsTypography.itemSubtitle,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
     }
 }
 

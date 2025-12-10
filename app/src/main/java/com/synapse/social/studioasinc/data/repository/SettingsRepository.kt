@@ -169,6 +169,12 @@ interface SettingsRepository {
      */
     suspend fun setMediaAutoDownload(setting: MediaAutoDownload)
     
+    /**
+     * Sets the chat font scale.
+     * @param scale The font scale multiplier (0.8f to 1.4f)
+     */
+    suspend fun setChatFontScale(scale: Float)
+    
     // ========================================================================
     // Storage and Cache Management
     // ========================================================================

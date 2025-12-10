@@ -138,6 +138,10 @@ class SettingsRepositoryImpl private constructor(
     override suspend fun setMediaAutoDownload(setting: MediaAutoDownload) {
         settingsDataStore.setMediaAutoDownload(setting)
     }
+    
+    override suspend fun setChatFontScale(scale: Float) {
+        settingsDataStore.setChatFontScale(scale)
+    }
 
 
     // ========================================================================

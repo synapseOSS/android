@@ -86,6 +86,7 @@ class SettingsDataStore private constructor(private val context: Context) {
         private val KEY_READ_RECEIPTS_ENABLED = booleanPreferencesKey("read_receipts_enabled")
         private val KEY_TYPING_INDICATORS_ENABLED = booleanPreferencesKey("typing_indicators_enabled")
         private val KEY_MEDIA_AUTO_DOWNLOAD = stringPreferencesKey("media_auto_download")
+        private val KEY_CHAT_FONT_SCALE = floatPreferencesKey("chat_font_scale")
         
         // Data Saver
         private val KEY_DATA_SAVER_ENABLED = booleanPreferencesKey("data_saver_enabled")
@@ -106,6 +107,7 @@ class SettingsDataStore private constructor(private val context: Context) {
         val DEFAULT_READ_RECEIPTS_ENABLED = true
         val DEFAULT_TYPING_INDICATORS_ENABLED = true
         val DEFAULT_MEDIA_AUTO_DOWNLOAD = MediaAutoDownload.WIFI_ONLY
+        val DEFAULT_CHAT_FONT_SCALE = 1.0f
         val DEFAULT_DATA_SAVER_ENABLED = false
     }
 
@@ -351,7 +353,8 @@ class SettingsDataStore private constructor(private val context: Context) {
             typingIndicatorsEnabled = preferences[KEY_TYPING_INDICATORS_ENABLED] ?: DEFAULT_TYPING_INDICATORS_ENABLED,
             mediaAutoDownload = preferences[KEY_MEDIA_AUTO_DOWNLOAD]?.let { value ->
                 runCatching { MediaAutoDownload.valueOf(value) }.getOrDefault(DEFAULT_MEDIA_AUTO_DOWNLOAD)
-            } ?: DEFAULT_MEDIA_AUTO_DOWNLOAD
+            } ?: DEFAULT_MEDIA_AUTO_DOWNLOAD,
+            chatFontScale = preferences[KEY_CHAT_FONT_SCALE] ?: DEFAULT_CHAT_FONT_SCALE
         )
     }
     
@@ -379,6 +382,15 @@ class SettingsDataStore private constructor(private val context: Context) {
     suspend fun setMediaAutoDownload(setting: MediaAutoDownload) {
         dataStore.edit { preferences ->
             preferences[KEY_MEDIA_AUTO_DOWNLOAD] = setting.name
+        }
+    }
+    
+    /**
+     * Sets chat font scale.
+     */
+    suspend fun setChatFontScale(scale: Float) {
+        dataStore.edit { preferences ->
+            preferences[KEY_CHAT_FONT_SCALE] = scale
         }
     }
 
@@ -444,6 +456,7 @@ class SettingsDataStore private constructor(private val context: Context) {
             preferences.remove(KEY_READ_RECEIPTS_ENABLED)
             preferences.remove(KEY_TYPING_INDICATORS_ENABLED)
             preferences.remove(KEY_MEDIA_AUTO_DOWNLOAD)
+            preferences.remove(KEY_CHAT_FONT_SCALE)
             
             // Data saver
             preferences.remove(KEY_DATA_SAVER_ENABLED)
@@ -487,6 +500,7 @@ class SettingsDataStore private constructor(private val context: Context) {
             preferences[KEY_READ_RECEIPTS_ENABLED] = DEFAULT_READ_RECEIPTS_ENABLED
             preferences[KEY_TYPING_INDICATORS_ENABLED] = DEFAULT_TYPING_INDICATORS_ENABLED
             preferences[KEY_MEDIA_AUTO_DOWNLOAD] = DEFAULT_MEDIA_AUTO_DOWNLOAD.name
+            preferences[KEY_CHAT_FONT_SCALE] = DEFAULT_CHAT_FONT_SCALE
             
             // Data saver
             preferences[KEY_DATA_SAVER_ENABLED] = DEFAULT_DATA_SAVER_ENABLED
