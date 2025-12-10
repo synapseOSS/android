@@ -37,7 +37,7 @@ object MediaUploadManager {
                         try {
                             val filePath = getFilePathFromUri(context, mediaItem.url)
                             if (filePath != null) {
-                                val imgbbUrl = uploadToImgBB(filePath)
+                                val imgbbUrl = uploadToImgBB(context, filePath)
                                 val uploadedItem = mediaItem.copy(
                                     id = UUID.randomUUID().toString(),
                                     url = imgbbUrl,
@@ -76,8 +76,8 @@ object MediaUploadManager {
         }
     }
     
-    private suspend fun uploadToImgBB(filePath: String): String = suspendCancellableCoroutine { continuation ->
-        ImageUploader.uploadImage(filePath, object : ImageUploader.UploadCallback {
+    private suspend fun uploadToImgBB(context: Context, filePath: String): String = suspendCancellableCoroutine { continuation ->
+        ImageUploader.uploadImage(context, filePath, object : ImageUploader.UploadCallback {
             override fun onUploadComplete(imageUrl: String) {
                 continuation.resume(imageUrl)
             }

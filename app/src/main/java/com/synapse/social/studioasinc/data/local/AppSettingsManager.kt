@@ -47,6 +47,11 @@ class AppSettingsManager private constructor(private val context: Context) {
         private val KEY_R2_ACCESS_KEY_ID = stringPreferencesKey("r2_access_key_id")
         private val KEY_R2_SECRET_ACCESS_KEY = stringPreferencesKey("r2_secret_access_key")
         private val KEY_R2_BUCKET_NAME = stringPreferencesKey("r2_bucket_name")
+
+        // Supabase Keys
+        private val KEY_SUPABASE_URL = stringPreferencesKey("supabase_url")
+        private val KEY_SUPABASE_KEY = stringPreferencesKey("supabase_key")
+        private val KEY_SUPABASE_BUCKET = stringPreferencesKey("supabase_bucket")
     }
 
     private val dataStore: DataStore<Preferences>
@@ -86,6 +91,11 @@ class AppSettingsManager private constructor(private val context: Context) {
                 accessKeyId = preferences[KEY_R2_ACCESS_KEY_ID] ?: "",
                 secretAccessKey = preferences[KEY_R2_SECRET_ACCESS_KEY] ?: "",
                 bucketName = preferences[KEY_R2_BUCKET_NAME] ?: ""
+            ),
+            supabaseConfig = SupabaseConfig(
+                url = preferences[KEY_SUPABASE_URL] ?: "",
+                apiKey = preferences[KEY_SUPABASE_KEY] ?: "",
+                bucketName = preferences[KEY_SUPABASE_BUCKET] ?: ""
             )
         )
     }
@@ -118,6 +128,14 @@ class AppSettingsManager private constructor(private val context: Context) {
             preferences[KEY_R2_BUCKET_NAME] = config.bucketName
         }
     }
+
+    suspend fun updateSupabaseConfig(config: SupabaseConfig) {
+        dataStore.edit { preferences ->
+            preferences[KEY_SUPABASE_URL] = config.url
+            preferences[KEY_SUPABASE_KEY] = config.apiKey
+            preferences[KEY_SUPABASE_BUCKET] = config.bucketName
+        }
+    }
 }
 
 data class AIConfig(
@@ -130,7 +148,8 @@ data class StorageConfig(
     val provider: String,
     val imgBBConfig: ImgBBConfig,
     val cloudinaryConfig: CloudinaryConfig,
-    val r2Config: CloudflareR2Config
+    val r2Config: CloudflareR2Config,
+    val supabaseConfig: SupabaseConfig
 )
 
 data class ImgBBConfig(
@@ -149,3 +168,10 @@ data class CloudflareR2Config(
     val secretAccessKey: String,
     val bucketName: String
 )
+
+data class SupabaseConfig(
+    val url: String,
+    val apiKey: String,
+    val bucketName: String
+)
+

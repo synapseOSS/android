@@ -56,6 +56,11 @@ sealed class SettingsDestination(val route: String) {
      */
     object About : SettingsDestination(ROUTE_ABOUT)
     
+    /**
+     * Storage Provider configuration screen.
+     */
+    object StorageProvider : SettingsDestination(ROUTE_STORAGE_PROVIDER)
+    
     companion object {
         // Route constants for navigation
         const val ROUTE_HUB = "settings_hub"
@@ -65,6 +70,7 @@ sealed class SettingsDestination(val route: String) {
         const val ROUTE_NOTIFICATIONS = "settings_notifications"
         const val ROUTE_CHAT = "settings_chat"
         const val ROUTE_STORAGE = "settings_storage"
+        const val ROUTE_STORAGE_PROVIDER = "settings_storage_provider"
         const val ROUTE_LANGUAGE = "settings_language"
         const val ROUTE_ABOUT = "settings_about"
         
@@ -79,6 +85,7 @@ sealed class SettingsDestination(val route: String) {
             Notifications,
             Chat,
             Storage,
+            StorageProvider,
             Language,
             About
         )
@@ -96,6 +103,7 @@ sealed class SettingsDestination(val route: String) {
             ROUTE_NOTIFICATIONS -> Notifications
             ROUTE_CHAT -> Chat
             ROUTE_STORAGE -> Storage
+            ROUTE_STORAGE_PROVIDER -> StorageProvider
             ROUTE_LANGUAGE -> Language
             ROUTE_ABOUT -> About
             else -> null

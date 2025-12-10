@@ -40,7 +40,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 provider = "ImgBB",
                 imgBBConfig = com.synapse.social.studioasinc.data.local.ImgBBConfig(""),
                 cloudinaryConfig = CloudinaryConfig("", "", ""),
-                r2Config = CloudflareR2Config("", "", "", "")
+                r2Config = CloudflareR2Config("", "", "", ""),
+                supabaseConfig = com.synapse.social.studioasinc.data.local.SupabaseConfig("", "", "")
             )
         )
 
@@ -94,6 +95,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun updateR2Config(accountId: String, accessKeyId: String, secretAccessKey: String, bucketName: String) {
         viewModelScope.launch {
             appSettingsManager.updateR2Config(CloudflareR2Config(accountId, accessKeyId, secretAccessKey, bucketName))
+        }
+    }
+
+    fun updateSupabaseConfig(url: String, apiKey: String, bucketName: String) {
+        viewModelScope.launch {
+            appSettingsManager.updateSupabaseConfig(com.synapse.social.studioasinc.data.local.SupabaseConfig(url, apiKey, bucketName))
         }
     }
 }
