@@ -146,25 +146,8 @@ fun SettingsScreen(
                 }
             }
 
-            // Storage & Data Section
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Storage & Data",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(start = 12.dp, bottom = 4.dp)
-                    )
-                    StorageConfigurationCard(
-                        storageConfig = storageConfig,
-                        onProviderChange = { viewModel.updateStorageProvider(it) },
-                        onImgBBChange = { viewModel.updateImgBBConfig(it) },
-                        onCloudinaryChange = { cloud, key, secret -> viewModel.updateCloudinaryConfig(cloud, key, secret) },
-                        onR2Change = { acc, key, secret, bucket -> viewModel.updateR2Config(acc, key, secret, bucket) }
-                    )
-                }
-            }
+            // Storage & Data Section - Now handled in dedicated StorageProviderScreen
+            // Removed inline configuration to avoid duplication
 
             // Logout Section
             item {
@@ -259,120 +242,6 @@ fun AIConfigurationCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun StorageConfigurationCard(
-    storageConfig: StorageConfig,
-    onProviderChange: (String) -> Unit,
-    onImgBBChange: (String) -> Unit,
-    onCloudinaryChange: (String, String, String) -> Unit,
-    onR2Change: (String, String, String, String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val providers = listOf("ImgBB", "Cloudinary", "Cloudflare R2")
-
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            // Provider Dropdown
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = storageConfig.provider,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Storage Provider") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    providers.forEach { provider ->
-                        DropdownMenuItem(
-                            text = { Text(provider) },
-                            onClick = {
-                                onProviderChange(provider)
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            // Dynamic Fields based on Provider
-            AnimatedVisibility(
-                visible = true,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    when (storageConfig.provider) {
-                        "ImgBB" -> {
-                            SecureTextField(
-                                value = storageConfig.imgBBConfig.apiKey,
-                                onValueChange = onImgBBChange,
-                                label = "ImgBB API Key"
-                            )
-                        }
-                        "Cloudinary" -> {
-                            OutlinedTextField(
-                                value = storageConfig.cloudinaryConfig.cloudName,
-                                onValueChange = { onCloudinaryChange(it, storageConfig.cloudinaryConfig.apiKey, storageConfig.cloudinaryConfig.apiSecret) },
-                                label = { Text("Cloud Name") },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            SecureTextField(
-                                value = storageConfig.cloudinaryConfig.apiKey,
-                                onValueChange = { onCloudinaryChange(storageConfig.cloudinaryConfig.cloudName, it, storageConfig.cloudinaryConfig.apiSecret) },
-                                label = "API Key"
-                            )
-                            SecureTextField(
-                                value = storageConfig.cloudinaryConfig.apiSecret,
-                                onValueChange = { onCloudinaryChange(storageConfig.cloudinaryConfig.cloudName, storageConfig.cloudinaryConfig.apiKey, it) },
-                                label = "API Secret"
-                            )
-                        }
-                        "Cloudflare R2" -> {
-                            OutlinedTextField(
-                                value = storageConfig.r2Config.accountId,
-                                onValueChange = { onR2Change(it, storageConfig.r2Config.accessKeyId, storageConfig.r2Config.secretAccessKey, storageConfig.r2Config.bucketName) },
-                                label = { Text("Account ID") },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            SecureTextField(
-                                value = storageConfig.r2Config.accessKeyId,
-                                onValueChange = { onR2Change(storageConfig.r2Config.accountId, it, storageConfig.r2Config.secretAccessKey, storageConfig.r2Config.bucketName) },
-                                label = "Access Key ID"
-                            )
-                            SecureTextField(
-                                value = storageConfig.r2Config.secretAccessKey,
-                                onValueChange = { onR2Change(storageConfig.r2Config.accountId, storageConfig.r2Config.accessKeyId, it, storageConfig.r2Config.bucketName) },
-                                label = "Secret Access Key"
-                            )
-                            OutlinedTextField(
-                                value = storageConfig.r2Config.bucketName,
-                                onValueChange = { onR2Change(storageConfig.r2Config.accountId, storageConfig.r2Config.accessKeyId, storageConfig.r2Config.secretAccessKey, it) },
-                                label = { Text("Bucket Name") },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun SecureTextField(

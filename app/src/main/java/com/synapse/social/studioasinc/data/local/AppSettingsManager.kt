@@ -31,8 +31,10 @@ class AppSettingsManager private constructor(private val context: Context) {
         private val KEY_AI_API_KEY = stringPreferencesKey("ai_api_key")
         private val KEY_AI_ENDPOINT = stringPreferencesKey("ai_endpoint")
 
-        // Storage Configuration Keys
-        private val KEY_STORAGE_PROVIDER = stringPreferencesKey("storage_provider")
+        // Storage Configuration Keys - Multi-provider support by media type
+        private val KEY_PHOTO_PROVIDERS = stringPreferencesKey("photo_providers") // Comma-separated
+        private val KEY_VIDEO_PROVIDERS = stringPreferencesKey("video_providers") // Comma-separated
+        private val KEY_OTHER_PROVIDERS = stringPreferencesKey("other_providers") // Comma-separated
         
         // ImgBB Keys
         private val KEY_IMGBB_API_KEY = stringPreferencesKey("imgbb_api_key")
@@ -77,7 +79,12 @@ class AppSettingsManager private constructor(private val context: Context) {
     // Storage Config
     val storageConfigFlow: Flow<StorageConfig> = dataStore.data.map { preferences ->
         StorageConfig(
-            provider = preferences[KEY_STORAGE_PROVIDER] ?: "ImgBB",
+            photoProviders = preferences[KEY_PHOTO_PROVIDERS]?.split(",")?.filter { it.isNotBlank() }?.toSet()
+                ?: setOf("ImgBB"), // Default to ImgBB for photos
+            videoProviders = preferences[KEY_VIDEO_PROVIDERS]?.split(",")?.filter { it.isNotBlank() }?.toSet()
+                ?: setOf("Cloudinary"), // Default to Cloudinary for videos
+            otherProviders = preferences[KEY_OTHER_PROVIDERS]?.split(",")?.filter { it.isNotBlank() }?.toSet()
+                ?: setOf("Supabase"), // Default to Supabase for other files
             imgBBConfig = ImgBBConfig(
                 apiKey = preferences[KEY_IMGBB_API_KEY] ?: ""
             ),
@@ -100,9 +107,21 @@ class AppSettingsManager private constructor(private val context: Context) {
         )
     }
 
-    suspend fun updateStorageProvider(provider: String) {
+    suspend fun updatePhotoProviders(providers: Set<String>) {
         dataStore.edit { preferences ->
-            preferences[KEY_STORAGE_PROVIDER] = provider
+            preferences[KEY_PHOTO_PROVIDERS] = providers.joinToString(",")
+        }
+    }
+
+    suspend fun updateVideoProviders(providers: Set<String>) {
+        dataStore.edit { preferences ->
+            preferences[KEY_VIDEO_PROVIDERS] = providers.joinToString(",")
+        }
+    }
+
+    suspend fun updateOtherProviders(providers: Set<String>) {
+        dataStore.edit { preferences ->
+            preferences[KEY_OTHER_PROVIDERS] = providers.joinToString(",")
         }
     }
 
@@ -145,7 +164,9 @@ data class AIConfig(
 )
 
 data class StorageConfig(
-    val provider: String,
+    val photoProviders: Set<String>,  // Providers for photos (e.g., ImgBB, Cloudinary)
+    val videoProviders: Set<String>,  // Providers for videos (e.g., Cloudinary, Supabase)
+    val otherProviders: Set<String>,  // Providers for other files (e.g., Supabase, Cloudflare R2)
     val imgBBConfig: ImgBBConfig,
     val cloudinaryConfig: CloudinaryConfig,
     val r2Config: CloudflareR2Config,

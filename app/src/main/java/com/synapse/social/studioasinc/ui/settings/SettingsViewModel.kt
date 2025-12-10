@@ -37,7 +37,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = StorageConfig(
-                provider = "ImgBB",
+                photoProviders = setOf("ImgBB"),
+                videoProviders = setOf("Cloudinary"),
+                otherProviders = setOf("Supabase"),
                 imgBBConfig = com.synapse.social.studioasinc.data.local.ImgBBConfig(""),
                 cloudinaryConfig = CloudinaryConfig("", "", ""),
                 r2Config = CloudflareR2Config("", "", "", ""),
@@ -74,9 +76,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun updateStorageProvider(provider: String) {
+    fun updatePhotoProviders(providers: Set<String>) {
         viewModelScope.launch {
-            appSettingsManager.updateStorageProvider(provider)
+            appSettingsManager.updatePhotoProviders(providers)
+        }
+    }
+
+    fun updateVideoProviders(providers: Set<String>) {
+        viewModelScope.launch {
+            appSettingsManager.updateVideoProviders(providers)
+        }
+    }
+
+    fun updateOtherProviders(providers: Set<String>) {
+        viewModelScope.launch {
+            appSettingsManager.updateOtherProviders(providers)
         }
     }
 

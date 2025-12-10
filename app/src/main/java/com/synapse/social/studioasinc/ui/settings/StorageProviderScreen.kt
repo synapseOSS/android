@@ -58,122 +58,263 @@ fun StorageProviderScreen(
         ) {
             item {
                 Text(
-                    text = "Configure how your media files are stored. You can use the default providers or your own self-hosted keys.",
+                    text = "Select multiple storage providers for each media type. Files will be uploaded to the first available provider, with automatic fallback if it fails.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            // Global Provider Selection
+            // Photo Providers Section
             item {
-                ProviderSelectionCard(
-                    currentProvider = storageConfig.provider,
-                    onProviderSelected = { viewModel.updateStorageProvider(it) }
+                MediaTypeProviderSelector(
+                    title = "Photo Storage",
+                    description = "Providers for images (JPG, PNG, GIF, WebP, etc.)",
+                    icon = Icons.Default.Image,
+                    availableProviders = listOf("ImgBB", "Cloudinary", "Supabase", "Cloudflare R2"),
+                    selectedProviders = storageConfig.photoProviders,
+                    onProvidersChanged = { viewModel.updatePhotoProviders(it) }
                 )
             }
 
-            // Dynamic Configuration Section based on selection
+            // Video Providers Section
             item {
-                AnimatedContent(
-                    targetState = storageConfig.provider,
-                    label = "provider_config"
-                ) { provider ->
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        when (provider) {
-                            "ImgBB" -> {
-                                ImgBBConfigCard(
-                                    apiKey = storageConfig.imgBBConfig.apiKey,
-                                    onApiKeyChange = { viewModel.updateImgBBConfig(it) }
-                                )
-                            }
-                            "Cloudinary" -> {
-                                CloudinaryConfigCard(
-                                    cloudName = storageConfig.cloudinaryConfig.cloudName,
-                                    apiKey = storageConfig.cloudinaryConfig.apiKey,
-                                    apiSecret = storageConfig.cloudinaryConfig.apiSecret,
-                                    onConfigChange = { name, key, secret ->
-                                        viewModel.updateCloudinaryConfig(name, key, secret)
-                                    }
-                                )
-                            }
-                            "Cloudflare R2" -> {
-                                R2ConfigCard(
-                                    accountId = storageConfig.r2Config.accountId,
-                                    accessKeyId = storageConfig.r2Config.accessKeyId,
-                                    secretAccessKey = storageConfig.r2Config.secretAccessKey,
-                                    bucketName = storageConfig.r2Config.bucketName,
-                                    onConfigChange = { acc, key, secret, bucket ->
-                                        viewModel.updateR2Config(acc, key, secret, bucket)
-                                    }
-                                )
-                            }
-                            "Supabase" -> {
-                                SupabaseConfigCard(
-                                    url = storageConfig.supabaseConfig.url,
-                                    apiKey = storageConfig.supabaseConfig.apiKey,
-                                    bucketName = storageConfig.supabaseConfig.bucketName,
-                                    onConfigChange = { url, key, bucket ->
-                                        viewModel.updateSupabaseConfig(url, key, bucket)
-                                    }
-                                )
-                            }
+                MediaTypeProviderSelector(
+                    title = "Video Storage",
+                    description = "Providers for videos (MP4, MOV, AVI, etc.)",
+                    icon = Icons.Default.Videocam,
+                    availableProviders = listOf("Cloudinary", "Supabase", "Cloudflare R2"),
+                    selectedProviders = storageConfig.videoProviders,
+                    onProvidersChanged = { viewModel.updateVideoProviders(it) }
+                )
+            }
+
+            // Other Providers Section
+            item {
+                MediaTypeProviderSelector(
+                    title = "Other Files",
+                    description = "Providers for audio, documents, and other files",
+                    icon = Icons.Default.Folder,
+                    availableProviders = listOf("Supabase", "Cloudflare R2"),
+                    selectedProviders = storageConfig.otherProviders,
+                    onProvidersChanged = { viewModel.updateOtherProviders(it) }
+                )
+            }
+
+            // Configuration Section Header
+            item {
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                Text(
+                    text = "Provider Configuration",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                Text(
+                    text = "Configure API keys and credentials for the providers you selected above.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Dynamic Configuration Cards based on selections
+            val allSelectedProviders = storageConfig.photoProviders + 
+                                      storageConfig.videoProviders + 
+                                      storageConfig.otherProviders
+
+            if (allSelectedProviders.contains("ImgBB")) {
+                item {
+                    ImgBBConfigCard(
+                        apiKey = storageConfig.imgBBConfig.apiKey,
+                        onApiKeyChange = { viewModel.updateImgBBConfig(it) }
+                    )
+                }
+            }
+
+            if (allSelectedProviders.contains("Cloudinary")) {
+                item {
+                    CloudinaryConfigCard(
+                        cloudName = storageConfig.cloudinaryConfig.cloudName,
+                        apiKey = storageConfig.cloudinaryConfig.apiKey,
+                        apiSecret = storageConfig.cloudinaryConfig.apiSecret,
+                        onConfigChange = { name, key, secret ->
+                            viewModel.updateCloudinaryConfig(name, key, secret)
                         }
-                    }
+                    )
+                }
+            }
+
+            if (allSelectedProviders.contains("Cloudflare R2")) {
+                item {
+                    R2ConfigCard(
+                        accountId = storageConfig.r2Config.accountId,
+                        accessKeyId = storageConfig.r2Config.accessKeyId,
+                        secretAccessKey = storageConfig.r2Config.secretAccessKey,
+                        bucketName = storageConfig.r2Config.bucketName,
+                        onConfigChange = { acc, key, secret, bucket ->
+                            viewModel.updateR2Config(acc, key, secret, bucket)
+                        }
+                    )
+                }
+            }
+
+            if (allSelectedProviders.contains("Supabase")) {
+                item {
+                    SupabaseConfigCard(
+                        url = storageConfig.supabaseConfig.url,
+                        apiKey = storageConfig.supabaseConfig.apiKey,
+                        bucketName = storageConfig.supabaseConfig.bucketName,
+                        onConfigChange = { url, key, bucket ->
+                            viewModel.updateSupabaseConfig(url, key, bucket)
+                        }
+                    )
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProviderSelectionCard(
-    currentProvider: String,
-    onProviderSelected: (String) -> Unit
+fun MediaTypeProviderSelector(
+    title: String,
+    description: String,
+    icon: ImageVector,
+    availableProviders: List<String>,
+    selectedProviders: Set<String>,
+    onProvidersChanged: (Set<String>) -> Unit
 ) {
-    val providers = listOf("ImgBB", "Cloudinary", "Cloudflare R2", "Supabase")
-    var expanded by remember { mutableStateOf(false) }
-
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Active Provider",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 12.dp)
             ) {
-                OutlinedTextField(
-                    value = currentProvider,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Select Provider") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    providers.forEach { provider ->
-                        DropdownMenuItem(
-                            text = { Text(provider) },
-                            onClick = {
-                                onProviderSelected(provider)
-                                expanded = false
-                            },
-                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                // Badge showing count
+                if (selectedProviders.isNotEmpty()) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Text(
+                            text = "${selectedProviders.size}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         )
                     }
+                }
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+
+            // Provider Checkboxes
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                availableProviders.forEach { provider ->
+                    val isSelected = selectedProviders.contains(provider)
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = isSelected,
+                            onCheckedChange = { checked ->
+                                val newProviders = if (checked) {
+                                    selectedProviders + provider
+                                } else {
+                                    selectedProviders - provider
+                                }
+                                onProvidersChanged(newProviders)
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = provider,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+                        // Provider-specific icon/badge
+                        when (provider) {
+                            "ImgBB" -> Icon(
+                                imageVector = Icons.Default.Image,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                            "Cloudinary" -> Icon(
+                                imageVector = Icons.Default.CloudUpload,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                            "Supabase" -> Icon(
+                                imageVector = Icons.Default.Storage,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                            "Cloudflare R2" -> Icon(
+                                imageVector = Icons.Default.Cloud,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Warning if no providers selected
+            if (selectedProviders.isEmpty()) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Select at least one provider",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }

@@ -35,8 +35,13 @@ import java.util.UUID
 
 object ImageUploader {
 
+
     private const val IMGBB_DEFAULT_KEY = "faa85ffbac0217ff67b5f3c4baa7fb29"
     private val client = OkHttpClient()
+
+    enum class MediaType {
+        PHOTO, VIDEO, OTHER
+    }
 
     interface UploadCallback {
         fun onUploadComplete(imageUrl: String)
@@ -72,12 +77,70 @@ object ImageUploader {
         val file = File(filePath)
         if (!file.exists()) throw IOException("File not found: $filePath")
 
-        when (config.provider) {
-            "ImgBB" -> uploadToImgBB(config.imgBBConfig.apiKey, file)
-            "Cloudinary" -> uploadToCloudinary(config.cloudinaryConfig.cloudName, config.cloudinaryConfig.apiKey, file)
-            "Supabase" -> uploadToSupabase(config.supabaseConfig.url, config.supabaseConfig.apiKey, config.supabaseConfig.bucketName, file)
-            "Cloudflare R2" -> throw IOException("Cloudflare R2 upload is not yet implemented.")
-            else -> uploadToImgBB(IMGBB_DEFAULT_KEY, file) // Fallback to default
+        // Detect media type from file extension
+        val mediaType = detectMediaType(file)
+        
+        // Get providers for this media type
+        val providers = getProvidersForMediaType(config, mediaType)
+        
+        if (providers.isEmpty()) {
+            throw IOException("No storage providers configured for ${mediaType.name.lowercase()} files. Please configure at least one provider in Settings.")
+        }
+
+        // Try each provider in sequence with fallback
+        val errors = mutableListOf<String>()
+        
+        for ((index, provider) in providers.withIndex()) {
+            try {
+                android.util.Log.d("ImageUploader", "Attempting upload with provider: $provider (${index + 1}/${providers.size})")
+                
+                val result = when (provider) {
+                    "ImgBB" -> uploadToImgBB(config.imgBBConfig.apiKey, file)
+                    "Cloudinary" -> uploadToCloudinary(config.cloudinaryConfig.cloudName, config.cloudinaryConfig.apiKey, file)
+                    "Supabase" -> uploadToSupabase(config.supabaseConfig.url, config.supabaseConfig.apiKey, config.supabaseConfig.bucketName, file)
+                    "Cloudflare R2" -> throw IOException("Cloudflare R2 upload is not yet implemented.")
+                    else -> throw IOException("Unknown provider: $provider")
+                }
+                
+                android.util.Log.i("ImageUploader", "Upload successful using provider: $provider")
+                return@withContext result
+                
+            } catch (e: Exception) {
+                val errorMsg = "$provider: ${e.message}"
+                errors.add(errorMsg)
+                android.util.Log.w("ImageUploader", "Upload failed with $provider: ${e.message}")
+                
+                // If this is the last provider, throw an aggregate error
+                if (index == providers.size - 1) {
+                    throw IOException("All upload attempts failed:\n${errors.joinToString("\n")}")
+                }
+                // Otherwise, continue to next provider
+            }
+        }
+        
+        // This should never be reached, but just in case
+        throw IOException("Upload failed with all configured providers")
+    }
+
+    /**
+     * Detects the media type based on file extension
+     */
+    private fun detectMediaType(file: File): MediaType {
+        return when (file.extension.lowercase()) {
+            in listOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "ico") -> MediaType.PHOTO
+            in listOf("mp4", "mov", "avi", "mkv", "webm", "flv", "wmv", "m4v") -> MediaType.VIDEO
+            else -> MediaType.OTHER
+        }
+    }
+
+    /**
+     * Returns the list of providers configured for the given media type
+     */
+    private fun getProvidersForMediaType(config: StorageConfig, mediaType: MediaType): List<String> {
+        return when (mediaType) {
+            MediaType.PHOTO -> config.photoProviders.toList()
+            MediaType.VIDEO -> config.videoProviders.toList()
+            MediaType.OTHER -> config.otherProviders.toList()
         }
     }
 
