@@ -4,18 +4,26 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.data.local.AIConfig
+import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.local.AppSettingsManager
 import com.synapse.social.studioasinc.data.local.CloudflareR2Config
 import com.synapse.social.studioasinc.data.local.CloudinaryConfig
 import com.synapse.social.studioasinc.data.local.StorageConfig
+import com.synapse.social.studioasinc.data.repository.AuthRepository
+import com.synapse.social.studioasinc.data.repository.UserRepository
+import com.synapse.social.studioasinc.model.User
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val appSettingsManager = AppSettingsManager.getInstance(application)
+    private val authRepository = AuthRepository()
+    private val userRepository = UserRepository(AppDatabase.getDatabase(application).userDao())
 
     val aiConfig: StateFlow<AIConfig> = appSettingsManager.aiConfigFlow
         .stateIn(
@@ -35,6 +43,29 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 r2Config = CloudflareR2Config("", "", "", "")
             )
         )
+
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
+
+    init {
+        fetchCurrentUser()
+    }
+
+    private fun fetchCurrentUser() {
+        viewModelScope.launch {
+            val userId = authRepository.getCurrentUserId()
+            if (userId != null) {
+                userRepository.getUserById(userId)
+                    .onSuccess { user ->
+                        _currentUser.value = user
+                    }
+                    .onFailure { e ->
+                        // Log error or handle failure
+                        android.util.Log.e("SettingsViewModel", "Failed to fetch user", e)
+                    }
+            }
+        }
+    }
 
     fun updateAIConfig(provider: String, apiKey: String, endpoint: String) {
         viewModelScope.launch {

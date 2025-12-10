@@ -18,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.data.local.AIConfig
 import com.synapse.social.studioasinc.data.local.StorageConfig
@@ -41,6 +44,7 @@ fun SettingsScreen(
 ) {
     val aiConfig by viewModel.aiConfig.collectAsState()
     val storageConfig by viewModel.storageConfig.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
     
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -131,6 +135,7 @@ fun SettingsScreen(
                             icon = R.drawable.ic_person,
                             title = stringResource(R.string.settings_account),
                             subtitle = stringResource(R.string.settings_account_subtitle),
+                            imageUrl = currentUser?.profileImageUrl,
                             onClick = onAccountClick
                         )
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -399,6 +404,7 @@ private fun SettingRow(
     @DrawableRes icon: Int,
     title: String,
     subtitle: String?,
+    imageUrl: String? = null,
     showChevron: Boolean = true,
     onClick: () -> Unit
 ) {
@@ -409,12 +415,25 @@ private fun SettingRow(
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (imageUrl != null) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(icon),
+                error = painterResource(icon)
+            )
+        } else {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Column(
             modifier = Modifier
                 .weight(1f)
