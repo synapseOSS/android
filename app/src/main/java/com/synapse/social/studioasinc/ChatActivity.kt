@@ -134,7 +134,15 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
         isGroup = intent.getBooleanExtra("isGroup", false)
         currentUserId = SupabaseClient.client.auth.currentUserOrNull()?.id
         
+        // Log received intent extras for debugging
+        Log.d(TAG, "onCreate - Received intent extras:")
+        Log.d(TAG, "  chatId (from 'chatId' extra): $chatId")
+        Log.d(TAG, "  otherUserId (from 'uid' extra): $otherUserId")
+        Log.d(TAG, "  isGroup: $isGroup")
+        Log.d(TAG, "  currentUserId (from auth): $currentUserId")
+        
         if (currentUserId == null) {
+            Log.e(TAG, "No current user found, finishing activity")
             finish()
             return
         }
@@ -594,29 +602,45 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
             try {
                 loadingDialog(true)
                 
+                // Log received parameters for debugging
+                Log.d(TAG, "loadChatData - chatId: $chatId, otherUserId: $otherUserId, currentUserId: $currentUserId")
+                
                 // Create or get chat if needed
                 if (chatId == null && otherUserId != null && currentUserId != null) {
+                    Log.d(TAG, "Creating or getting direct chat for currentUser: $currentUserId, otherUser: $otherUserId")
                     // Create or get direct chat
                     val result = chatService.getOrCreateDirectChat(currentUserId!!, otherUserId!!)
                     result.fold(
                         onSuccess = { createdChatId ->
+                            Log.d(TAG, "Successfully created/retrieved chat with ID: $createdChatId")
                             chatId = createdChatId
                             loadMessages()
                             loadUserData()
                         },
                         onFailure = { error ->
+                            Log.e(TAG, "Failed to create chat", error)
                             showError("Failed to create chat: ${error.message}")
                             loadingDialog(false)
                         }
                     )
                 } else if (chatId != null) {
+                    Log.d(TAG, "Loading existing chat with ID: $chatId")
                     loadMessages()
                     loadUserData()
                 } else {
-                    showError("Invalid chat configuration")
+                    // Log which parameters are missing
+                    val missingParams = mutableListOf<String>()
+                    if (chatId == null) missingParams.add("chatId")
+                    if (otherUserId == null) missingParams.add("otherUserId")
+                    if (currentUserId == null) missingParams.add("currentUserId")
+                    
+                    Log.e(TAG, "Invalid chat configuration - Missing parameters: ${missingParams.joinToString(", ")}")
+                    Log.e(TAG, "Intent extras received - chatId: $chatId, otherUserId: $otherUserId")
+                    showError("Invalid chat configuration - Missing: ${missingParams.joinToString(", ")}")
                     finish()
                 }
             } catch (e: Exception) {
+                Log.e(TAG, "Error in loadChatData", e)
                 showError("Error: ${e.message}")
                 loadingDialog(false)
             }

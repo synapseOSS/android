@@ -64,7 +64,7 @@ fun ProfileScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToActivityLog: () -> Unit = {},
     onNavigateToUserProfile: (String) -> Unit = {},
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel = viewModel<ProfileViewModel>()
 ) {
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
@@ -94,6 +94,8 @@ fun ProfileScreen(
                 onMoreClick = { viewModel.toggleMoreMenu() }
             )
         },
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.semantics { isTraversalGroup = true }
     ) { paddingValues ->
         PullToRefreshBox(
@@ -416,7 +418,8 @@ private fun ProfileContent(
                     onShareClick = { /* TODO: Share post */ },
                     onBookmarkClick = { viewModel.toggleSave(post.id) },
                     onOptionsClick = { /* TODO: Show menu */ },
-                    onMediaClick = { /* TODO: Open media */ }
+                    onMediaClick = { /* TODO: Open media */ },
+                    onPollVote = { postId, optionIndex -> viewModel.votePoll(postId, optionIndex) }
                 )
             }
         }
@@ -440,7 +443,8 @@ private fun AnimatedPostCard(
     onShareClick: () -> Unit,
     onBookmarkClick: () -> Unit,
     onOptionsClick: () -> Unit,
-    onMediaClick: (Int) -> Unit
+    onMediaClick: (Int) -> Unit,
+    onPollVote: (String, Int) -> Unit
 ) {
     var visible by remember { mutableStateOf(false) }
     
@@ -481,7 +485,7 @@ private fun AnimatedPostCard(
             onPostClick = onCommentClick, // Navigate to detail on general click
             onMediaClick = onMediaClick,
             onOptionsClick = onOptionsClick,
-            onPollVote = { /* TODO */ }
+            onPollVote = { optionId -> onPollVote(state.post.id, optionId.toIntOrNull() ?: 0) }
         )
     }
 }

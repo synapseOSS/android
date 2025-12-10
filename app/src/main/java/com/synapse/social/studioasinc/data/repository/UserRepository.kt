@@ -31,6 +31,7 @@ class UserRepository(private val userDao: UserDao) {
                         username = it.username,
                         email = it.email,
                         avatar = it.profileImageUrl,
+                        profileImageUrl = it.profileImageUrl,
                         verify = it.verify
                     )
                     userDao.insertAll(listOf(UserMapper.toEntity(user!!)))

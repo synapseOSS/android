@@ -147,11 +147,25 @@ fun SettingsNavHost(
                     navController.popBackStack()
                 },
                 onNavigateToStorageProvider = {
-                    // Placeholder - navigate to storage provider config
+                    navController.navigate(SettingsDestination.ROUTE_STORAGE_PROVIDER)
                 },
                 onNavigateToAIConfig = {
                     // Placeholder - navigate to AI config
                 }
+            )
+        }
+
+        // Storage Provider Configuration Screen
+        composable(route = SettingsDestination.ROUTE_STORAGE_PROVIDER) {
+            // Reusing SettingsViewModel for now or creating a specific one if needed.
+            // Since StorageProviderScreen uses SettingsViewModel, let's use that.
+            // Note: SettingsViewModel handles AppSettingsManager directly.
+            val viewModel: SettingsViewModel = viewModel()
+            StorageProviderScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                viewModel = viewModel
             )
         }
 

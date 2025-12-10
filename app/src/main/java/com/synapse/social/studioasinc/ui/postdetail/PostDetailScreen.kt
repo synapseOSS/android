@@ -47,6 +47,7 @@ fun PostDetailScreen(
     var showPostOptions by remember { mutableStateOf(false) }
     var showCommentOptions by remember { mutableStateOf<CommentWithUser?>(null) }
     var showReactionPickerForComment by remember { mutableStateOf<CommentWithUser?>(null) }
+    var showReactionPicker by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -79,6 +80,16 @@ fun PostDetailScreen(
                 showReactionPickerForComment = null
             },
             onDismiss = { showReactionPickerForComment = null }
+        )
+    }
+    
+    if (showReactionPicker) {
+        ReactionPicker(
+            onReactionSelected = { reaction ->
+                viewModel.toggleReaction(reaction)
+                showReactionPicker = false
+            },
+            onDismiss = { showReactionPicker = false }
         )
     }
 
@@ -299,7 +310,8 @@ fun PostDetailScreen(
                                     }
                                     context.startActivity(Intent.createChooser(shareIntent, "Share Post"))
                                  },
-                                 onBookmarkClick = { viewModel.toggleBookmark() }
+                                 onBookmarkClick = { viewModel.toggleBookmark() },
+                                 onReactionLongPress = { showReactionPicker = true }
                              )
 
                              Divider()

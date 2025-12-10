@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun InboxScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToChat: (String) -> Unit,
+    onNavigateToChat: (String, String) -> Unit,
     viewModel: InboxViewModel = viewModel(factory = InboxViewModelFactory())
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -64,9 +64,9 @@ fun InboxScreen(
                             scrollBehavior = scrollBehavior,
                             onSearchClick = { viewModel.toggleSearch(true) }
                         )
-                        InboxTabRow(
-                            selectedTabIndex = pagerState.currentPage,
-                            onTabSelected = { index ->
+                        InboxSegmentedButtons(
+                            selectedIndex = pagerState.currentPage,
+                            onSelectionChange = { index ->
                                 scope.launch { pagerState.animateScrollToPage(index) }
                             }
                         )
@@ -88,7 +88,8 @@ fun InboxScreen(
                 )
             }
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) { paddingValues ->
         
         HorizontalPager(
@@ -115,7 +116,7 @@ fun InboxScreen(
                         onAction = { action ->
                             when (action) {
                                 is InboxAction.OpenChat -> {
-                                    onNavigateToChat(action.chatId)
+                                    onNavigateToChat(action.chatId, action.userId)
                                 }
                                 else -> viewModel.onAction(action)
                             }

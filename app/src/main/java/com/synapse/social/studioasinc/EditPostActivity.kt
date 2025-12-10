@@ -265,7 +265,7 @@ class EditPostActivity : BaseActivity() {
         
         if (imageChanged && hasImage) {
             // Upload new image first, then update post
-            ImageUploader.uploadImage(selectedImagePath, object : ImageUploader.UploadCallback {
+            ImageUploader.uploadImage(applicationContext, selectedImagePath, object : ImageUploader.UploadCallback {
                 override fun onUploadComplete(imageUrl: String) {
                     updatePostInDatabase(imageUrl)
                 }
