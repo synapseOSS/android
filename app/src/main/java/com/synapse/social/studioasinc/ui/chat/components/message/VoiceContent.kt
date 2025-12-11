@@ -16,7 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
 import com.synapse.social.studioasinc.ui.chat.theme.ChatColors
 import com.synapse.social.studioasinc.ui.chat.theme.ChatTheme
@@ -54,24 +56,34 @@ fun VoiceMessageContent(
             // Play/Pause Button
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp) // Enforce min 48dp touch target
                     .clip(CircleShape)
-                    .background(
-                        if (isFromCurrentUser) Color.White.copy(alpha = 0.2f) 
-                        else ChatColors.VoicePlayButton.copy(alpha = 0.1f)
-                    )
                     .clickable(onClick = onPlayPauseClick),
                 contentAlignment = Alignment.Center
             ) {
+                // Visual Circle (40dp)
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isFromCurrentUser) Color.White.copy(alpha = 0.2f)
+                            else ChatColors.VoicePlayButton.copy(alpha = 0.1f)
+                        )
+                )
+
                 Icon(
                     imageVector = if (voiceData.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    contentDescription = if (voiceData.isPlaying) "Pause" else "Play",
+                    contentDescription = if (voiceData.isPlaying)
+                        stringResource(R.string.pause_voice_message)
+                    else
+                        stringResource(R.string.play_voice_message),
                     tint = playButtonColor,
                     modifier = Modifier.size(24.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(4.dp)) // Reduced spacing since button is larger
             
             Column(
                 modifier = Modifier.weight(1f)

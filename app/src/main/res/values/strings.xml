@@ -484,6 +484,8 @@ Please explain the following message from %3$s in detail, considering the contex
     <!-- Audio Player -->
     <string name="play_audio">Play audio</string>
     <string name="pause_audio">Pause audio</string>
+    <string name="play_voice_message">Play voice message</string>
+    <string name="pause_voice_message">Pause voice message</string>
     <string name="audio_loading">Loading audio…</string>
     <string name="audio_buffering">Buffering…</string>
     <string name="audio_error">Error playing audio</string>
