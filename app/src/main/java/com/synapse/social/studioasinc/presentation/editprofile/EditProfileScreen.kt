@@ -38,8 +38,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.synapse.social.studioasinc.ProfileCoverPhotoHistoryActivity
-import com.synapse.social.studioasinc.ProfilePhotoHistoryActivity
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.presentation.editprofile.components.GenderSelector
 import com.synapse.social.studioasinc.presentation.editprofile.components.ProfileFormFields
@@ -54,7 +52,8 @@ import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 fun EditProfileScreen(
     viewModel: EditProfileViewModel = viewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToRegionSelection: (String) -> Unit
+    onNavigateToRegionSelection: (String) -> Unit,
+    onNavigateToPhotoHistory: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
@@ -87,10 +86,10 @@ fun EditProfileScreen(
                     onNavigateToRegionSelection(viewModel.uiState.value.selectedRegion ?: "")
                 }
                 EditProfileNavigation.NavigateToProfileHistory -> {
-                   context.startActivity(Intent(context, ProfilePhotoHistoryActivity::class.java))
+                    onNavigateToPhotoHistory("PROFILE")
                 }
                 EditProfileNavigation.NavigateToCoverHistory -> {
-                   context.startActivity(Intent(context, ProfileCoverPhotoHistoryActivity::class.java))
+                    onNavigateToPhotoHistory("COVER")
                 }
             }
         }
