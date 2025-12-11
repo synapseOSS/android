@@ -270,14 +270,10 @@ private fun ProfileActionButtons(
     ) {
         if (isOwnProfile) {
             // Edit Profile Button
-            Button(
+            FilledTonalButton(
                 onClick = onEditProfileClick,
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Edit,
@@ -289,7 +285,7 @@ private fun ProfileActionButtons(
             }
             
             // Share Profile Button
-            OutlinedButton(
+            FilledTonalButton(
                 onClick = onAddStoryClick,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp)

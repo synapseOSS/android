@@ -33,7 +33,7 @@ class ProfileRepositoryImpl : ProfileRepository {
         const val KEY_DISPLAY_NAME = "display_name"
         const val KEY_BIO = "bio"
         const val KEY_AVATAR = "avatar"
-        const val KEY_COVER_IMAGE = "cover_image"
+        const val KEY_COVER_IMAGE = "profile_cover_image"
         const val KEY_VERIFY = "verify"
         const val KEY_IS_PRIVATE = "is_private"
         const val KEY_POSTS_COUNT = "posts_count"

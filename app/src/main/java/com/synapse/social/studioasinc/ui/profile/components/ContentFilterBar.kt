@@ -147,7 +147,7 @@ private fun FilterTabItem(
             .fillMaxHeight()
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 onClick = onClick
             ),
         contentAlignment = Alignment.Center
