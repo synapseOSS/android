@@ -289,7 +289,8 @@ class VideoPlayerView @JvmOverloads constructor(
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        // Save position but don't release - let the parent manage lifecycle
+        // Save position and release resources to prevent leaks
         savePosition()
+        release()
     }
 }

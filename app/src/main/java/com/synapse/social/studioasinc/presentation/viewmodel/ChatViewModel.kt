@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -521,19 +522,19 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         
-        val currentList = _typingUsers.value.toMutableList()
-        
-        if (typingStatus.isTyping) {
-            // Add user to typing list if not already present
-            if (!currentList.contains(typingStatus.userId)) {
-                currentList.add(typingStatus.userId)
+        _typingUsers.update { currentList ->
+            if (typingStatus.isTyping) {
+                // Add user to typing list if not already present
+                if (!currentList.contains(typingStatus.userId)) {
+                    currentList + typingStatus.userId
+                } else {
+                    currentList
+                }
+            } else {
+                // Remove user from typing list
+                currentList - typingStatus.userId
             }
-        } else {
-            // Remove user from typing list
-            currentList.remove(typingStatus.userId)
         }
-        
-        _typingUsers.value = currentList
     }
 
     // Read receipt methods
@@ -565,19 +566,19 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         
-        val updatedMessages = _messagesStateFlow.value.map { message ->
-            if (event.messageIds.contains(message.id) && message.senderId == currentUserId) {
-                // Update message state to read for our sent messages
-                message.copy(
-                    messageState = MessageState.READ,
-                    readAt = event.timestamp
-                )
-            } else {
-                message
+        _messagesStateFlow.update { currentMessages ->
+            currentMessages.map { message ->
+                if (event.messageIds.contains(message.id) && message.senderId == currentUserId) {
+                    // Update message state to read for our sent messages
+                    message.copy(
+                        messageState = MessageState.READ,
+                        readAt = event.timestamp
+                    )
+                } else {
+                    message
+                }
             }
         }
-        
-        _messagesStateFlow.value = updatedMessages
         
         // Update the ChatAdapter with the new message states
         val messageStates = event.messageIds.associateWith { MessageState.READ }
@@ -585,11 +586,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         
         // Also update the legacy LiveData for backward compatibility
         // Convert ChatMessageImpl to Message for existing UI
-        val legacyMessages = updatedMessages.map { chatMessage ->
-            // This conversion would need to be implemented based on your Message class structure
-            // For now, we'll keep the existing messages unchanged
-            _messages.value ?: emptyList()
-        }.flatten()
+        // Note: _messagesStateFlow contains ChatMessageImpl, which is the source of truth for new components
+        // For legacy support we might need more complex logic, but for now we focus on the StateFlow
     }
 
     /**
@@ -603,25 +601,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      * @param timestamp Optional timestamp for the state change
      */
     private fun updateMessageState(messageId: String, newState: String, timestamp: Long = System.currentTimeMillis()) {
-        val updatedMessages = _messagesStateFlow.value.map { message ->
-            if (message.id == messageId) {
-                when (newState) {
-                    MessageState.DELIVERED -> message.copy(
-                        messageState = newState,
-                        deliveredAt = timestamp
-                    )
-                    MessageState.READ -> message.copy(
-                        messageState = newState,
-                        readAt = timestamp
-                    )
-                    else -> message.copy(messageState = newState)
+        _messagesStateFlow.update { currentMessages ->
+            currentMessages.map { message ->
+                if (message.id == messageId) {
+                    when (newState) {
+                        MessageState.DELIVERED -> message.copy(
+                            messageState = newState,
+                            deliveredAt = timestamp
+                        )
+                        MessageState.READ -> message.copy(
+                            messageState = newState,
+                            readAt = timestamp
+                        )
+                        else -> message.copy(messageState = newState)
+                    }
+                } else {
+                    message
                 }
-            } else {
-                message
             }
         }
-        
-        _messagesStateFlow.value = updatedMessages
     }
 
     /**
@@ -672,9 +670,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 mediaUploadManager?.uploadMultiple(uris, chatId)?.collect { progress ->
                     // Update upload progress map
-                    val currentProgress = _uploadProgress.value.toMutableMap()
-                    currentProgress[progress.uploadId] = progress
-                    _uploadProgress.value = currentProgress
+                    _uploadProgress.update { currentProgress ->
+                        currentProgress + (progress.uploadId to progress)
+                    }
                     
                     // If upload completed successfully, create message with attachment
                     if (progress.state == com.synapse.social.studioasinc.model.models.UploadState.COMPLETED) {
@@ -688,9 +686,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         progress.state == com.synapse.social.studioasinc.model.models.UploadState.CANCELLED) {
                         viewModelScope.launch {
                             kotlinx.coroutines.delay(2000) // Keep visible for 2 seconds
-                            val updatedProgress = _uploadProgress.value.toMutableMap()
-                            updatedProgress.remove(progress.uploadId)
-                            _uploadProgress.value = updatedProgress
+                            _uploadProgress.update { currentProgress ->
+                                currentProgress - progress.uploadId
+                            }
                         }
                     }
                 } ?: run {
@@ -813,9 +811,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         mediaUploadManager?.cancelUpload(uploadId)
         
         // Remove from progress map
-        val updatedProgress = _uploadProgress.value.toMutableMap()
-        updatedProgress.remove(uploadId)
-        _uploadProgress.value = updatedProgress
+        _uploadProgress.update { currentProgress ->
+            currentProgress - uploadId
+        }
     }
 
     /**
