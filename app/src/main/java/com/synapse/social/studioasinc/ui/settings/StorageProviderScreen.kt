@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -411,6 +412,7 @@ private fun StorageStatusCard(storageConfig: StorageConfig) {
                     modifier = Modifier.size(40.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Determinate loading using M3 CircularProgressIndicator
                     CircularProgressIndicator(
                         progress = { configuredCount / 3f },
                         strokeWidth = 4.dp,

@@ -44,6 +44,7 @@ import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.model.MediaItem
 import com.synapse.social.studioasinc.model.MediaType
+import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,10 +134,9 @@ fun CreatePostScreen(
                         contentPadding = PaddingValues(horizontal = 24.dp)
                     ) {
                         if (uiState.isLoading) {
-                            CircularProgressIndicator(
+                            ExpressiveLoadingIndicator(
                                 modifier = Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
                             Text(if (uiState.isEditMode) "Update" else "Post")

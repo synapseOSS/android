@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -82,7 +81,8 @@ fun EmailVerificationScreen(
             } else {
                 // Cooldown state
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(
+                    // Using standard CircularProgressIndicator for determinate progress as ExpressiveLoadingIndicator is for indeterminate
+                    androidx.compose.material3.CircularProgressIndicator(
                         progress = { state.resendCooldownSeconds / 60f }, // Assuming 60s max
                         modifier = Modifier.size(48.dp),
                     )

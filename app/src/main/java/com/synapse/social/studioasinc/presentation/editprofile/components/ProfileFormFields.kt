@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -132,9 +132,8 @@ fun UsernameField(
         trailingIcon = {
             when (validation) {
                 is UsernameValidation.Checking -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
+                    ExpressiveLoadingIndicator(
+                        modifier = Modifier.size(20.dp)
                     )
                 }
                 is UsernameValidation.Valid -> {

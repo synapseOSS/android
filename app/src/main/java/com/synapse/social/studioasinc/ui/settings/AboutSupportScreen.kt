@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -415,9 +416,8 @@ fun FeedbackDialog(
                     shape = SettingsShapes.itemShape // 16dp corner radius
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(
+                        ExpressiveLoadingIndicator(
                             modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Spacer(modifier = Modifier.width(8.dp))

@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
@@ -151,9 +152,8 @@ fun ChangeEmailDialog(
                 shape = SettingsShapes.itemShape
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp
+                    ExpressiveLoadingIndicator(
+                        modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
@@ -551,9 +551,8 @@ fun DeleteAccountDialog(
                 )
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(
+                    ExpressiveLoadingIndicator(
                         modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.onError
                     )
                     Spacer(modifier = Modifier.width(8.dp))

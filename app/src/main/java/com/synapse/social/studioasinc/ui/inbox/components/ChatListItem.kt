@@ -8,14 +8,16 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -63,27 +65,27 @@ fun ChatListItem(
     // Background color for pinned items
     val backgroundColor by animateColorAsState(
         targetValue = if (chat.isPinned) {
-            InboxColors.PinnedBackground.copy(alpha = 0.5f)
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
         } else {
-            Color.Transparent
+            MaterialTheme.colorScheme.surfaceContainer
         },
         animationSpec = tween(durationMillis = 200),
         label = "backgroundColor"
     )
     
-    Surface(
+    Card(
         modifier = modifier
             .fillMaxWidth()
             .scale(scale)
-            .clip(InboxShapes.ChatItemCard)
-            .background(backgroundColor)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onClick() },
                     onLongPress = { onLongPress() }
                 )
             },
-        color = Color.Transparent
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -93,7 +95,7 @@ fun ChatListItem(
                     indication = androidx.compose.material3.ripple(color = MaterialTheme.colorScheme.primary),
                     onClick = onClick
                 )
-                .padding(InboxDimens.ChatItemPadding),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Avatar with story ring and online indicator

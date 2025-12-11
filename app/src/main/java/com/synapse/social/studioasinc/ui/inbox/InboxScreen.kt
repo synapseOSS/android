@@ -4,6 +4,13 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -58,21 +65,38 @@ fun InboxScreen(
                         onBackClick = { viewModel.toggleSearch(false) }
                     )
                 } else {
-                    Column {
-                        InboxTopAppBar(
-                            title = "Inbox",
-                            scrollBehavior = scrollBehavior,
-                            onSearchClick = { viewModel.toggleSearch(true) }
-                        )
-                        InboxSegmentedButtons(
-                            selectedIndex = pagerState.currentPage,
-                            onSelectionChange = { index ->
-                                scope.launch { pagerState.animateScrollToPage(index) }
-                            }
-                        )
-                    }
+                    InboxTopAppBar(
+                        title = "Inbox",
+                        scrollBehavior = scrollBehavior,
+                        onSearchClick = { viewModel.toggleSearch(true) }
+                    )
                 }
             }
+        },
+        bottomBar = {
+             NavigationBar {
+                 val tabs = listOf("Chats", "Calls", "Contacts")
+                 tabs.forEachIndexed { index, title ->
+                     val selected = pagerState.currentPage == index
+                     NavigationBarItem(
+                         selected = selected,
+                         onClick = {
+                             scope.launch { pagerState.animateScrollToPage(index) }
+                         },
+                         label = { Text(title) },
+                         icon = {
+                             Icon(
+                                 imageVector = when (index) {
+                                     0 -> if (selected) Icons.Filled.ChatBubble else Icons.Outlined.ChatBubbleOutline
+                                     1 -> if (selected) Icons.Filled.Call else Icons.Outlined.Call
+                                     else -> if (selected) Icons.Filled.Group else Icons.Outlined.Group
+                                 },
+                                 contentDescription = title
+                             )
+                         }
+                     )
+                 }
+             }
         },
         floatingActionButton = {
             // Only show FAB on Chats tab (page 0)
