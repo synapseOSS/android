@@ -16,9 +16,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.chat.AttachmentType
 import com.synapse.social.studioasinc.ui.chat.AttachmentUiModel
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
@@ -98,7 +100,7 @@ fun SingleMediaItem(
                 .data(attachment.thumbnailUrl ?: attachment.url)
                 .crossfade(true)
                 .build(),
-            contentDescription = "Media attachment",
+            contentDescription = stringResource(id = R.string.cd_media_attachment),
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
@@ -119,7 +121,7 @@ fun SingleMediaItem(
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.PlayArrow,
-                        contentDescription = "Play video",
+                        contentDescription = stringResource(id = R.string.cd_play_video),
                         tint = Color.White,
                         modifier = Modifier.size(32.dp)
                     )

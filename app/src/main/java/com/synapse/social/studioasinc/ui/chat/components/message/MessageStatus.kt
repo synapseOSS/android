@@ -15,8 +15,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.chat.DeliveryStatus
 import com.synapse.social.studioasinc.ui.chat.theme.ChatColors
 
@@ -68,13 +70,14 @@ private fun getStatusIconAndColor(status: DeliveryStatus): Pair<ImageVector, Col
 /**
  * Get accessibility description for status
  */
+@Composable
 private fun getStatusDescription(status: DeliveryStatus): String {
     return when (status) {
-        DeliveryStatus.Sending -> "Sending"
-        DeliveryStatus.Sent -> "Sent"
-        DeliveryStatus.Delivered -> "Delivered"
-        DeliveryStatus.Read -> "Read"
-        DeliveryStatus.Failed -> "Failed to send"
+        DeliveryStatus.Sending -> stringResource(id = R.string.msg_status_sending)
+        DeliveryStatus.Sent -> stringResource(id = R.string.msg_status_sent)
+        DeliveryStatus.Delivered -> stringResource(id = R.string.msg_status_delivered)
+        DeliveryStatus.Read -> stringResource(id = R.string.msg_status_read)
+        DeliveryStatus.Failed -> stringResource(id = R.string.msg_status_failed)
     }
 }
 

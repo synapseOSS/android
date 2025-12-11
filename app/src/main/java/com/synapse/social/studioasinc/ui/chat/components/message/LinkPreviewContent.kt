@@ -14,10 +14,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.chat.LinkPreviewData
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
 import com.synapse.social.studioasinc.ui.chat.theme.ChatColors
@@ -70,7 +72,7 @@ fun LinkPreviewContent(
                             .data(linkPreview.imageUrl)
                             .crossfade(true)
                             .build(),
-                        contentDescription = "Link preview image",
+                        contentDescription = stringResource(id = R.string.cd_link_preview),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxWidth()

@@ -19,9 +19,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.chat.DeliveryStatus
 import com.synapse.social.studioasinc.ui.chat.MessagePosition
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
@@ -88,20 +91,25 @@ fun MessageBubble(
             .messageSelectionAnimation(message.isSelected),
         contentAlignment = if (isFromCurrentUser) Alignment.CenterEnd else Alignment.CenterStart
     ) {
-        Surface(
+        val clickLabel = stringResource(id = R.string.cd_message_options)
+        // Wrapper for accessibility touch target size (48dp)
+        Box(
             modifier = Modifier
-                .widthIn(max = maxBubbleWidth)
+                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                 .clip(bubbleShape)
                 .combinedClickable(
                     onClick = onClick,
-                    onLongClick = onLongClick
+                    onLongClick = onLongClick,
+                    role = Role.Button,
+                    onClickLabel = clickLabel
                 )
                 .animateContentSize(),
-            color = Color.Transparent,
-            shape = bubbleShape
+            contentAlignment = if (isFromCurrentUser) Alignment.CenterEnd else Alignment.CenterStart
         ) {
+            // Visual bubble (can be smaller than 48dp)
             Box(
                 modifier = Modifier
+                    .widthIn(max = maxBubbleWidth)
                     .background(bubbleBackground, bubbleShape)
                     .padding(
                         horizontal = ChatSpacing.BubblePaddingHorizontal,
@@ -247,7 +255,7 @@ fun MessageContentLayout(
             // Edited indicator
             if (message.isEdited) {
                 Text(
-                    text = "edited",
+                    text = stringResource(id = R.string.msg_edited),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (isFromCurrentUser) {
                         ChatColors.SentBubbleSecondaryText
@@ -290,7 +298,7 @@ private fun ForwardedIndicator() {
     ) {
         // Forward icon would go here
         Text(
-            text = "Forwarded",
+            text = stringResource(id = R.string.msg_forwarded),
             style = MaterialTheme.typography.labelSmall,
             color = ChatColors.ForwardedAccent
         )
