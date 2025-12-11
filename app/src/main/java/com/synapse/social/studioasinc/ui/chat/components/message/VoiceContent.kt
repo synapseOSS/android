@@ -16,7 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
 import com.synapse.social.studioasinc.ui.chat.theme.ChatColors
 import com.synapse.social.studioasinc.ui.chat.theme.ChatTheme
@@ -65,7 +67,7 @@ fun VoiceMessageContent(
             ) {
                 Icon(
                     imageVector = if (voiceData.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    contentDescription = if (voiceData.isPlaying) "Pause" else "Play",
+                    contentDescription = if (voiceData.isPlaying) stringResource(id = R.string.cd_pause_audio) else stringResource(id = R.string.cd_play_audio),
                     tint = playButtonColor,
                     modifier = Modifier.size(24.dp)
                 )

@@ -18,9 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.chat.DeliveryStatus
 import com.synapse.social.studioasinc.ui.chat.MessagePosition
 import com.synapse.social.studioasinc.ui.chat.MessageType
@@ -138,13 +140,13 @@ fun DeletedMessageContent(
         // Deleted icon
         androidx.compose.material3.Icon(
             imageVector = androidx.compose.material.icons.Icons.Filled.Close,
-            contentDescription = "Deleted message",
+            contentDescription = stringResource(id = R.string.cd_deleted_message),
             modifier = Modifier.size(16.dp),
             tint = textColor
         )
         
         Text(
-            text = "This message was deleted",
+            text = stringResource(id = R.string.msg_deleted),
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
             ),
