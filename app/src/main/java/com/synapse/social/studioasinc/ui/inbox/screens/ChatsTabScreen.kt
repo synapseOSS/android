@@ -3,7 +3,8 @@ package com.synapse.social.studioasinc.ui.inbox.screens
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,7 +27,8 @@ import java.util.Calendar
 fun ChatsTabScreen(
     state: InboxUiState,
     searchQuery: String,
-    onAction: (InboxAction) -> Unit
+    onAction: (InboxAction) -> Unit,
+    onLongPressChat: (String) -> Unit = {}
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when (state) {
@@ -54,19 +56,22 @@ fun ChatsTabScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp) // Reduced spacing for grouped look
                     ) {
                         // Pinned Chats Section
                         if (state.pinnedChats.isNotEmpty()) {
                             item {
                                 ChatSectionHeader(title = "Pinned", modifier = Modifier.padding(bottom = 4.dp))
                             }
-                            items(
+                            itemsIndexed(
                                 items = state.pinnedChats,
-                                key = { it.id }
-                            ) { chat ->
+                                key = { _, chat -> chat.id }
+                            ) { index, chat ->
+                                val shape = getShapeForItem(index, state.pinnedChats.size)
+                                val isSelected = state.selectedItems.contains(chat.id)
+
                                 SwipeableChatItem(
-                                    isPinned = true, // It is in pinned section
+                                    isPinned = true,
                                     isMuted = chat.isMuted,
                                     onArchive = { onAction(InboxAction.ArchiveChat(chat.id)) },
                                     onDelete = { onAction(InboxAction.DeleteChat(chat.id)) },
@@ -75,10 +80,29 @@ fun ChatsTabScreen(
                                 ) {
                                     ChatListItem(
                                         chat = chat,
-                                        onClick = { onAction(InboxAction.OpenChat(chat.id, chat.otherUserId)) }
+                                        shape = shape,
+                                        isSelected = isSelected,
+                                        selectionMode = state.selectionMode,
+                                        onClick = {
+                                            if (state.selectionMode) {
+                                                onAction(InboxAction.ToggleSelection(chat.id))
+                                            } else {
+                                                onAction(InboxAction.OpenChat(chat.id, chat.otherUserId))
+                                            }
+                                        },
+                                        onLongPress = {
+                                            // Requirements: Long press triggers BottomSheet, NOT immediate selection
+                                            // But if we are already in selection mode, maybe just toggle?
+                                            if (state.selectionMode) {
+                                                 onAction(InboxAction.ToggleSelection(chat.id))
+                                            } else {
+                                                onLongPressChat(chat.id)
+                                            }
+                                        }
                                     )
                                 }
                             }
+                            item { Spacer(modifier = Modifier.height(8.dp)) }
                         }
                         
                         // Grouped Chats Sections
@@ -88,10 +112,13 @@ fun ChatsTabScreen(
                                     ChatSectionHeader(title = section.displayName, modifier = Modifier.padding(vertical = 4.dp))
                                 }
                                 
-                                items(
+                                itemsIndexed(
                                     items = chats,
-                                    key = { it.id }
-                                ) { chat ->
+                                    key = { _, chat -> chat.id }
+                                ) { index, chat ->
+                                    val shape = getShapeForItem(index, chats.size)
+                                    val isSelected = state.selectedItems.contains(chat.id)
+
                                     SwipeableChatItem(
                                         isPinned = false,
                                         isMuted = chat.isMuted,
@@ -102,10 +129,27 @@ fun ChatsTabScreen(
                                     ) {
                                         ChatListItem(
                                             chat = chat,
-                                            onClick = { onAction(InboxAction.OpenChat(chat.id, chat.otherUserId)) }
+                                            shape = shape,
+                                            isSelected = isSelected,
+                                            selectionMode = state.selectionMode,
+                                            onClick = {
+                                                if (state.selectionMode) {
+                                                    onAction(InboxAction.ToggleSelection(chat.id))
+                                                } else {
+                                                    onAction(InboxAction.OpenChat(chat.id, chat.otherUserId))
+                                                }
+                                            },
+                                            onLongPress = {
+                                                if (state.selectionMode) {
+                                                     onAction(InboxAction.ToggleSelection(chat.id))
+                                                } else {
+                                                    onLongPressChat(chat.id)
+                                                }
+                                            }
                                         )
                                     }
                                 }
+                                item { Spacer(modifier = Modifier.height(8.dp)) }
                             }
                         }
 
@@ -117,6 +161,25 @@ fun ChatsTabScreen(
                 }
             }
         }
+    }
+}
+
+/**
+ * Calculates the shape based on the item's position in the group.
+ * Single: Rounded all (24dp)
+ * Top: Rounded top (24dp), Sharp bottom (4dp)
+ * Middle: Sharp (4dp)
+ * Bottom: Sharp top (4dp), Rounded bottom (24dp)
+ */
+private fun getShapeForItem(index: Int, count: Int): androidx.compose.ui.graphics.Shape {
+    val outerRadius = 24.dp
+    val innerRadius = 4.dp
+
+    return when {
+        count == 1 -> RoundedCornerShape(outerRadius)
+        index == 0 -> RoundedCornerShape(topStart = outerRadius, topEnd = outerRadius, bottomStart = innerRadius, bottomEnd = innerRadius)
+        index == count - 1 -> RoundedCornerShape(topStart = innerRadius, topEnd = innerRadius, bottomStart = outerRadius, bottomEnd = outerRadius)
+        else -> RoundedCornerShape(innerRadius)
     }
 }
 

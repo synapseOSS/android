@@ -67,7 +67,9 @@ sealed interface InboxUiState {
         val chats: List<ChatItemUiModel>,
         val pinnedChats: List<ChatItemUiModel> = emptyList(),
         val archivedChats: List<ChatItemUiModel> = emptyList(),
-        val isRefreshing: Boolean = false
+        val isRefreshing: Boolean = false,
+        val selectionMode: Boolean = false,
+        val selectedItems: Set<String> = emptySet()
     ) : InboxUiState
     
     /**
@@ -134,4 +136,11 @@ sealed interface InboxAction {
     data object RefreshChats : InboxAction
     data object NavigateToNewChat : InboxAction
     data object NavigateToSearch : InboxAction
+
+    // Selection Actions
+    data class ToggleSelectionMode(val chatId: String? = null) : InboxAction
+    data class ToggleSelection(val chatId: String) : InboxAction
+    data object ClearSelection : InboxAction
+    data object DeleteSelected : InboxAction
+    data object ArchiveSelected : InboxAction
 }
