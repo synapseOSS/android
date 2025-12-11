@@ -10,8 +10,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.ZeroCornerSize
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -90,7 +88,7 @@ fun ChatListItem(
 
     // Helper to extract corner size as Dp
     fun androidx.compose.foundation.shape.CornerSize.toDp(): androidx.compose.ui.unit.Dp {
-        return if (this is ZeroCornerSize) 0.dp else defaultRadius
+        return defaultRadius
         // Note: Accurately extracting dynamic Dp from CornerSize is tricky without layout context.
         // So we will rely on the passed shape being one of our known grouped shapes.
         // Better approach: Calculate the target radii based on selection.
