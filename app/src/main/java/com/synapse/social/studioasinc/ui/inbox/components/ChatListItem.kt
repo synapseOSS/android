@@ -160,7 +160,7 @@ fun ChatListItem(
             },
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 0.dp),
-        shape = if (isSelected) CircleShape else shape
+        shape = if (isSelected) RoundedCornerShape(percent = 50) else shape
     ) {
         Row(
             modifier = Modifier
