@@ -21,9 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.onClickLabel
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -103,11 +100,9 @@ fun MessageBubble(
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = onLongClick,
-                    role = Role.Button
-                )
-                .semantics {
+                    role = Role.Button,
                     onClickLabel = clickLabel
-                }
+                )
                 .animateContentSize(),
             contentAlignment = if (isFromCurrentUser) Alignment.CenterEnd else Alignment.CenterStart
         ) {
