@@ -932,4 +932,23 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="tab_contacts">People</string>
     <string name="cd_new_chat">New Chat</string>
     <string name="header_messages">Messages</string>
+
+    <!-- Chat Message Status & Accessibility -->
+    <string name="msg_status_sending">Sending</string>
+    <string name="msg_status_sent">Sent</string>
+    <string name="msg_status_delivered">Delivered</string>
+    <string name="msg_status_read">Read</string>
+    <string name="msg_status_failed">Failed to send</string>
+    <string name="msg_edited">edited</string>
+    <string name="msg_forwarded">Forwarded</string>
+    <string name="msg_deleted">This message was deleted</string>
+    <string name="cd_link_preview">Link preview image</string>
+    <string name="cd_media_attachment">Media attachment</string>
+    <string name="cd_play_video">Play video</string>
+    <string name="cd_pause_video">Pause video</string>
+    <string name="cd_play_audio">Play audio</string>
+    <string name="cd_pause_audio">Pause audio</string>
+    <string name="cd_message_options">Message options</string>
+    <string name="cd_deleted_message">Deleted message icon</string>
+    <string name="cd_typing_indicator">User is typing</string>
 </resources>
