@@ -2,7 +2,6 @@ package com.synapse.social.studioasinc.ui.postdetail.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,6 +11,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.synapse.social.studioasinc.model.CommentWithUser
 import com.synapse.social.studioasinc.model.CommentAction
+import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 
 @Composable
 
@@ -44,7 +44,7 @@ fun CommentsList(
                         .padding(16.dp),
                         contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    ExpressiveLoadingIndicator()
                 }
             }
         }
@@ -101,7 +101,7 @@ fun CommentsList(
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    ExpressiveLoadingIndicator()
                 }
             }
         }

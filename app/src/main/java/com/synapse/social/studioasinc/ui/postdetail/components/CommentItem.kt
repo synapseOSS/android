@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.model.CommentWithUser
 import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.ui.components.CircularAvatar
+import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import com.synapse.social.studioasinc.util.TimeUtils
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -152,11 +153,10 @@ fun CommentItem(
                 }
 
                  if (isRepliesLoading) {
-                    CircularProgressIndicator(
+                    ExpressiveLoadingIndicator(
                         modifier = Modifier
                             .padding(top = 8.dp)
-                            .size(24.dp),
-                        strokeWidth = 2.dp
+                            .size(24.dp)
                     )
                 }
             }

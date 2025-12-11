@@ -22,6 +22,7 @@ import com.synapse.social.studioasinc.model.CommentAction
 import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.model.CommentWithUser
 import com.synapse.social.studioasinc.ui.postdetail.components.*
+import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import com.synapse.social.studioasinc.ui.components.post.PostInteractionBar
 import com.synapse.social.studioasinc.ui.components.post.PollContent
 import com.synapse.social.studioasinc.ui.components.post.PollOption
@@ -195,7 +196,7 @@ fun PostDetailScreen(
     ) { paddingValues ->
         if (uiState.isLoading) {
              Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                 CircularProgressIndicator()
+                 ExpressiveLoadingIndicator()
              }
         } else if (uiState.error != null) {
              Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {

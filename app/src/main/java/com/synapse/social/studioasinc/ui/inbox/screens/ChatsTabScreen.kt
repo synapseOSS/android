@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,12 +53,13 @@ fun ChatsTabScreen(
                     
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 80.dp) // Space for FAB
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         // Pinned Chats Section
                         if (state.pinnedChats.isNotEmpty()) {
                             item {
-                                ChatSectionHeader(title = "Pinned")
+                                ChatSectionHeader(title = "Pinned", modifier = Modifier.padding(bottom = 4.dp))
                             }
                             items(
                                 items = state.pinnedChats,
@@ -85,7 +85,7 @@ fun ChatsTabScreen(
                         groupedChats.forEach { (section, chats) ->
                             if (chats.isNotEmpty()) {
                                 stickyHeader {
-                                    ChatSectionHeader(title = section.displayName)
+                                    ChatSectionHeader(title = section.displayName, modifier = Modifier.padding(vertical = 4.dp))
                                 }
                                 
                                 items(
@@ -107,6 +107,11 @@ fun ChatsTabScreen(
                                     }
                                 }
                             }
+                        }
+
+                        // Bottom spacer for navigation bar
+                        item {
+                            Spacer(modifier = Modifier.height(80.dp))
                         }
                     }
                 }
