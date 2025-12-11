@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.synapse.social.studioasinc.ui.inbox.models.InboxAction
 import com.synapse.social.studioasinc.ui.inbox.models.InboxUiState
@@ -49,6 +48,86 @@ fun InboxScreen(
     // FAB state
     var isFabExpanded by remember { mutableStateOf(false) }
 
+    // Bottom Sheet for long-press actions
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var selectedChatIdForSheet by remember { mutableStateOf<String?>(null) }
+    val sheetState = rememberModalBottomSheetState()
+
+    // Determine selection state
+    val selectionMode = (uiState as? InboxUiState.Success)?.selectionMode == true
+    val selectedCount = (uiState as? InboxUiState.Success)?.selectedItems?.size ?: 0
+
+    if (showBottomSheet && selectedChatIdForSheet != null) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showBottomSheet = false
+                selectedChatIdForSheet = null
+            },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Chat Options",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                Button(
+                    onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            showBottomSheet = false
+                            viewModel.onAction(InboxAction.ToggleSelectionMode(selectedChatIdForSheet))
+                            selectedChatIdForSheet = null
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Select")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            showBottomSheet = false
+                            selectedChatIdForSheet?.let { viewModel.onAction(InboxAction.ArchiveChat(it)) }
+                            selectedChatIdForSheet = null
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Archive")
+                }
+
+                 Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            showBottomSheet = false
+                            selectedChatIdForSheet?.let { viewModel.onAction(InboxAction.DeleteChat(it)) }
+                            selectedChatIdForSheet = null
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
+    }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -66,14 +145,23 @@ fun InboxScreen(
                     )
                 } else {
                     InboxTopAppBar(
-                        title = "Inbox",
+                        title = "Google Messages",
                         scrollBehavior = scrollBehavior,
-                        onSearchClick = { viewModel.toggleSearch(true) }
+                        selectionMode = selectionMode,
+                        selectedCount = selectedCount,
+                        onSearchClick = { viewModel.toggleSearch(true) },
+                        onSelectionClose = { viewModel.onAction(InboxAction.ClearSelection) },
+                        onDeleteSelected = { viewModel.onAction(InboxAction.DeleteSelected) },
+                        onArchiveSelected = { viewModel.onAction(InboxAction.ArchiveSelected) },
+                        onProfileClick = { /* TODO: Open Profile */ }
                     )
                 }
             }
         },
         bottomBar = {
+             // Hide navigation bar when in selection mode? Google Messages does not hide it usually,
+             // but context actions are in top bar.
+             // If we want full focus, we can hide it. Let's keep it for now as per requirement "Selection Mode UI - The AppBar transforms..."
              NavigationBar {
                  val tabs = listOf("Chats", "Calls", "Contacts")
                  tabs.forEachIndexed { index, title ->
@@ -144,6 +232,10 @@ fun InboxScreen(
                                 }
                                 else -> viewModel.onAction(action)
                             }
+                        },
+                        onLongPressChat = { chatId ->
+                            selectedChatIdForSheet = chatId
+                            showBottomSheet = true
                         }
                     )
                 }

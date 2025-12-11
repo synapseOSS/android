@@ -156,6 +156,21 @@ class InboxViewModel(
             is InboxAction.UnpinChat -> {
                 unpinChat(action.chatId)
             }
+            is InboxAction.ToggleSelectionMode -> {
+                toggleSelectionMode(action.chatId)
+            }
+            is InboxAction.ToggleSelection -> {
+                toggleSelection(action.chatId)
+            }
+            is InboxAction.ClearSelection -> {
+                clearSelection()
+            }
+            is InboxAction.DeleteSelected -> {
+                deleteSelectedChats()
+            }
+            is InboxAction.ArchiveSelected -> {
+                archiveSelectedChats()
+            }
             else -> {
                 // Navigation actions handled by the UI
             }
@@ -180,19 +195,104 @@ class InboxViewModel(
     }
     
     /**
+     * Toggles selection mode
+     */
+    private fun toggleSelectionMode(initialChatId: String? = null) {
+        val currentState = _uiState.value
+        if (currentState is InboxUiState.Success) {
+            val newSelectionMode = !currentState.selectionMode
+            val newSelectedItems = if (newSelectionMode && initialChatId != null) {
+                setOf(initialChatId)
+            } else {
+                emptySet()
+            }
+
+            _uiState.value = currentState.copy(
+                selectionMode = newSelectionMode,
+                selectedItems = newSelectedItems
+            )
+        }
+    }
+
+    /**
+     * Toggles selection of a specific chat
+     */
+    private fun toggleSelection(chatId: String) {
+        val currentState = _uiState.value
+        if (currentState is InboxUiState.Success && currentState.selectionMode) {
+            val currentSelected = currentState.selectedItems
+            val newSelected = if (currentSelected.contains(chatId)) {
+                currentSelected - chatId
+            } else {
+                currentSelected + chatId
+            }
+
+            // If nothing left selected, exit selection mode
+            if (newSelected.isEmpty()) {
+                _uiState.value = currentState.copy(
+                    selectionMode = false,
+                    selectedItems = emptySet()
+                )
+            } else {
+                _uiState.value = currentState.copy(selectedItems = newSelected)
+            }
+        }
+    }
+
+    /**
+     * Clears all selection
+     */
+    private fun clearSelection() {
+        val currentState = _uiState.value
+        if (currentState is InboxUiState.Success) {
+            _uiState.value = currentState.copy(
+                selectionMode = false,
+                selectedItems = emptySet()
+            )
+        }
+    }
+
+    /**
      * Archives a chat
      */
     private fun archiveChat(chatId: String) {
         viewModelScope.launch {
             // TODO: Implement archive in backend
-            // For now, just remove from list optimistically
             val currentState = _uiState.value
             if (currentState is InboxUiState.Success) {
                 val updatedChats = currentState.chats.filter { it.id != chatId }
+                val updatedPinned = currentState.pinnedChats.filter { it.id != chatId }
+
+                // Find chat to archive (could be in regular or pinned)
                 val archivedChat = currentState.chats.find { it.id == chatId }
+                    ?: currentState.pinnedChats.find { it.id == chatId }
+
                 _uiState.value = currentState.copy(
                     chats = updatedChats,
+                    pinnedChats = updatedPinned,
                     archivedChats = currentState.archivedChats + listOfNotNull(archivedChat)
+                )
+            }
+        }
+    }
+
+    private fun archiveSelectedChats() {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState is InboxUiState.Success) {
+                val selected = currentState.selectedItems
+                val updatedChats = currentState.chats.filter { !selected.contains(it.id) }
+                val updatedPinned = currentState.pinnedChats.filter { !selected.contains(it.id) }
+
+                val archivedChats = currentState.chats.filter { selected.contains(it.id) } +
+                                    currentState.pinnedChats.filter { selected.contains(it.id) }
+
+                _uiState.value = currentState.copy(
+                    chats = updatedChats,
+                    pinnedChats = updatedPinned,
+                    archivedChats = currentState.archivedChats + archivedChats,
+                    selectionMode = false,
+                    selectedItems = emptySet()
                 )
             }
         }
@@ -211,6 +311,24 @@ class InboxViewModel(
                 _uiState.value = currentState.copy(
                     chats = updatedChats,
                     pinnedChats = updatedPinned
+                )
+            }
+        }
+    }
+
+    private fun deleteSelectedChats() {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState is InboxUiState.Success) {
+                val selected = currentState.selectedItems
+                val updatedChats = currentState.chats.filter { !selected.contains(it.id) }
+                val updatedPinned = currentState.pinnedChats.filter { !selected.contains(it.id) }
+
+                _uiState.value = currentState.copy(
+                    chats = updatedChats,
+                    pinnedChats = updatedPinned,
+                    selectionMode = false,
+                    selectedItems = emptySet()
                 )
             }
         }
