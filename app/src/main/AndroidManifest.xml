@@ -248,6 +248,14 @@
 			android:windowSoftInputMode="adjustResize" />
 
 		<activity
+			android:name=".DirectChatComposeActivity"
+			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+			android:hardwareAccelerated="true"
+			android:supportsPictureInPicture="true"
+			android:screenOrientation="portrait"
+			android:windowSoftInputMode="adjustResize" />
+
+		<activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
 		<provider
