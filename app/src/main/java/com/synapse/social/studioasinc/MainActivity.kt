@@ -120,12 +120,7 @@ class MainActivity : BaseActivity() {
                 }
                 is AuthState.Unauthenticated -> {
                     // Navigate to auth screen
-                    val useNewAuth = FeatureFlag.USE_NEW_AUTH_UI
-                    val intent = if (useNewAuth) {
-                        Intent(this, AuthComposeActivity::class.java)
-                    } else {
-                        Intent(this, AuthActivity::class.java)
-                    }
+                    val intent = Intent(this, AuthComposeActivity::class.java)
                     startActivity(intent)
                     finish()
                 }
