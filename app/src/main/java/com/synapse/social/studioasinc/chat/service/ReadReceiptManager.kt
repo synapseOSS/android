@@ -3,10 +3,13 @@ package com.synapse.social.studioasinc.chat.service
 import android.util.Log
 import com.synapse.social.studioasinc.chat.models.MessageState
 import com.synapse.social.studioasinc.chat.models.ReadReceiptEvent
+import io.github.jan.supabase.realtime.broadcastFlow
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
@@ -46,6 +49,9 @@ class ReadReceiptManager(
     
     // Track batching jobs per chat
     private val batchingJobs = ConcurrentHashMap<String, Job>()
+
+    // Track subscription jobs per chat
+    private val subscriptionJobs = ConcurrentHashMap<String, Job>()
     
     // Track read receipt callbacks per chat
     private val readReceiptCallbacks = ConcurrentHashMap<String, (ReadReceiptEvent) -> Unit>()
@@ -222,17 +228,33 @@ class ReadReceiptManager(
         
         // Store the callback
         readReceiptCallbacks[chatId] = onReadUpdate
+
+        // Cancel existing subscription if any to avoid duplicates
+        subscriptionJobs[chatId]?.cancel()
         
         try {
             // Get or create the Realtime channel
             val channel = realtimeService.getChannel(chatId)
                 ?: realtimeService.subscribeToChat(chatId)
 
-            // FIXME: Implement broadcast listening for read receipts once the Supabase Realtime API is finalized.
-            // This will involve listening for a specific event on the channel and invoking the onReadUpdate callback.
-            // For now, we'll rely on polling fallback for read receipt updates
-            Log.d(TAG, "Read receipt subscription set up for chat: $chatId (broadcast listening pending API clarification)")
+            // Listen for read receipt broadcast events
+            val job = channel.broadcastFlow<ReadReceiptEvent>("read_receipt")
+                .onEach { event ->
+                    try {
+                        // Filter out own read receipts
+                        if (currentUserId != null && event.userId == currentUserId) {
+                            return@onEach
+                        }
 
+                        Log.d(TAG, "Received read receipt event for chat: ${event.chatId}, user: ${event.userId}")
+                        onReadUpdate(event)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error processing read receipt event", e)
+                    }
+                }
+                .launchIn(coroutineScope)
+
+            subscriptionJobs[chatId] = job
             Log.d(TAG, "Successfully subscribed to read receipts for chat: $chatId")
             
         } catch (e: Exception) {
@@ -250,6 +272,10 @@ class ReadReceiptManager(
     fun unsubscribe(chatId: String) {
         Log.d(TAG, "Unsubscribing from read receipts for chat: $chatId")
         
+        // Cancel subscription job
+        subscriptionJobs[chatId]?.cancel()
+        subscriptionJobs.remove(chatId)
+
         // Remove the callback
         readReceiptCallbacks.remove(chatId)
         
@@ -295,6 +321,9 @@ class ReadReceiptManager(
         
         batchingJobs.values.forEach { it.cancel() }
         batchingJobs.clear()
+
+        subscriptionJobs.values.forEach { it.cancel() }
+        subscriptionJobs.clear()
         
         pendingReadReceipts.clear()
     }
