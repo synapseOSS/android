@@ -5,8 +5,9 @@ import android.media.AudioAttributes
 import android.media.SoundPool
 import androidx.annotation.RawRes
 
-class SoundEffectPlayer(private val context: Context) {  // Code by Ashik from StudioAsInc.
+class SoundEffectPlayer(context: Context) {  // Code by Ashik from StudioAsInc.
 
+    private val appContext = context.applicationContext
     private val soundPool: SoundPool
     private val soundMap: MutableMap<Int, Int> = mutableMapOf()
 
@@ -28,7 +29,7 @@ class SoundEffectPlayer(private val context: Context) {  // Code by Ashik from S
 
     fun load(@RawRes resId: Int) {
         if (!soundMap.containsKey(resId)) {
-            val soundId = soundPool.load(context, resId, 1)
+            val soundId = soundPool.load(appContext, resId, 1)
             soundMap[resId] = soundId
         }
     }
@@ -38,7 +39,7 @@ class SoundEffectPlayer(private val context: Context) {  // Code by Ashik from S
         if (soundId != null) {
             soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
         } else {
-            val newSoundId = soundPool.load(context, resId, 1)
+            val newSoundId = soundPool.load(appContext, resId, 1)
             soundMap[resId] = newSoundId
             soundPool.setOnLoadCompleteListener { _, sid, _ ->
                 if (sid == newSoundId) {

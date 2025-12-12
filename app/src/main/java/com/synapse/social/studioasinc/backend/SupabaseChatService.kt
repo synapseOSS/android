@@ -620,17 +620,19 @@ class SupabaseChatService {
      * @param deleteForEveryone If true, deletes for all users. If false, only marks as deleted for current user
      */
     suspend fun deleteMessage(messageId: String, deleteForEveryone: Boolean = true): Result<Unit> {
-        return try {
-            // Use ISO 8601 format for PostgreSQL timestamptz
-            val isoTimestamp = java.time.Instant.now().toString()
-            val updateData = mapOf(
-                "is_deleted" to true,
-                "delete_for_everyone" to deleteForEveryone,
-                "deleted_at" to isoTimestamp
-            )
-            databaseService.update("messages", updateData, "id", messageId)
-        } catch (e: Exception) {
-            Result.failure(e)
+        return withContext(Dispatchers.IO) {
+            try {
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
+                val updateData = mapOf(
+                    "is_deleted" to true,
+                    "delete_for_everyone" to deleteForEveryone,
+                    "deleted_at" to isoTimestamp
+                )
+                databaseService.update("messages", updateData, "id", messageId)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
     }
     
@@ -915,16 +917,18 @@ class SupabaseChatService {
         messageId: String,
         status: String
     ): Result<Unit> {
-        return try {
-            // Use ISO 8601 format for PostgreSQL timestamptz
-            val isoTimestamp = java.time.Instant.now().toString()
-            val updateData = mapOf(
-                "delivery_status" to status,
-                "updated_at" to isoTimestamp
-            )
-            databaseService.update("messages", updateData, "id", messageId)
-        } catch (e: Exception) {
-            Result.failure(e)
+        return withContext(Dispatchers.IO) {
+            try {
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
+                val updateData = mapOf(
+                    "delivery_status" to status,
+                    "updated_at" to isoTimestamp
+                )
+                databaseService.update("messages", updateData, "id", messageId)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
     }
     
