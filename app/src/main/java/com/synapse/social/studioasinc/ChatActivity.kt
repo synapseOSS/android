@@ -2618,7 +2618,7 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
         realtimeJob?.cancel()
         val channelToRemove = realtimeChannel
         if (channelToRemove != null) {
-            CoroutineScope(Dispatchers.IO).launch {
+            lifecycleScope.launch(Dispatchers.IO) {
                 try {
                      SupabaseClient.client.realtime.removeChannel(channelToRemove)
                 } catch (e: Exception) {

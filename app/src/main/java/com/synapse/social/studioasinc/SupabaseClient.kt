@@ -49,23 +49,7 @@ object SupabaseClient {
                 supabaseKey = BuildConfig.SUPABASE_ANON_KEY
             ) {
                 install(Auth) {
-                    // Configure schema for deep links if necessary (usually default is sufficient)
-                    // Configure URL opener for OAuth
-                    // Note: We use a lambda that delegates to the mutable property
-                    // because this block is executed only once at initialization.
-                    // This allows us to swap the implementation (context) at runtime.
-                    // The property name in AuthConfig might be 'scheme', 'host', or just reliance on platform.
-                    // For Kotlin/Android without Compose-Auth, we might need to rely on 'openUrl' property?
-                    // Actually, looking at documentation, we can't easily inject openUrl here for non-Compose Auth
-                    // if the library doesn't expose it in AuthConfig.
-                    // However, we can use 'httpEngine' to customize requests, but opening browser is different.
-                    // Assuming we will manually handle the URL in AuthRepository via 'getOAuthUrl' or similar,
-                    // or if 'signInWith' calls a hook we can't access, we might have issues.
-                    // But wait! If we use 'signInWith(Provider)', it returns Unit.
-                    // It EXPECTS the platform to handle it.
-                    // If we can't configure it, we will use 'getOAuthUrl' pattern in Repository.
-                    // So we don't strictly need to change this file for 'openUrl' if we don't use 'signInWith' directly for browser launch.
-                    // BUT, to be safe and cleaner, let's keep it standard.
+                    // Configure URL opener for OAuth flows
                 }
                 install(Postgrest)
                 install(Realtime)

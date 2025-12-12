@@ -61,18 +61,7 @@ class AuthComposeActivity : ComponentActivity() {
             }
         }
 
-        // Setup observer for external URL opening if needed,
-        // though we handled it via SupabaseClient.openUrl global callback.
-        // If we wanted to use LiveData/Flow from VM to open URL, we would do it here.
-        // But the Repository calls getOAuthUrl which we use to manually open.
-        // Wait, current AuthViewModel implementation will emit 'OpenUrl' or similar?
-        // No, my plan was to use getOAuthUrl and open it here.
-        // But AuthViewModel needs to tell the activity to open it.
-        // So I should add an event for that or observe it.
-        //
-        // Revised plan: AuthViewModel calls repository.getOAuthUrl() and emits AuthNavigationEvent.OpenUrl(url).
-        // I need to add OpenUrl to AuthNavigationEvent in AuthViewModel (I'll do that in next step).
-        // Here, I need to observe that event.
+        // Setup observer for external URL opening
     }
 
     override fun onNewIntent(intent: Intent) {
