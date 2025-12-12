@@ -9,7 +9,6 @@ import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.realtime
 import io.github.jan.supabase.realtime.RealtimeChannel
 import io.github.jan.supabase.realtime.postgresChangeFlow
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -62,7 +61,7 @@ class ChatUIUpdater(
 
                 val changeFlow = newChannel.postgresChangeFlow<PostgresAction>(schema = "public") {
                     table = "messages"
-                    filter("chat_id", FilterOperator.EQ, chatId)
+                    filter("chat_id", "eq", chatId)
                 }
 
                 newChannel.subscribe()
