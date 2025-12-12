@@ -348,17 +348,14 @@ class InboxViewModel(
         val userId = currentUserId ?: return
 
         viewModelScope.launch {
-            val currentState = _uiState.value
-            if (currentState !is InboxUiState.Success) return@launch
+            val selectedIds = mutableSetOf<String>()
 
-            val selected = currentState.selectedItems
-            if (selected.isEmpty()) return@launch
-
-            // Optimistic update
+            // Atomically get selected items and update UI
             _uiState.update { state ->
-                if (state is InboxUiState.Success) {
-                    val updatedChats = state.chats.filter { !selected.contains(it.id) }
-                    val updatedPinned = state.pinnedChats.filter { !selected.contains(it.id) }
+                if (state is InboxUiState.Success && state.selectedItems.isNotEmpty()) {
+                    selectedIds.addAll(state.selectedItems)
+                    val updatedChats = state.chats.filter { !selectedIds.contains(it.id) }
+                    val updatedPinned = state.pinnedChats.filter { !selectedIds.contains(it.id) }
 
                     state.copy(
                         chats = updatedChats,
@@ -371,11 +368,15 @@ class InboxViewModel(
                 }
             }
 
+            if (selectedIds.isEmpty()) {
+                return@launch
+            }
+
             // Backend calls (parallel execution)
-            val results = kotlinx.coroutines.coroutineScope {
-                kotlinx.coroutines.awaitAll(
-                    *selected.map { chatId ->
-                        kotlinx.coroutines.async { chatService.deleteChat(chatId, userId) }
+            val results = coroutineScope {
+                awaitAll(
+                    *selectedIds.map { chatId ->
+                        async { chatService.deleteChat(chatId, userId) }
                     }.toTypedArray()
                 )
             }
