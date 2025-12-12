@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc.presentation.editprofile
 import com.synapse.social.studioasinc.SupabaseClient
 import com.synapse.social.studioasinc.backend.SupabaseStorageService
 import com.synapse.social.studioasinc.model.UserProfile
+import com.synapse.social.studioasinc.presentation.editprofile.photohistory.HistoryItem
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
@@ -12,6 +13,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
+import kotlinx.serialization.json.contentOrNull
 import java.util.UUID
 
 class EditProfileRepository {
@@ -162,5 +166,79 @@ class EditProfileRepository {
                 // Silent fail
             }
         }
+    }
+
+    fun getProfileHistory(userId: String): Flow<Result<List<HistoryItem>>> = flow {
+        try {
+            val result = client.from("profile_history")
+                .select(columns = Columns.raw("*")) {
+                    filter { eq("user_id", userId) }
+                }
+                .decodeList<JsonObject>()
+
+            val items = result.mapNotNull {
+                parseHistoryItem(it)
+            }.sortedByDescending { it.uploadDate }
+
+            emit(Result.success(items))
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    fun getCoverHistory(userId: String): Flow<Result<List<HistoryItem>>> = flow {
+        try {
+            val result = client.from("cover_image_history")
+                .select(columns = Columns.raw("*")) {
+                    filter { eq("user_id", userId) }
+                }
+                .decodeList<JsonObject>()
+
+            val items = result.mapNotNull {
+                parseHistoryItem(it)
+            }.sortedByDescending { it.uploadDate }
+
+            emit(Result.success(items))
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    suspend fun deleteProfileHistoryItem(key: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                client.from("profile_history").delete {
+                    filter { eq("key", key) }
+                }
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    suspend fun deleteCoverHistoryItem(key: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                client.from("cover_image_history").delete {
+                    filter { eq("key", key) }
+                }
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    private fun parseHistoryItem(json: JsonObject): HistoryItem? {
+        val key = json["key"]?.jsonPrimitive?.contentOrNull ?: return null
+        val userId = json["user_id"]?.jsonPrimitive?.contentOrNull ?: return null
+        val imageUrl = json["image_url"]?.jsonPrimitive?.contentOrNull ?: return null
+        // Handle upload_date which might be stored as string or number
+        val uploadDateStr = json["upload_date"]?.jsonPrimitive?.contentOrNull
+        val uploadDate = uploadDateStr?.toLongOrNull() ?: 0L
+        val type = json["type"]?.jsonPrimitive?.contentOrNull ?: "url"
+
+        return HistoryItem(key, userId, imageUrl, uploadDate, type)
     }
 }
