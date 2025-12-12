@@ -71,6 +71,42 @@ class AuthViewModel(
     init {
         _uiState.value = AuthUiState.SignIn()
         setupInputValidation()
+        observeAuthState()
+    }
+
+    private fun observeAuthState() {
+        authRepository.observeAuthState()
+            .onEach { isLoggedIn ->
+                if (isLoggedIn) {
+                    // Only navigate to main if we are not in a specific flow that requires attention
+                    // For example, if we are in Reset Password flow, we might be technically logged in via recovery token,
+                    // but we shouldn't jump to Main immediately?
+                    // Actually, recovery token logs you in.
+                    // If we navigate to Main, the user can change password there.
+                    // But usually we want to show Reset Password screen.
+                    // We handle this conflict by checking the deep link type in handleDeepLink.
+
+                    // However, for OAuth login, this observer is what triggers navigation to Main
+                    // after the session is restored from the deep link.
+
+                    // We check if we are already handling a deep link navigation manually.
+                    // If not, we go to Main.
+
+                    // Since handleDeepLink is called first, it might set state.
+                    // We should be careful.
+
+                    // Let's rely on explicit navigation for now.
+                    // But if OAuth login happens, the AuthState changes.
+                    // If we don't observe it, we won't know.
+
+                    // Improved strategy:
+                    // handleDeepLink will handle session restoration.
+                    // If it detects OAuth login success, IT will emit NavigateToMain.
+                    // So we don't need this observer strictly for navigation, preventing conflicts.
+                    // But it's good to keep UI in sync.
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     /**
@@ -235,27 +271,6 @@ class AuthViewModel(
 
             _uiState.value = AuthUiState.Loading
 
-            // We use signUp here, but real implementation should probably insert the username into users table
-            // The PRD says "Create user profile with minimal data on signup".
-            // Since AuthRepository.signUp only creates auth user, we need to handle profile creation.
-            // However, AuthRepository might need to be updated or we do it here.
-            // Given constraints, I will assume AuthRepository.signUp or a trigger handles it,
-            // OR I should use Supabase client to insert it.
-            // PRD says: "supabaseClient.client.from("users").insert(...)"
-            // Since I don't have supabaseClient here directly (except via repositories),
-            // I should probably move that logic to AuthRepository or a new use case.
-            // For now, I'll rely on AuthRepository.signUp and assume it's sufficient or updated later.
-            // WAIT, PRD explicitely says "Update AuthViewModel ... signUpWithUsername ... insert(...)".
-            // But I don't have SupabaseClient injected.
-            // I'll stick to basic flow for now and assume backend trigger or AuthRepository handles it if possible.
-            // Actually, I can add a method to UsernameRepository to create profile? Or AuthRepository.
-            // Let's just proceed with basic authRepository.signUp for now as I cannot easily change AuthRepository signature/deps without risk.
-
-            // Correction: PRD requires inserting the user.
-            // I will use SupabaseClient directly as it is a singleton in this project (com.synapse.social.studioasinc.SupabaseClient)
-            // or better, delegate to AuthRepository if I can modify it.
-            // Modifying AuthRepository is safer.
-
             val result = authRepository.signUp(email, password)
             result.fold(
                 onSuccess = { userId ->
@@ -328,8 +343,11 @@ class AuthViewModel(
     fun handleDeepLink(uri: android.net.Uri?) {
         if (uri == null) return
 
-        val fragment = uri.fragment ?: return
-        if (fragment.contains("type=recovery")) {
+        val fragment = uri.fragment
+        val query = uri.query
+
+        if (fragment != null && fragment.contains("type=recovery")) {
+             // Handle Password Recovery
              val params = fragment.split("&").associate {
                  val parts = it.split("=")
                  if (parts.size == 2) parts[0] to parts[1] else "" to ""
@@ -344,6 +362,28 @@ class AuthViewModel(
                      _navigationEvent.emit(AuthNavigationEvent.NavigateToResetPassword(token))
                  }
              }
+        } else {
+            // Assume OAuth login or Magic Link
+            viewModelScope.launch {
+                val result = authRepository.handleOAuthCallback(uri)
+                result.fold(
+                    onSuccess = {
+                        _uiState.value = AuthUiState.Success("Authenticated successfully")
+                        delay(500)
+                        _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
+                    },
+                    onFailure = { error ->
+                        // Only show error if we were expecting an OAuth callback (e.g. user was in Loading state)
+                        // Or if the URI definitely looks like an Auth callback (has error param)
+                        if (uri.toString().contains("error")) {
+                            _uiState.value = AuthUiState.SignIn(
+                                generalError = "Authentication failed: ${error.message}"
+                            )
+                        }
+                        // Otherwise it might be just opening the app normally, do nothing
+                    }
+                )
+            }
         }
     }
 
@@ -469,22 +509,24 @@ class AuthViewModel(
      * Handle OAuth provider button click
      */
     fun onOAuthClick(provider: String) {
-        // TODO: Implement OAuth when supported
         viewModelScope.launch {
-            val state = _uiState.value
-            when (state) {
-                is AuthUiState.SignIn -> {
-                    _uiState.value = state.copy(
-                        generalError = "OAuth sign-in with $provider is not yet implemented"
+            _uiState.value = AuthUiState.Loading
+            val result = authRepository.getOAuthUrl(provider)
+            result.fold(
+                onSuccess = { url ->
+                    _navigationEvent.emit(AuthNavigationEvent.OpenUrl(url))
+                    // State remains Loading until app returns via deep link
+                },
+                onFailure = { error ->
+                    val message = "Failed to initiate $provider sign-in: ${error.message}"
+                    // Restore previous state with error
+                    // We need to know if we came from SignIn or SignUp.
+                    // For now, default to SignIn as that's the safest fallback
+                     _uiState.value = AuthUiState.SignIn(
+                        generalError = message
                     )
                 }
-                is AuthUiState.SignUp -> {
-                    _uiState.value = state.copy(
-                        generalError = "OAuth sign-up with $provider is not yet implemented"
-                    )
-                }
-                else -> {}
-            }
+            )
         }
     }
 

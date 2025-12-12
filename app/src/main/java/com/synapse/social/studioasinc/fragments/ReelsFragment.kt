@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-// import com.synapse.social.studioasinc.LineVideosRecyclerViewAdapter // Disabled - needs migration
+import com.synapse.social.studioasinc.LineVideosRecyclerViewAdapter
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import kotlinx.coroutines.launch
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 class ReelsFragment : Fragment() {
 
     private lateinit var databaseService: SupabaseDatabaseService
-    // private lateinit var lineVideosRecyclerViewAdapter: LineVideosRecyclerViewAdapter // Disabled - needs migration
+    private lateinit var lineVideosRecyclerViewAdapter: LineVideosRecyclerViewAdapter
     private val lineVideosListMap = mutableListOf<HashMap<String, Any>>()
     
     private lateinit var middleRelativeTopSwipe: SwipeRefreshLayout
@@ -98,12 +98,13 @@ class ReelsFragment : Fragment() {
                     
                     lineVideosListMap.addAll(convertedPosts)
                     
-                    // TODO: Initialize adapter when LineVideosRecyclerViewAdapter is migrated
-                    // For now, show placeholder message
-                    loadedBody.visibility = View.GONE
-                    // Show message that reels are not available yet
-                    
-                    loadedBody.visibility = View.VISIBLE
+                    if (context != null) {
+                        lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap as ArrayList<HashMap<String, Any>>, requireContext())
+                        videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
+                        loadedBody.visibility = View.VISIBLE
+                    } else {
+                        loadedBody.visibility = View.GONE
+                    }
                     
                 }.onFailure { error ->
                     // Handle error - show empty state or error message

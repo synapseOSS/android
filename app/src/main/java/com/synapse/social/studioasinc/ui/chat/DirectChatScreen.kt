@@ -1,196 +1,201 @@
 package com.synapse.social.studioasinc.ui.chat
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.ui.unit.dp
-
+import androidx.compose.animation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.synapse.social.studioasinc.ui.chat.components.input.ChatInputBar
-import com.synapse.social.studioasinc.ui.chat.components.message.MessageList
-import com.synapse.social.studioasinc.ui.chat.components.EmptyChatState
-import com.synapse.social.studioasinc.ui.chat.components.ScrollToBottomFab
-import com.synapse.social.studioasinc.ui.chat.components.topbar.ChatTopBar
-import com.synapse.social.studioasinc.ui.chat.theme.ChatColors
-import com.synapse.social.studioasinc.ui.chat.theme.ChatTheme
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
+import com.synapse.social.studioasinc.ui.chat.components.MessageItem
+import kotlinx.coroutines.launch
 
-/**
- * Main Direct Chat Screen Composable
- * Assembles all chat components into a functional screen
- */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DirectChatScreen(
-    uiState: ChatUiState,
-    messages: List<MessageUiModel>,
-    currentUserId: String,
-    onIntent: (ChatIntent) -> Unit,
-    onNavigateBack: () -> Unit,
-    onNavigateToProfile: (String) -> Unit,
-    onNavigateToMediaViewer: (String) -> Unit,
-    modifier: Modifier = Modifier
+    chatId: String,
+    otherUserId: String,
+    onBackClick: () -> Unit,
+    viewModel: DirectChatViewModel = viewModel()
 ) {
+    // State
+    val uiState by viewModel.uiState.collectAsState()
+    val messages by viewModel.messages.collectAsState()
+    
+    // Derived State
     val listState = rememberLazyListState()
-    val snackbarHostState = remember { SnackbarHostState() }
-    
-    // UI State for Dialogs/Sheets
-    var showAttachmentPicker by remember { mutableStateOf(false) }
-    var showMessageActions by remember { mutableStateOf(false) }
-    var selectedMessageForActions by remember { mutableStateOf<MessageUiModel?>(null) }
-    
-    // Show scroll to bottom FAB when scrolled up
-    var showScrollToBottom by remember { mutableStateOf(false) }
-    
-    LaunchedEffect(listState.firstVisibleItemIndex) {
-        showScrollToBottom = listState.firstVisibleItemIndex > 5
+    val scope = rememberCoroutineScope()
+    val showScrollToBottom by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0
+        }
     }
     
-    ChatTheme {
-        Scaffold(
-            topBar = {
-                ChatTopBar(
-                    userInfo = uiState.otherUser,
-                    connectionState = uiState.connectionState,
-                    onBackClick = onNavigateBack,
-                    onProfileClick = { uiState.otherUser?.id?.let(onNavigateToProfile) },
-                    onCallClick = { /* TODO */ },
-                    onVideoCallClick = { /* TODO */ },
-                    onMenuClick = { /* TODO */ }
+    // Dynamic Layout Measurements
+    val localDensity = LocalDensity.current
+    var inputBarHeightDp by remember { mutableStateOf(100.dp) }
+
+    // Effect: Load Chat
+    LaunchedEffect(chatId) {
+        viewModel.loadChat(chatId)
+    }
+
+    Scaffold(
+        topBar = {
+            LargeTopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Avatar
+                        AsyncImage(
+                            model = uiState.otherUser?.avatarUrl,
+                            contentDescription = "Avatar",
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column {
+                            Text(
+                                text = uiState.otherUser?.username ?: "Chat",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            uiState.otherUser?.let { user ->
+                                Text(
+                                    text = if (user.isOnline) "Online" else "Offline",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (user.isOnline) Color.Green else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* TODO: Menu */ }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                    }
+                },
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
-            },
-            bottomBar = {
-                Column {
-                    // Attachment Previews
-                    if (uiState.attachments.isNotEmpty()) {
-                        com.synapse.social.studioasinc.ui.chat.components.input.AttachmentPreviewRow(
-                            attachments = uiState.attachments,
-                            onRemove = { id -> onIntent(ChatIntent.RemoveAttachment(id)) }
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = paddingValues.calculateTopPadding())
+                .imePadding() // Push content up when keyboard opens
+        ) {
+            // Background Image/Gradient could go here
+
+            // Messages List
+            LazyColumn(
+                state = listState,
+                reverseLayout = true, // Scroll from bottom
+                contentPadding = PaddingValues(
+                    bottom = inputBarHeightDp + 16.dp, // Dynamic padding + spacing
+                    top = 16.dp,
+                    start = 0.dp,
+                    end = 0.dp
+                ),
+                // clipToPadding parameter removed - not available in current Compose version
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(
+                    items = messages.reversed(), // Reverse list because LazyColumn is reversed
+                    key = { it.id }
+                ) { message ->
+                    // Animate item placement
+                    Box(modifier = Modifier.animateItemPlacement()) {
+                        MessageItem(
+                            message = message,
+                            onReply = { msg -> viewModel.handleIntent(ChatIntent.SetReplyTo(msg)) },
+                            onLongClick = { /* Selection Mode */ },
+                            onAttachmentClick = { url, type -> /* Open Viewer */ }
                         )
                     }
-                    
-                    ChatInputBar(
-                        text = uiState.inputText,
-                        onTextChange = { onIntent(ChatIntent.UpdateInputText(it)) },
-                        onSendClick = { 
-                            if (uiState.attachments.isNotEmpty()) {
-                                onIntent(ChatIntent.SendMediaMessage(uiState.attachments, uiState.inputText))
-                            } else {
-                                onIntent(ChatIntent.SendMessage(uiState.inputText))
-                            }
-                        },
-                        onAttachmentClick = { showAttachmentPicker = true },
-                        onVoiceClick = { onIntent(ChatIntent.StartVoiceRecording) },
-                        replyTo = uiState.replyTo,
-                        onClearReply = { onIntent(ChatIntent.ClearReply) }
-                    )
-                }
-            },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = ChatColors.ChatBackgroundLight // Or Dark based on theme
-        ) { paddingValues ->
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .background(ChatTheme.colors.chatBackground)
-            ) {
-                if (messages.isEmpty() && !uiState.isLoading) {
-                    EmptyChatState()
-                } else {
-                    MessageList(
-                        messages = messages,
-                        currentUserId = currentUserId,
-                        listState = listState,
-                        typingUsers = uiState.typingUsers,
-                        onMessageClick = { /* Handle selection/actions */ },
-                        onMessageLongClick = { message -> 
-                            selectedMessageForActions = message
-                            showMessageActions = true
-                        },
-                        onReplyClick = { onIntent(ChatIntent.SetReplyTo(it)) },
-                        onMediaClick = { id, index -> onNavigateToMediaViewer(id) }
-                    )
                 }
                 
-                // Scroll to Bottom FAB
-                Box(
-                    modifier = Modifier
-                        .align(androidx.compose.ui.Alignment.BottomEnd)
-                        .padding(16.dp)
-                ) {
-                    ScrollToBottomFab(
-                        visible = showScrollToBottom,
-                        onClick = { 
-                            onIntent(ChatIntent.ScrollToBottom)
-                            // Also scroll list immediately for responsiveness
-                            // scope.launch { listState.animateScrollToItem(0) } 
+                // Loading Footer (at top because reversed)
+                if (uiState.isLoadingMore) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         }
-                    )
+                    }
                 }
             }
-        }
-        
-        // Bottom Sheets
-        if (showAttachmentPicker) {
-            com.synapse.social.studioasinc.ui.chat.components.dialogs.AttachmentPickerBottomSheet(
-                onDismiss = { showAttachmentPicker = false },
-                onPickImage = { 
-                    showAttachmentPicker = false
-                    // TODO: Launch Media Picker (Phase 7 implementation)
-                    // For now handled via Intent/Effect or local launcher
-                },
-                onPickVideo = { showAttachmentPicker = false },
-                onTakePhoto = { showAttachmentPicker = false },
-                onPickDocument = { showAttachmentPicker = false },
-                onPickAudio = { showAttachmentPicker = false },
-                onPickLocation = { showAttachmentPicker = false }
-            )
-        }
-        
-        if (showMessageActions && selectedMessageForActions != null) {
-            com.synapse.social.studioasinc.ui.chat.components.dialogs.MessageActionsBottomSheet(
-                message = selectedMessageForActions!!,
-                onDismiss = { showMessageActions = false },
-                onReply = {
-                    onIntent(ChatIntent.SetReplyTo(selectedMessageForActions!!))
-                    showMessageActions = false
-                },
-                onCopy = {
-                    onIntent(ChatIntent.CopyToClipboard(selectedMessageForActions!!.content)) // Needs Intent logic
-                    showMessageActions = false
-                },
-                onEdit = {
-                    // Start edit mode (update input text with message content)
-                    onIntent(ChatIntent.UpdateInputText(selectedMessageForActions!!.content))
-                    // Set editing flag or similar (omitted for MVP)
-                    showMessageActions = false
-                },
-                onDelete = {
-                    onIntent(ChatIntent.DeleteMessage(selectedMessageForActions!!.id, true))
-                    showMessageActions = false
-                },
-                onForward = {
-                    onIntent(ChatIntent.ForwardMessage(selectedMessageForActions!!.id, emptyList()))
-                    showMessageActions = false
-                },
-                onInfo = {
-                    showMessageActions = false
+
+            // Scroll to Bottom FAB
+            AnimatedVisibility(
+                visible = showScrollToBottom,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut(),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = inputBarHeightDp + 16.dp, end = 16.dp)
+            ) {
+                SmallFloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            listState.animateScrollToItem(0)
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ) {
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Scroll Down")
                 }
-            )
+            }
+
+            // Floating Input Bar
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .onGloballyPositioned { coordinates ->
+                        inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
+                    }
+            ) {
+                ChatInputBar(
+                    value = uiState.inputText,
+                    onValueChange = { viewModel.handleIntent(ChatIntent.UpdateInputText(it)) },
+                    onSendClick = { viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText)) },
+                    onAttachClick = { /* TODO */ },
+                    replyingTo = uiState.replyTo,
+                    onCancelReply = { viewModel.handleIntent(ChatIntent.ClearReply) },
+                    typingUsers = uiState.typingUsers
+                )
+            }
         }
     }
 }

@@ -40,6 +40,8 @@ class DirectChatComposeActivity : ComponentActivity() {
             return
         }
         
+        val otherUserId = intent.getStringExtra(EXTRA_OTHER_USER_ID) ?: ""
+
         // Ensure user is logged in
         val currentUserId = runBlocking {
             try {
@@ -77,26 +79,11 @@ class DirectChatComposeActivity : ComponentActivity() {
                 dynamicColor = dynamicColor,
                 enableEdgeToEdge = true
             ) {
-                val uiState by viewModel.uiState.collectAsState()
-                val messages by viewModel.messages.collectAsState()
-                val context = LocalContext.current
-
                 DirectChatScreen(
-                    uiState = uiState,
-                    messages = messages,
-                    currentUserId = currentUserId,
-                    onIntent = { intent -> viewModel.handleIntent(intent) },
-                    onNavigateBack = { finish() },
-                    onNavigateToProfile = { userId ->
-                        // Reuse existing profile navigation
-                        val intent = Intent(context, ProfileComposeActivity::class.java).apply {
-                            putExtra("uid", userId)
-                        }
-                        context.startActivity(intent)
-                    },
-                    onNavigateToMediaViewer = { mediaId ->
-                        // TODO: Open media viewer
-                    }
+                    chatId = chatId,
+                    otherUserId = otherUserId,
+                    onBackClick = { finish() },
+                    viewModel = viewModel
                 )
             }
         }
@@ -109,6 +96,13 @@ class DirectChatComposeActivity : ComponentActivity() {
         fun createIntent(context: Context, chatId: String): Intent {
             return Intent(context, DirectChatComposeActivity::class.java).apply {
                 putExtra(EXTRA_CHAT_ID, chatId)
+            }
+        }
+
+        fun createIntent(context: Context, chatId: String, otherUserId: String): Intent {
+            return Intent(context, DirectChatComposeActivity::class.java).apply {
+                putExtra(EXTRA_CHAT_ID, chatId)
+                putExtra(EXTRA_OTHER_USER_ID, otherUserId)
             }
         }
     }

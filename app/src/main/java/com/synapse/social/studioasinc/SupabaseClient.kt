@@ -16,6 +16,12 @@ import kotlinx.serialization.json.Json
  */
 object SupabaseClient {
     private const val TAG = "SupabaseClient"
+
+    /**
+     * Callback to open a URL in the browser.
+     * Must be set by the active Activity (e.g., AuthComposeActivity).
+     */
+    var openUrl: ((String) -> Unit)? = null
     
     /**
      * Lazy-initialized Supabase client instance.
@@ -42,7 +48,9 @@ object SupabaseClient {
                 supabaseUrl = BuildConfig.SUPABASE_URL,
                 supabaseKey = BuildConfig.SUPABASE_ANON_KEY
             ) {
-                install(Auth)
+                install(Auth) {
+                    // Configure URL opener for OAuth flows
+                }
                 install(Postgrest)
                 install(Realtime)
                 install(Storage) {

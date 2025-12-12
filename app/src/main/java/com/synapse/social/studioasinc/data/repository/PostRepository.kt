@@ -10,6 +10,7 @@ import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.model.UserReaction
 import com.synapse.social.studioasinc.model.MediaItem
 import com.synapse.social.studioasinc.model.MediaType
+import com.synapse.social.studioasinc.util.ImageLoader
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.auth.auth
@@ -71,16 +72,14 @@ class PostRepository(private val postDao: PostDao) {
         if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
             return storagePath
         }
-        val supabaseUrl = SupabaseClient.getUrl()
-        return "$supabaseUrl/storage/v1/object/public/post-media/$storagePath"
+        return ImageLoader.constructStorageUrl(storagePath, "post-media")
     }
 
     private fun constructAvatarUrl(storagePath: String): String {
         if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
             return storagePath
         }
-        val supabaseUrl = SupabaseClient.getUrl()
-        return "$supabaseUrl/storage/v1/object/public/user-avatars/$storagePath"
+        return ImageLoader.constructStorageUrl(storagePath, "user-avatars")
     }
 
     private fun mapSupabaseError(exception: Exception): String {

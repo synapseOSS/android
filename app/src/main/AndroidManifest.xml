@@ -190,7 +190,16 @@
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
 			android:hardwareAccelerated="true"
 			android:supportsPictureInPicture="true"
-			android:windowSoftInputMode="adjustResize" />
+			android:windowSoftInputMode="adjustResize"
+			android:exported="true">
+			<!-- Deep link for Auth (OAuth and Magic Links) -->
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="synapse" android:host="login" />
+			</intent-filter>
+		</activity>
 		<activity
 			android:name=".ForgotPasswordActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
@@ -233,6 +242,14 @@
 			android:screenOrientation="portrait" />
 		<activity
 			android:name=".InboxComposeActivity"
+			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+			android:hardwareAccelerated="true"
+			android:supportsPictureInPicture="true"
+			android:screenOrientation="portrait"
+			android:windowSoftInputMode="adjustResize" />
+
+		<activity
+			android:name=".DirectChatComposeActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
 			android:hardwareAccelerated="true"
 			android:supportsPictureInPicture="true"

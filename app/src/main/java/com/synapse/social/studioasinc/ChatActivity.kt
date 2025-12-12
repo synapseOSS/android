@@ -27,6 +27,7 @@ import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.realtime
+import io.github.jan.supabase.realtime.postgresChangeFlow
 import kotlinx.serialization.json.JsonObject
 import com.synapse.social.studioasinc.util.ChatHelper
 import com.synapse.social.studioasinc.chat.presentation.MessageActionsViewModel
@@ -34,6 +35,7 @@ import com.synapse.social.studioasinc.chat.MessageActionsBottomSheet
 import com.synapse.social.studioasinc.chat.DeleteConfirmationDialog
 import com.synapse.social.studioasinc.chat.EditMessageDialog
 import com.synapse.social.studioasinc.chat.EditHistoryDialog
+import com.synapse.social.studioasinc.chat.ForwardMessageDialog
 import com.synapse.social.studioasinc.chat.SwipeToReplyCallback
 import com.synapse.social.studioasinc.chat.ImageGalleryActivity
 import kotlinx.coroutines.*
@@ -83,6 +85,7 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
     
     // Realtime channel
     private var realtimeChannel: io.github.jan.supabase.realtime.RealtimeChannel? = null
+    private var realtimeJob: kotlinx.coroutines.Job? = null
     
     // Pagination state
     private var isLoadingMoreMessages = false
@@ -1681,25 +1684,62 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
      * Requirements: 7.1, 7.2, 7.4
      */
     private fun setupRealtimeSubscription() {
-        if (chatId == null) {
+        val currentChatId = chatId
+        if (currentChatId == null) {
             android.util.Log.w("ChatActivity", "Cannot setup realtime: chatId is null")
             return
         }
         
-        // TODO: Implement Realtime subscription using the correct Supabase Realtime API
-        // The handleMessageUpdate() and handleMessageInsert() methods are already implemented
-        // and ready to process Realtime events when the subscription is properly configured.
-        //
-        // Expected flow:
-        // 1. Create channel: SupabaseClient.client.realtime.channel("messages_$chatId")
-        // 2. Subscribe to UPDATE events for message deletions and edits
-        // 3. Subscribe to INSERT events for new messages
-        // 4. Call handleMessageUpdate(record) for UPDATE events
-        // 5. Call handleMessageInsert(record) for INSERT events
-        // 6. Handle reconnection in handleRealtimeReconnection()
+        // Cancel existing job if any
+        realtimeJob?.cancel()
         
-        android.util.Log.d("ChatActivity", "Realtime subscription placeholder for chat: $chatId")
-        android.util.Log.d("ChatActivity", "Message deletion sync will work through manual refresh until Realtime is configured")
+        // Remove existing channel if any
+        val oldChannel = realtimeChannel
+        if (oldChannel != null) {
+             lifecycleScope.launch(Dispatchers.IO) {
+                 try {
+                     SupabaseClient.client.realtime.removeChannel(oldChannel)
+                 } catch (e: Exception) {
+                     android.util.Log.e("ChatActivity", "Error removing old channel", e)
+                 }
+             }
+        }
+
+        realtimeJob = lifecycleScope.launch {
+            try {
+                android.util.Log.d("ChatActivity", "Setting up Realtime subscription for chat: $currentChatId")
+
+                val channel = SupabaseClient.client.realtime.channel("messages_$currentChatId")
+                realtimeChannel = channel
+
+                val changes = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                    table = "messages"
+                    // TODO: Add filter when API is available - filter = "chat_id=eq.$currentChatId"
+                }
+
+                channel.subscribe()
+
+                changes.collect { action ->
+                    when (action) {
+                        is PostgresAction.Insert -> handleMessageInsert(action.record)
+                        is PostgresAction.Update -> handleMessageUpdate(action.record)
+                        is PostgresAction.Delete -> {
+                             // Soft deletes come as Update with is_deleted=true
+                             // Hard deletes handling if needed
+                             val id = action.oldRecord["id"]?.toString()?.removeSurrounding("\"")
+                             if (id != null) {
+                                 android.util.Log.d("ChatActivity", "Received hard delete for message: $id")
+                             }
+                        }
+                        else -> {}
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ChatActivity", "Error in Realtime subscription", e)
+                // Attempt reconnection after delay handled by handleRealtimeReconnection which calls this method
+                 handleRealtimeReconnection()
+            }
+        }
     }
     
     /**
@@ -2164,8 +2204,8 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
      * Show forward message dialog
      */
     private fun showForwardDialog(messageId: String, messageData: Map<String, Any?>) {
-        // TODO: Implement forward dialog
-        Toast.makeText(this, "Forward feature coming soon", Toast.LENGTH_SHORT).show()
+        val dialog = ForwardMessageDialog.newInstance(messageId, messageData)
+        dialog.show(supportFragmentManager, "ForwardMessageDialog")
     }
     
     /**
@@ -2573,6 +2613,20 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
             Log.d(TAG, "Cleaning up ChatViewModel and unsubscribing from Realtime channel.")
             chatViewModel.onChatClosed()
         }
+
+        // Clean up local Realtime subscription
+        realtimeJob?.cancel()
+        val channelToRemove = realtimeChannel
+        if (channelToRemove != null) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                     SupabaseClient.client.realtime.removeChannel(channelToRemove)
+                } catch (e: Exception) {
+                     Log.e(TAG, "Failed to remove channel in onDestroy", e)
+                }
+            }
+        }
+        realtimeChannel = null
     }
     
 }
