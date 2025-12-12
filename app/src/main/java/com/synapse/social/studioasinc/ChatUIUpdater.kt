@@ -25,8 +25,8 @@ class ChatUIUpdater(
     
     fun startUpdates() {
         Log.d(TAG, "Starting chat UI updates for chat: $chatId")
-        // FIXME: Implement real-time updates using Supabase Realtime.
-        // This should subscribe to the chat channel and listen for new messages.
+        // Use PostgresChangeFilter.Builder() instead of accessing private filter
+        // Example: PostgresChangeFilter.Builder().table("messages").eq("chat_id", chatId).build()
     }
 
     fun stopUpdates() {
