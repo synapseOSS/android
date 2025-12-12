@@ -1,10 +1,12 @@
 package com.synapse.social.studioasinc
 
 import android.content.Intent
+import android.net.Uri
 import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.lifecycle.ViewModel
@@ -21,22 +23,31 @@ import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
  * Entry point for the new authentication flow.
  */
 class AuthComposeActivity : ComponentActivity() {
+
+    private lateinit var viewModel: AuthViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
         // Setup edge-to-edge display before setContent
         EdgeToEdgeUtils.setupEdgeToEdgeActivity(this)
 
+        // Configure URL Opener for Supabase
+        SupabaseClient.openUrl = { url ->
+            val customTabsIntent = CustomTabsIntent.Builder().build()
+            customTabsIntent.launchUrl(this, Uri.parse(url))
+        }
+
         val authRepository = AuthRepository()
         val sharedPreferences = getSharedPreferences("auth_prefs", MODE_PRIVATE)
 
-        val viewModel = ViewModelProvider(
+        viewModel = ViewModelProvider(
             this,
             AuthViewModelFactory(authRepository, sharedPreferences)
         )[AuthViewModel::class.java]
 
-        // Handle deep link if present (e.g. password reset)
-        viewModel.handleDeepLink(intent.data)
+        // Handle deep link if present (e.g. password reset or OAuth callback)
+        handleDeepLink(intent)
 
         setContent {
             AuthTheme(enableEdgeToEdge = true) {
@@ -48,6 +59,36 @@ class AuthComposeActivity : ComponentActivity() {
                     }
                 )
             }
+        }
+
+        // Setup observer for external URL opening if needed,
+        // though we handled it via SupabaseClient.openUrl global callback.
+        // If we wanted to use LiveData/Flow from VM to open URL, we would do it here.
+        // But the Repository calls getOAuthUrl which we use to manually open.
+        // Wait, current AuthViewModel implementation will emit 'OpenUrl' or similar?
+        // No, my plan was to use getOAuthUrl and open it here.
+        // But AuthViewModel needs to tell the activity to open it.
+        // So I should add an event for that or observe it.
+        //
+        // Revised plan: AuthViewModel calls repository.getOAuthUrl() and emits AuthNavigationEvent.OpenUrl(url).
+        // I need to add OpenUrl to AuthNavigationEvent in AuthViewModel (I'll do that in next step).
+        // Here, I need to observe that event.
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    private fun handleDeepLink(intent: Intent) {
+        val data = intent.data
+        if (data != null) {
+            // Check if it's OAuth callback or Recovery
+            // OAuth callback typically has code or tokens.
+            // Recovery has type=recovery.
+
+            // Delegate to ViewModel to decide
+            viewModel.handleDeepLink(data)
         }
     }
 }
