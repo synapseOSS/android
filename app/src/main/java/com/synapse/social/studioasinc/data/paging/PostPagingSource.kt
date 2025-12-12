@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.util.ImageLoader
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.postgrest.query.PostgrestQueryBuilder
@@ -43,7 +44,9 @@ class PostPagingSource(
                 val post = json.decodeFromJsonElement<Post>(jsonElement)
                 val userData = jsonElement["users"]?.jsonObject
                 post.username = userData?.get("username")?.jsonPrimitive?.contentOrNull
-                post.avatarUrl = userData?.get("avatar")?.jsonPrimitive?.contentOrNull
+                post.avatarUrl = userData?.get("avatar")?.jsonPrimitive?.contentOrNull?.let {
+                    ImageLoader.constructStorageUrl(it, "user-avatars")
+                }
                 post.isVerified = userData?.get("verify")?.jsonPrimitive?.booleanOrNull ?: false
                 post
             }
