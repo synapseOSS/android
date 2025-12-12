@@ -34,6 +34,7 @@ import com.synapse.social.studioasinc.chat.MessageActionsBottomSheet
 import com.synapse.social.studioasinc.chat.DeleteConfirmationDialog
 import com.synapse.social.studioasinc.chat.EditMessageDialog
 import com.synapse.social.studioasinc.chat.EditHistoryDialog
+import com.synapse.social.studioasinc.chat.ForwardMessageDialog
 import com.synapse.social.studioasinc.chat.SwipeToReplyCallback
 import com.synapse.social.studioasinc.chat.ImageGalleryActivity
 import kotlinx.coroutines.*
@@ -2164,8 +2165,8 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
      * Show forward message dialog
      */
     private fun showForwardDialog(messageId: String, messageData: Map<String, Any?>) {
-        // TODO: Implement forward dialog
-        Toast.makeText(this, "Forward feature coming soon", Toast.LENGTH_SHORT).show()
+        val dialog = ForwardMessageDialog.newInstance(messageId, messageData)
+        dialog.show(supportFragmentManager, "ForwardMessageDialog")
     }
     
     /**
