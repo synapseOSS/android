@@ -61,7 +61,7 @@ class ChatUIUpdater(
 
                 val changeFlow = newChannel.postgresChangeFlow<PostgresAction>(schema = "public") {
                     table = "messages"
-                    filter = "chat_id=eq.$chatId"
+                    eq("chat_id", chatId)
                 }
 
                 newChannel.subscribe()

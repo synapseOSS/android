@@ -411,18 +411,11 @@ class SupabaseChatService {
                 android.util.Log.d(TAG, "Deleting chat $chatId for user $userId")
 
                 // Delete from chat_participants
-                val deleteResult = client.from("chat_participants").delete {
+                client.from("chat_participants").delete {
                     filter {
                         eq("chat_id", chatId)
                         eq("user_id", userId)
                     }
-                }
-
-                // Check if the operation was successful
-                if (!deleteResult.status.isSuccess()) {
-                    val errorBody = try { deleteResult.bodyAsText() } catch (e: Exception) { "Unknown error" }
-                    android.util.Log.e(TAG, "Error deleting chat participant: $errorBody")
-                    return@withContext Result.failure(Exception("Failed to delete chat participant: ${deleteResult.status}"))
                 }
 
                 android.util.Log.d(TAG, "Successfully deleted chat $chatId for user $userId")

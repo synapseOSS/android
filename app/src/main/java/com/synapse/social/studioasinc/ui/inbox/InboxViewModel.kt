@@ -8,6 +8,9 @@ import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import com.synapse.social.studioasinc.ui.inbox.models.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 /**
  * ViewModel for the Inbox screen.
