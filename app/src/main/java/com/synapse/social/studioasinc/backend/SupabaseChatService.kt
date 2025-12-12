@@ -7,6 +7,7 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.rpc
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
@@ -401,6 +402,38 @@ class SupabaseChatService {
         }
     }
     
+    /**
+     * Delete a chat for a user (removes user from chat participants)
+     */
+    suspend fun deleteChat(chatId: String, userId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                android.util.Log.d(TAG, "Deleting chat $chatId for user $userId")
+
+                // Delete from chat_participants
+                val deleteResult = client.from("chat_participants").delete {
+                    filter {
+                        eq("chat_id", chatId)
+                        eq("user_id", userId)
+                    }
+                }
+
+                // Check if the operation was successful
+                if (!deleteResult.status.isSuccess()) {
+                    val errorBody = try { deleteResult.bodyAsText() } catch (e: Exception) { "Unknown error" }
+                    android.util.Log.e(TAG, "Error deleting chat participant: $errorBody")
+                    return@withContext Result.failure(Exception("Failed to delete chat participant: ${deleteResult.status}"))
+                }
+
+                android.util.Log.d(TAG, "Successfully deleted chat $chatId for user $userId")
+                Result.success(Unit)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error deleting chat", e)
+                Result.failure(e)
+            }
+        }
+    }
+
     /**
      * Get user's chats
      */

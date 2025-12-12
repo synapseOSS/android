@@ -340,8 +340,10 @@ class InboxViewModel(
      * Deletes a chat
      */
     private fun deleteChat(chatId: String) {
+        val userId = currentUserId ?: return
+
         viewModelScope.launch {
-            // TODO: Implement delete in backend
+            // Optimistic update
             _uiState.update { currentState ->
                 if (currentState is InboxUiState.Success) {
                     val updatedChats = currentState.chats.filter { it.id != chatId }
@@ -354,26 +356,57 @@ class InboxViewModel(
                     currentState
                 }
             }
+
+            // Implement delete in backend
+            val result = chatService.deleteChat(chatId, userId)
+
+            // Reload chats if failed to ensure consistency
+            if (result.isFailure) {
+                loadChats()
+            }
         }
     }
 
     private fun deleteSelectedChats() {
-        viewModelScope.launch {
-            _uiState.update { currentState ->
-                if (currentState is InboxUiState.Success) {
-                    val selected = currentState.selectedItems
-                    val updatedChats = currentState.chats.filter { !selected.contains(it.id) }
-                    val updatedPinned = currentState.pinnedChats.filter { !selected.contains(it.id) }
+        val userId = currentUserId ?: return
 
-                    currentState.copy(
+        viewModelScope.launch {
+            val selectedIds = mutableSetOf<String>()
+
+            // Atomically get selected items and update UI
+            _uiState.update { state ->
+                if (state is InboxUiState.Success && state.selectedItems.isNotEmpty()) {
+                    selectedIds.addAll(state.selectedItems)
+                    val updatedChats = state.chats.filter { !selectedIds.contains(it.id) }
+                    val updatedPinned = state.pinnedChats.filter { !selectedIds.contains(it.id) }
+
+                    state.copy(
                         chats = updatedChats,
                         pinnedChats = updatedPinned,
                         selectionMode = false,
                         selectedItems = emptySet()
                     )
                 } else {
-                    currentState
+                    state
                 }
+            }
+
+            if (selectedIds.isEmpty()) {
+                return@launch
+            }
+
+            // Backend calls (parallel execution)
+            val results = coroutineScope {
+                awaitAll(
+                    *selectedIds.map { chatId ->
+                        async { chatService.deleteChat(chatId, userId) }
+                    }.toTypedArray()
+                )
+            }
+
+            // If any failed, reload chats to ensure consistency
+            if (results.any { it.isFailure }) {
+                loadChats()
             }
         }
     }
