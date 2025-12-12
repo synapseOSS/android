@@ -4,6 +4,7 @@ import android.net.Uri
 import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.user.UserSession
 // Google and Apple providers removed - not available in current Supabase version
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.Flow
@@ -182,12 +183,15 @@ class AuthRepository {
                  val refreshToken = params["refresh_token"]
 
                  if (accessToken != null && refreshToken != null) {
-                     // Create session object for importSession
-                     val sessionData = mapOf(
-                         "access_token" to accessToken,
-                         "refresh_token" to refreshToken
+                     // Create UserSession object for importSession
+                     val userSession = UserSession(
+                         accessToken = accessToken,
+                         refreshToken = refreshToken,
+                         expiresIn = 3600, // Default expiry time
+                         tokenType = "Bearer",
+                         user = null
                      )
-                     client.auth.importSession(session = sessionData)
+                     client.auth.importSession(userSession)
                      return Result.success(Unit)
                  }
             }

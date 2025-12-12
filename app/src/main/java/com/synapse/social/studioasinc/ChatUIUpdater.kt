@@ -49,7 +49,7 @@ class ChatUIUpdater(
                 // Listen for new messages
                 channel.postgresChangeFlow<PostgresAction>(schema = "public") {
                     table = "messages"
-                    eq("chat_id", chatId)
+                    filter = "chat_id=eq.$chatId"
                 }.collect { action ->
                     when (action) {
                         is PostgresAction.Insert -> {
