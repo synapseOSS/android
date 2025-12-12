@@ -418,8 +418,10 @@ class InboxViewModel(
      * Mutes a chat for specified duration
      */
     private fun muteChat(chatId: String, duration: MuteDuration) {
+        val userId = currentUserId ?: return
+
         viewModelScope.launch {
-            // TODO: Implement mute in backend
+            // Optimistic update
             _uiState.update { currentState ->
                 if (currentState is InboxUiState.Success) {
                     val updatedChats = currentState.chats.map { chat ->
@@ -435,6 +437,15 @@ class InboxViewModel(
                 } else {
                     currentState
                 }
+            }
+
+            // Backend update
+            val result = chatService.muteChat(chatId, userId, duration.durationMs)
+
+            if (result.isFailure) {
+                // Revert optimistic update on failure or show error
+                android.util.Log.e("InboxViewModel", "Failed to mute chat", result.exceptionOrNull())
+                loadChats() // Reload to restore correct state
             }
         }
     }

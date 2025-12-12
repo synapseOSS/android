@@ -13,6 +13,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.JsonNull
 import java.util.*
 
 /**
@@ -95,6 +96,73 @@ class SupabaseChatService {
                 android.util.Log.d(TAG, "Participant likely already exists: $userId in $chatId")
                 Result.success(Unit)
             } else {
+                Result.failure(e)
+            }
+        }
+    }
+
+    /**
+     * Mutes a chat for the current user for a specified duration
+     */
+    suspend fun muteChat(chatId: String, userId: String, durationMs: Long): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
+
+                val updateData = buildJsonObject {
+                    put("is_muted", true)
+                    put("updated_at", isoTimestamp)
+
+                    if (durationMs < Long.MAX_VALUE) {
+                        val mutedUntil = java.time.Instant.now().plusMillis(durationMs).toString()
+                        put("muted_until", mutedUntil)
+                    } else {
+                        // Forever muted
+                        put("muted_until", JsonNull)
+                    }
+                }
+
+                client.from("chat_participants").update(updateData) {
+                    filter {
+                        eq("chat_id", chatId)
+                        eq("user_id", userId)
+                    }
+                }
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error muting chat", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    /**
+     * Unmutes a chat for the current user
+     */
+    suspend fun unmuteChat(chatId: String, userId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
+
+                val updateData = buildJsonObject {
+                    put("is_muted", false)
+                    put("muted_until", JsonNull)
+                    put("updated_at", isoTimestamp)
+                }
+
+                client.from("chat_participants").update(updateData) {
+                    filter {
+                        eq("chat_id", chatId)
+                        eq("user_id", userId)
+                    }
+                }
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error unmuting chat", e)
                 Result.failure(e)
             }
         }
