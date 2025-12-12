@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc.ui.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,13 +59,23 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // TODO: Implement actual linked accounts fetching from backend
-                // For now, using placeholder state
-                _linkedAccounts.value = LinkedAccountsState(
-                    googleLinked = false,
-                    facebookLinked = false,
-                    appleLinked = false
-                )
+                val currentUser = com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()
+
+                if (currentUser != null) {
+                    val identities = currentUser.identities
+                    val googleLinked = identities?.any { it.provider == "google" } == true
+                    val facebookLinked = identities?.any { it.provider == "facebook" } == true
+                    val appleLinked = identities?.any { it.provider == "apple" } == true
+
+                    _linkedAccounts.value = LinkedAccountsState(
+                        googleLinked = googleLinked,
+                        facebookLinked = facebookLinked,
+                        appleLinked = appleLinked
+                    )
+                } else {
+                    // Reset if no user found
+                    _linkedAccounts.value = LinkedAccountsState()
+                }
             } catch (e: Exception) {
                 android.util.Log.e("AccountSettingsViewModel", "Failed to load linked accounts", e)
                 _error.value = "Failed to load linked accounts"

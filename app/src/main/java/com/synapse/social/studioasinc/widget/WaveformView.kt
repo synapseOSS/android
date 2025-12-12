@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.synapse.social.studioasinc.R
+import com.synapse.social.studioasinc.chat.service.MediaDownloadManager
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
@@ -65,12 +66,24 @@ class WaveformView @JvmOverloads constructor(
     // Listener for seek events
     var onSeekListener: ((progress: Float) -> Unit)? = null
     
+    // Media Download Manager
+    private var mediaDownloadManager: MediaDownloadManager? = null
+
     // Coroutine scope for waveform generation
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     
     init {
         // Initialize with empty waveform
         generateEmptyWaveform()
+    }
+
+    /**
+     * Sets the MediaDownloadManager to use for downloading audio files.
+     *
+     * @param manager The MediaDownloadManager instance
+     */
+    fun setMediaDownloadManager(manager: MediaDownloadManager) {
+        this.mediaDownloadManager = manager
     }
     
     private fun generateEmptyWaveform() {
@@ -113,13 +126,23 @@ class WaveformView @JvmOverloads constructor(
     
     /**
      * Downloads or retrieves cached audio file.
-     * This is a placeholder - should integrate with MediaDownloadManager.
+     * Integrates with MediaDownloadManager to handle caching and
+     * retrieval of the audio file.
      */
     private suspend fun downloadAudioFile(url: String): File? {
-        // FIXME: Integrate with a proper MediaDownloadManager to handle caching and
-        // retrieval of the audio file. This will prevent re-downloading the same file.
-        // For now, return null to use placeholder waveform
-        return null
+        val manager = mediaDownloadManager
+        if (manager == null) {
+            // If manager is not set, we cannot download
+            return null
+        }
+
+        return try {
+            // Use MediaDownloadManager to download/retrieve cached file
+            val result = manager.downloadMedia(url, "audio")
+            result.getOrNull()
+        } catch (e: Exception) {
+            null
+        }
     }
     
     /**
