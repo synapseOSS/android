@@ -2,6 +2,7 @@ package com.synapse.social.studioasinc.ui.profile.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -147,7 +148,7 @@ private fun FilterTabItem(
             .fillMaxHeight()
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 onClick = onClick
             ),
         contentAlignment = Alignment.Center

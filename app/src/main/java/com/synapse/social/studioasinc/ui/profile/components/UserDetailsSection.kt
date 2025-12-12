@@ -116,10 +116,10 @@ fun UserDetailsSection(
                 }
             }
             
-            // Quick preview (always visible)
+            // Collapsed summary (visible when not expanded)
             if (!expanded && hasDetails) {
                 Spacer(modifier = Modifier.height(12.dp))
-                QuickPreview(details = details)
+                CollapsedSummary(details = details)
             }
             
             // Expanded content
@@ -200,58 +200,28 @@ private fun ExpandCollapseButton(
 }
 
 /**
- * Quick preview showing first few details.
+ * Collapsed summary showing truncated text.
  */
 @Composable
-private fun QuickPreview(details: UserDetails) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+private fun CollapsedSummary(details: UserDetails) {
+    val summaryText = buildString {
+        details.work?.let { append(it) }
         details.location?.let {
-            QuickPreviewChip(
-                icon = Icons.Outlined.LocationOn,
-                text = it,
-                modifier = Modifier.weight(1f, fill = false)
-            )
+            if (isNotEmpty()) append(" • ")
+            append(it)
         }
-        details.work?.let {
-            QuickPreviewChip(
-                icon = Icons.Outlined.Work,
-                text = it,
-                modifier = Modifier.weight(1f, fill = false)
-            )
+        details.joinedDate?.let {
+            if (isNotEmpty()) append(" • Joined $it")
         }
     }
-}
 
-/**
- * Small chip for quick preview items.
- */
-@Composable
-private fun QuickPreviewChip(
-    icon: ImageVector,
-    text: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1
-        )
-    }
+    Text(
+        text = summaryText,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 2,
+        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+    )
 }
 
 /**
