@@ -16,6 +16,7 @@ data class ChatItemUiModel(
     val isTyping: Boolean = false,
     val isMuted: Boolean = false,
     val isPinned: Boolean = false,
+    val isArchived: Boolean = false,
     val hasStory: Boolean = false,
     val isVerified: Boolean = false
 ) {

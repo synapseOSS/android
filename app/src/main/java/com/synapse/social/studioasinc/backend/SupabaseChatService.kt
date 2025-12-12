@@ -415,18 +415,18 @@ class SupabaseChatService {
                     return@withContext Result.success(emptyList())
                 }
                 
-                // Get chat IDs where user is a participant
+                // Get participant records with preferences
                 val participantResult = client.from("chat_participants")
-                    .select(columns = Columns.raw("chat_id")) {
+                    .select(columns = Columns.raw("chat_id, is_archived, is_pinned, is_muted")) {
                         filter { eq("user_id", userId) }
                     }
                     .decodeList<JsonObject>()
                 
                 android.util.Log.d("SupabaseChatService", "Found ${participantResult.size} participant records")
                 
-                val chatIds = participantResult.map { 
-                    it["chat_id"].toString().removeSurrounding("\"") 
-                }
+                // Create a map of chatId -> participantData
+                val participantMap = participantResult.associateBy { it["chat_id"].toString().removeSurrounding("\"") }
+                val chatIds = participantMap.keys.toList()
                 
                 if (chatIds.isEmpty()) {
                     android.util.Log.d("SupabaseChatService", "No chats found for user")
@@ -448,9 +448,21 @@ class SupabaseChatService {
                 android.util.Log.d("SupabaseChatService", "Found ${chatsResult.size} active chats")
                 
                 val chats = chatsResult.map { jsonObject ->
-                    jsonObject.toMap().mapValues { (_, value) ->
+                    val chatMap = jsonObject.toMap().mapValues { (_, value) ->
                         value.toString().removeSurrounding("\"")
+                    }.toMutableMap()
+
+                    // Merge participant data
+                    val chatId = chatMap["chat_id"]?.toString() ?: chatMap["id"]?.toString() ?: ""
+                    if (chatId.isNotEmpty()) {
+                        val participantData = participantMap[chatId]
+                        if (participantData != null) {
+                             chatMap["is_archived"] = participantData["is_archived"].toString()
+                             chatMap["is_pinned"] = participantData["is_pinned"].toString()
+                             chatMap["is_muted"] = participantData["is_muted"].toString()
+                        }
                     }
+                    chatMap.toMap()
                 }
                 
                 Result.success(chats)
@@ -461,6 +473,64 @@ class SupabaseChatService {
         }
     }
     
+    /**
+     * Archive a chat for the current user
+     */
+    suspend fun archiveChat(chatId: String, userId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
+
+                val updateData = buildJsonObject {
+                    put("is_archived", true)
+                    put("updated_at", isoTimestamp)
+                }
+
+                client.from("chat_participants").update(updateData) {
+                    filter {
+                        eq("chat_id", chatId)
+                        eq("user_id", userId)
+                    }
+                }
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error archiving chat", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    /**
+     * Unarchive a chat for the current user
+     */
+    suspend fun unarchiveChat(chatId: String, userId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Use ISO 8601 format for PostgreSQL timestamptz
+                val isoTimestamp = java.time.Instant.now().toString()
+
+                val updateData = buildJsonObject {
+                    put("is_archived", false)
+                    put("updated_at", isoTimestamp)
+                }
+
+                client.from("chat_participants").update(updateData) {
+                    filter {
+                        eq("chat_id", chatId)
+                        eq("user_id", userId)
+                    }
+                }
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error unarchiving chat", e)
+                Result.failure(e)
+            }
+        }
+    }
+
     /**
      * Mark messages as read with batching and Realtime broadcasting.
      * Updates message states to READ, sets read_at timestamp, and broadcasts read receipt event.
