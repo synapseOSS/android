@@ -402,6 +402,36 @@ class SupabaseChatService {
     }
     
     /**
+     * Delete a chat for a user (removes user from chat participants)
+     */
+    suspend fun deleteChat(chatId: String, userId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Check if Supabase is properly configured
+                if (!SupabaseClient.isConfigured()) {
+                    return@withContext Result.failure(Exception("Supabase not configured"))
+                }
+
+                android.util.Log.d(TAG, "Deleting chat $chatId for user $userId")
+
+                // Delete from chat_participants
+                client.from("chat_participants").delete {
+                    filter {
+                        eq("chat_id", chatId)
+                        eq("user_id", userId)
+                    }
+                }
+
+                android.util.Log.d(TAG, "Successfully deleted chat $chatId for user $userId")
+                Result.success(Unit)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error deleting chat", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    /**
      * Get user's chats
      */
     suspend fun getUserChats(userId: String): Result<List<Map<String, Any?>>> {
