@@ -87,7 +87,11 @@ class TutorialMissionsFragment : Fragment() {
      */
     private fun handleMissionClick(mission: TutorialMission) {
         // Navigate to mission detail screen
-        // TODO: Implement navigation to MissionDetailFragment
+        val fragment = MissionDetailFragment.newInstance(mission.id)
+        parentFragmentManager.beginTransaction()
+            .replace(android.R.id.content, fragment)
+            .addToBackStack(null)
+            .commit()
     }
     
     /**
