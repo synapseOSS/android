@@ -8,11 +8,12 @@ import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.domain.usecase.ObserveMessagesUseCase
 import com.synapse.social.studioasinc.model.Message
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel for DirectChatComposeActivity
+ * ViewModel for DirectChatScreen
  * Adapter for existing ChatRepository to Compose UI State
  */
 class DirectChatViewModel(application: Application) : AndroidViewModel(application) {
@@ -20,19 +21,46 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     // Dependencies
     private val chatDao = AppDatabase.getDatabase(application).chatDao()
     private val chatRepository = ChatRepository(chatDao)
-    private val authService = SupabaseAuthenticationService()
+    private val authService = SupabaseAuthenticationService(application)
     private val observeMessagesUseCase = ObserveMessagesUseCase(chatDao)
     
     // UI State
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
     
-    // Messages list (separate flow for efficiency)
-    private val _messages = MutableStateFlow<List<MessageUiModel>>(emptyList())
-    val messages: StateFlow<List<MessageUiModel>> = _messages.asStateFlow()
+    // Messages list (Source of Truth: Realtime/DB)
+    private val _dbMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
+
+    // Optimistic Messages (Temporary local state)
+    private val _optimisticMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
+
+    // Combined Messages Flow
+    val messages: StateFlow<List<MessageUiModel>> = combine(_dbMessages, _optimisticMessages) { db, optimistic ->
+        // Merge DB messages with optimistic ones.
+        // If an optimistic message matches a DB message by content and recent timestamp, we assume it's synced.
+
+        val merged = db.toMutableList()
+        val now = System.currentTimeMillis()
+
+        optimistic.forEach { optMsg ->
+             // Heuristic: If DB has a message with same content from "Me" within last 10 seconds, ignore optimistic
+             val isSynced = db.any { dbMsg ->
+                 dbMsg.isFromCurrentUser &&
+                 dbMsg.content == optMsg.content &&
+                 kotlin.math.abs(dbMsg.timestamp - optMsg.timestamp) < 10000 // 10s window
+             }
+
+             if (!isSynced) {
+                 merged.add(optMsg)
+             }
+        }
+        // Ensure sorted by timestamp
+        merged.sortedBy { it.timestamp }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     
     private var currentChatId: String? = null
     private var currentUserId: String? = null
+    private var realtimeJob: Job? = null
     
     init {
         loadCurrentUser()
@@ -45,6 +73,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun loadChat(chatId: String) {
+        if (currentChatId == chatId) return
         currentChatId = chatId
         
         viewModelScope.launch {
@@ -55,7 +84,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                 
                 result.onSuccess { domainMessages ->
                     val uiMessages = domainMessages.map { it.toUiModel(currentUserId) }
-                    _messages.value = uiMessages
+                    _dbMessages.value = uiMessages
                     _uiState.update { it.copy(isLoading = false, error = null) }
                     
                     // Start realtime observation
@@ -64,7 +93,21 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                     _uiState.update { it.copy(isLoading = false, error = error.message) }
                 }
                 
-                // TODO: Load other user info here using ChatRepository/ProfileRepository
+                // Load other user info
+                 chatRepository.getChatParticipants(chatId).onSuccess { userIds ->
+                     val otherId = userIds.firstOrNull { it != currentUserId }
+                     if (otherId != null) {
+                         // TODO: Fetch profile
+                         _uiState.update {
+                             it.copy(otherUser = ChatUserInfo(
+                                 id = otherId,
+                                 username = "User", // Placeholder
+                                 displayName = null,
+                                 avatarUrl = null
+                             ))
+                         }
+                     }
+                 }
                 
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -73,11 +116,12 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     }
     
     private fun observeRealtimeMessages(chatId: String) {
-        observeMessagesUseCase(chatId)
+        realtimeJob?.cancel()
+        realtimeJob = observeMessagesUseCase(chatId)
             .onEach { messageList ->
                 // Map new list to UI models
                 val uiMessages = messageList.map { it.toUiModel(currentUserId) }
-                _messages.value = uiMessages
+                _dbMessages.value = uiMessages
             }
             .catch { e ->
                 _uiState.update { it.copy(error = "Realtime error: ${e.message}") }
@@ -91,20 +135,14 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             is ChatIntent.UpdateInputText -> {
                 _uiState.update { it.copy(inputText = intent.text) }
             }
-            is ChatIntent.AddAttachment -> {
-                _uiState.update { it.copy(attachments = it.attachments + intent.attachment) }
-            }
-            is ChatIntent.RemoveAttachment -> {
-                _uiState.update { it.copy(attachments = it.attachments.filter { item -> item.id != intent.attachmentId }) }
-            }
             is ChatIntent.SetReplyTo -> {
                 _uiState.update { it.copy(replyTo = intent.message) }
             }
             is ChatIntent.ClearReply -> {
                 _uiState.update { it.copy(replyTo = null) }
             }
-            // Handle other intents...
-            else -> { /* TODO */ }
+            // Handle other intents as needed
+            else -> { /* TODO: Implement other intents */ }
         }
     }
     
@@ -114,18 +152,55 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
         
         if (content.isBlank()) return
         
+        val replyToId = _uiState.value.replyTo?.id
+        val tempId = "temp_${System.currentTimeMillis()}"
+
         viewModelScope.launch {
-            _uiState.update { it.copy(inputText = "") } // Clear input immediately
+            // Optimistic Update: Add to optimistic state
+            val optimisticMessage = MessageUiModel(
+                id = tempId,
+                content = content,
+                messageType = MessageType.Text,
+                senderId = senderId,
+                senderName = "Me",
+                senderAvatarUrl = null,
+                timestamp = System.currentTimeMillis(),
+                formattedTime = formatTime(System.currentTimeMillis()),
+                isFromCurrentUser = true,
+                deliveryStatus = DeliveryStatus.Sending,
+                position = MessagePosition.Single,
+                replyTo = _uiState.value.replyTo?.let {
+                    ReplyPreviewData(
+                        messageId = it.id,
+                        senderName = it.senderName ?: "User",
+                        content = it.content
+                    )
+                }
+            )
             
-            // Optimistic update handled by Realtime observation usually, 
-            // but we can add temp message if we want immediate feedback before DB write.
-            // For now, reliance on ObserveMessagesUseCase (which observers DB) is standard if DB write is fast.
+            _optimisticMessages.update { it + optimisticMessage }
+            _uiState.update { it.copy(inputText = "", replyTo = null) }
             
-            val result = chatRepository.sendMessage(chatId, senderId, content)
+            val result = chatRepository.sendMessage(
+                chatId = chatId,
+                senderId = senderId,
+                content = content,
+                messageType = "text",
+                replyToId = replyToId
+            )
             
-            result.onFailure {
-               // Show error
-               _uiState.update { it.copy(error = "Failed to send") }
+            result.onSuccess {
+                // Success: Remove optimistic message strictly by tempId to avoid leaks
+                // We rely on the combine logic to prevent display duplication if it's already in DB
+                _optimisticMessages.update { list -> list.filter { it.id != tempId } }
+            }.onFailure { error ->
+                // Mark optimistic message as failed
+                _optimisticMessages.update { list ->
+                    list.map {
+                        if (it.id == tempId) it.copy(deliveryStatus = DeliveryStatus.Failed) else it
+                    }
+                }
+                _uiState.update { it.copy(error = "Failed to send: ${error.message}") }
             }
         }
     }
@@ -133,18 +208,36 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     // Mapper function
     private fun Message.toUiModel(currentUserId: String?): MessageUiModel {
         val isMe = this.senderId == currentUserId
+
+        // Map Reply Preview if exists
+        val replyPreview = if (this.replyToId != null) {
+            // Placeholder
+            null
+        } else null
+
         return MessageUiModel(
-            id = this.id.toString(),
+            id = this.id,
             content = this.content,
             messageType = mapMessageType(this.messageType),
             senderId = this.senderId,
-            senderName = this.senderName,
+            senderName = this.senderName ?: "User",
             senderAvatarUrl = this.senderAvatarUrl,
             timestamp = this.createdAt,
-            formattedTime = "12:00 PM", // Replace with real formatter
+            formattedTime = formatTime(this.createdAt),
             isFromCurrentUser = isMe,
-            deliveryStatus = DeliveryStatus.Read,
-            position = MessagePosition.Single 
+            deliveryStatus = DeliveryStatus.Read, // Placeholder
+            position = MessagePosition.Single,
+            replyTo = replyPreview,
+            attachments = this.attachments?.map {
+                AttachmentUiModel(
+                    id = it.id,
+                    url = it.url,
+                    type = mapAttachmentType(it.type),
+                    thumbnailUrl = it.thumbnailUrl,
+                    fileName = it.fileName,
+                    fileSize = it.fileSize
+                )
+            }
         )
     }
     
@@ -156,5 +249,21 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             "audio" -> MessageType.Voice
             else -> MessageType.Text
         }
+    }
+
+    private fun mapAttachmentType(type: String): AttachmentType {
+        return when (type) {
+            "image" -> AttachmentType.Image
+            "video" -> AttachmentType.Video
+            "audio" -> AttachmentType.Audio
+            "document" -> AttachmentType.Document
+            else -> AttachmentType.Unknown
+        }
+    }
+
+    private fun formatTime(timestamp: Long): String {
+        // Simple formatter
+        val date = java.util.Date(timestamp)
+        return java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault()).format(date)
     }
 }
