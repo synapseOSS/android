@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [PostEntity::class, CommentEntity::class, UserEntity::class, ChatEntity::class], 
@@ -30,12 +32,16 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "synapse_database"
                 )
-                // For v1, destructive migration is acceptable as this is initial offline implementation
-                // TODO: Add proper migrations before v2 to preserve user data
-                .fallbackToDestructiveMigration()
+                .addMigrations(MIGRATION_1_2)
                 .build()
                 INSTANCE = instance
                 instance
+            }
+        }
+
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE comments ADD COLUMN parentCommentId TEXT")
             }
         }
     }

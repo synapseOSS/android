@@ -133,6 +133,33 @@ class AuthRepository {
     }
     
     /**
+     * Refresh the current session to get latest user data
+     */
+    suspend fun refreshSession(): Result<Unit> {
+        return try {
+            if (!isSupabaseConfigured()) {
+                return Result.failure(Exception("Supabase not configured"))
+            }
+            client.auth.refreshCurrentSession()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            // It might fail if no session exists, or network error
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Check if current user's email is verified
+     */
+    fun isEmailVerified(): Boolean {
+        return if (isSupabaseConfigured()) {
+            client.auth.currentUserOrNull()?.emailConfirmedAt != null
+        } else {
+            false
+        }
+    }
+
+    /**
      * Get the current authenticated user's ID.
      * @return User ID if authenticated, null otherwise
      */

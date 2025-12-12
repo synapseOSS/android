@@ -715,8 +715,22 @@ class AuthViewModel(
      * Check if email has been verified
      */
     private suspend fun checkEmailVerification(email: String) {
-        // TODO: Implement email verification checking when AuthRepository supports it
-        // This would poll the auth state to detect when email is verified
+        val pollInterval = 3000L // 3 seconds
+
+        while (_uiState.value is AuthUiState.EmailVerification) {
+            delay(pollInterval)
+
+            // We verify if we are still in the correct state before making network calls
+            if (_uiState.value !is AuthUiState.EmailVerification) break
+
+            val result = authRepository.refreshSession()
+            if (result.isSuccess && authRepository.isEmailVerified()) {
+                _uiState.value = AuthUiState.Success("Email verified successfully")
+                delay(1000) // Let user see the success message
+                _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
+                break
+            }
+        }
     }
 
     override fun onCleared() {
