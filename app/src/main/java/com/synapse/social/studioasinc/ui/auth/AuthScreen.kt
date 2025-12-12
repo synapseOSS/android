@@ -26,6 +26,7 @@ fun AuthScreen(
     val navController = rememberNavController()
     val uiState by viewModel.uiState.collectAsState()
     val reducedMotion = AnimationUtil.rememberReducedMotion()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     // Logic to preserve content during loading to avoid flicker
     var lastContentState by remember { mutableStateOf<AuthUiState>(AuthUiState.Initial) }
@@ -49,6 +50,11 @@ fun AuthScreen(
                 is AuthNavigationEvent.NavigateToForgotPassword -> navController.navigate("forgotPassword")
                 is AuthNavigationEvent.NavigateToResetPassword -> navController.navigate("resetPassword")
                 is AuthNavigationEvent.NavigateBack -> navController.popBackStack()
+                is AuthNavigationEvent.OpenUrl -> {
+                    val uri = android.net.Uri.parse(event.url)
+                    val intent = androidx.browser.customtabs.CustomTabsIntent.Builder().build()
+                    intent.launchUrl(context, uri)
+                }
             }
         }
     }

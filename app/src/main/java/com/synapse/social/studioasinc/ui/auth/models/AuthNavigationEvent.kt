@@ -40,4 +40,9 @@ sealed class AuthNavigationEvent {
      * Navigate back to the previous screen
      */
     object NavigateBack : AuthNavigationEvent()
+
+    /**
+     * Open a URL in an external browser or custom tab
+     */
+    data class OpenUrl(val url: String) : AuthNavigationEvent()
 }
