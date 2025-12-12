@@ -630,13 +630,12 @@ fun SettingsDivider() {
 /**
  * A profile header card for the Settings Hub.
  * 
- * Displays a 64dp circular avatar with border, name in titleLarge, email in bodyMedium,
- * and an Edit Profile button. Uses surfaceContainerHigh background with 28dp corners.
+ * Displays a compact row layout with name/email on the left and avatar on the right.
+ * Uses surfaceContainerHigh background with 28dp corners.
  * 
  * @param displayName User's display name
  * @param email User's email address
  * @param avatarUrl Optional URL for the user's avatar image
- * @param onEditProfileClick Callback when Edit Profile button is clicked
  * @param modifier Optional modifier for the card
  * 
  * Requirements: 1.5
@@ -647,11 +646,9 @@ fun ProfileHeaderCard(
     displayName: String,
     email: String,
     avatarUrl: String?,
-    onEditProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val profileAvatarDescription = stringResource(R.string.settings_profile_avatar_description)
-    val editProfileText = stringResource(R.string.account_settings_edit_profile)
     
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -659,17 +656,36 @@ fun ProfileHeaderCard(
         color = SettingsColors.cardBackgroundElevated,
         tonalElevation = 2.dp
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(SettingsSpacing.profileHeaderPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Avatar with border
+            // Name and email (Left side)
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = displayName,
+                    style = SettingsTypography.profileName,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = email,
+                    style = SettingsTypography.profileEmail,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Avatar with border (Right side)
             Box(
-                modifier = Modifier
-                    .size(SettingsSpacing.avatarSize)
+                modifier = Modifier.size(SettingsSpacing.avatarSize)
             ) {
                 if (avatarUrl != null) {
                     GlideImage(
@@ -711,45 +727,6 @@ fun ProfileHeaderCard(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     )
                 ) {}
-            }
-            
-            // Name and email
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = displayName,
-                    style = SettingsTypography.profileName,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = email,
-                    style = SettingsTypography.profileEmail,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            // Edit Profile button
-            FilledTonalButton(
-                onClick = onEditProfileClick,
-                shape = SettingsShapes.itemShape,
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                ),
-                modifier = Modifier.heightIn(min = SettingsSpacing.minTouchTarget)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_edit),
-                    contentDescription = null, // Merged with button text
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = editProfileText,
-                    style = SettingsTypography.buttonText
-                )
             }
         }
     }

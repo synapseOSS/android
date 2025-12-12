@@ -27,7 +27,6 @@ import com.synapse.social.studioasinc.R
 fun SettingsHubScreen(
     viewModel: SettingsHubViewModel,
     onBackClick: () -> Unit,
-    onEditProfileClick: () -> Unit,
     onNavigateToCategory: (SettingsDestination) -> Unit
 ) {
     val userProfile by viewModel.userProfileSummary.collectAsState()
@@ -85,21 +84,40 @@ fun SettingsHubScreen(
                         ProfileHeaderCard(
                             displayName = profile.displayName,
                             email = profile.email,
-                            avatarUrl = profile.avatarUrl,
-                            onEditProfileClick = onEditProfileClick
+                            avatarUrl = profile.avatarUrl
                         )
                     }
                 }
 
-                // Settings Categories
-                items(categories) { category ->
-                    SettingsCategoryCard(
-                        category = category,
-                        onClick = {
-                            viewModel.onNavigateToCategory(category.destination)
-                            onNavigateToCategory(category.destination)
+                // Settings Categories - Grouped together
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        categories.forEachIndexed { index, category ->
+                            val position = when {
+                                categories.size == 1 -> SettingsItemPosition.Single
+                                index == 0 -> SettingsItemPosition.Top
+                                index == categories.lastIndex -> SettingsItemPosition.Bottom
+                                else -> SettingsItemPosition.Middle
+                            }
+
+                            SettingsNavigationItem(
+                                title = category.title,
+                                subtitle = category.subtitle,
+                                icon = category.icon,
+                                onClick = {
+                                    viewModel.onNavigateToCategory(category.destination)
+                                    onNavigateToCategory(category.destination)
+                                },
+                                position = position
+                            )
+
+                            if (index < categories.size - 1) {
+                                SettingsDivider()
+                            }
                         }
-                    )
+                    }
                 }
 
                 // Bottom spacing
@@ -108,28 +126,5 @@ fun SettingsHubScreen(
                 }
             }
         }
-    }
-}
-
-/**
- * A card displaying a settings category with icon, title, subtitle, and chevron.
- * 
- * Uses surfaceContainer background with 24dp corner radius. Icon is tinted with
- * onSurfaceVariant color, and chevron uses onSurfaceVariant at 0.5 alpha.
- * 
- * Requirements: 1.1, 1.4
- */
-@Composable
-private fun SettingsCategoryCard(
-    category: SettingsCategory,
-    onClick: () -> Unit
-) {
-    SettingsCard {
-        SettingsNavigationItem(
-            title = category.title,
-            subtitle = category.subtitle,
-            icon = category.icon,
-            onClick = onClick
-        )
     }
 }
