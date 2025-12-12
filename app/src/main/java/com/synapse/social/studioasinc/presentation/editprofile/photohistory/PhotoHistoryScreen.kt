@@ -180,7 +180,7 @@ fun PhotoHistoryScreen(
                         val isSelected = item.imageUrl == uiState.currentPhotoUrl
 
                         PhotoHistoryItem(
-                            modifier = Modifier.animateItemPlacement(),
+                            modifier = Modifier.animateItem(),
                             item = item,
                             isSelected = isSelected,
                             onClick = { viewModel.onEvent(PhotoHistoryEvent.SetAsCurrent(item)) },
@@ -223,7 +223,7 @@ fun PhotoHistoryItem(
             )
 
             // Selection Indicator
-            AnimatedVisibility(
+            androidx.compose.animation.AnimatedVisibility(
                 visible = isSelected,
                 enter = fadeIn(),
                 exit = fadeOut(),
