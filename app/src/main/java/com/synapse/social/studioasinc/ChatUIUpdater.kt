@@ -280,7 +280,9 @@ class ChatUIUpdater(
              Log.e(TAG, "Error parsing timestamp: $timestamp", e)
              return System.currentTimeMillis()
         }
-=======
+    }
+
+    fun startUpdates(chatId: String) {
         // Cancel any existing updates job
         updatesJob?.cancel()
 
@@ -308,7 +310,6 @@ class ChatUIUpdater(
                 Log.e(TAG, "Error in chat UI updates", e)
             }
         }
->>>>>>> origin/jules-chat-ui-updater-fix-38845512859311166
     }
 
     fun stopUpdates() {
