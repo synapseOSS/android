@@ -1,6 +1,7 @@
 package com.synapse.social.studioasinc.ui.chat
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,7 +29,7 @@ import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
 import com.synapse.social.studioasinc.ui.chat.components.MessageItem
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DirectChatScreen(
     chatId: String,
@@ -125,7 +126,7 @@ fun DirectChatScreen(
                     start = 0.dp,
                     end = 0.dp
                 ),
-                clipToPadding = false, // Allow content to scroll behind transparent input bar padding
+                // clipToPadding parameter removed - not available in current Compose version
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(

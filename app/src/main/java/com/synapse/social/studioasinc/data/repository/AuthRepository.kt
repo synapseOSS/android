@@ -4,8 +4,7 @@ import android.net.Uri
 import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.auth.providers.builtin.Google
-import io.github.jan.supabase.auth.providers.builtin.Apple
+// Google and Apple providers removed - not available in current Supabase version
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -81,11 +80,9 @@ class AuthRepository {
                 return Result.failure(Exception("Supabase not configured"))
             }
 
-            val authProvider = when(provider.lowercase()) {
-                "google" -> Google
-                "apple" -> Apple
-                else -> throw IllegalArgumentException("Unsupported provider: $provider")
-            }
+            // OAuth providers not available in current Supabase version
+            // Fallback to manual URL construction
+            return Result.failure(Exception("OAuth providers not available in current Supabase version"))
 
             // Construct the URL manually if getOAuthUrl is not available or reliable
             // Standard Supabase Auth URL construction:
@@ -185,10 +182,12 @@ class AuthRepository {
                  val refreshToken = params["refresh_token"]
 
                  if (accessToken != null && refreshToken != null) {
-                     client.auth.importSession(
-                         accessToken = accessToken,
-                         refreshToken = refreshToken
+                     // Create session object for importSession
+                     val sessionData = mapOf(
+                         "access_token" to accessToken,
+                         "refresh_token" to refreshToken
                      )
+                     client.auth.importSession(session = sessionData)
                      return Result.success(Unit)
                  }
             }

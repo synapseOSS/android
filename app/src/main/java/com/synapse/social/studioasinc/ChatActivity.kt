@@ -1714,7 +1714,7 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
 
                 val changes = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
                     table = "messages"
-                    filter = "chat_id=eq.$currentChatId"
+                    eq("chat_id", currentChatId)
                 }
 
                 channel.subscribe()
