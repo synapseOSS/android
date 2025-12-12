@@ -372,11 +372,13 @@ class InboxViewModel(
             }
 
             // Backend calls (parallel execution)
-            val results = kotlinx.coroutines.awaitAll(
-                *selected.map { chatId ->
-                    kotlinx.coroutines.async { chatService.deleteChat(chatId, userId) }
-                }.toTypedArray()
-            )
+            val results = kotlinx.coroutines.coroutineScope {
+                kotlinx.coroutines.awaitAll(
+                    *selected.map { chatId ->
+                        kotlinx.coroutines.async { chatService.deleteChat(chatId, userId) }
+                    }.toTypedArray()
+                )
+            }
 
             // If any failed, reload chats to ensure consistency
             if (results.any { it.isFailure }) {
