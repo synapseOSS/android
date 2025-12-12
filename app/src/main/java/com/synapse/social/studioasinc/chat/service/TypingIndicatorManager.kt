@@ -2,11 +2,17 @@ package com.synapse.social.studioasinc.chat.service
 
 import android.util.Log
 import com.synapse.social.studioasinc.chat.models.TypingStatus
+import io.github.jan.supabase.realtime.broadcastFlow
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.content
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -51,6 +57,9 @@ class TypingIndicatorManager(
     
     // Track typing event callbacks per chat
     private val typingCallbacks = ConcurrentHashMap<String, (TypingStatus) -> Unit>()
+
+    // Track subscription jobs per chat room
+    private val subscriptionJobs = ConcurrentHashMap<String, Job>()
     
     /**
      * Called when the user types in the message input field.
@@ -169,6 +178,9 @@ class TypingIndicatorManager(
         
         autoStopJobs[chatId]?.cancel()
         autoStopJobs.remove(chatId)
+
+        subscriptionJobs[chatId]?.cancel()
+        subscriptionJobs.remove(chatId)
         
         lastTypingTime.remove(chatId)
         isTypingInChat.remove(chatId)
@@ -186,6 +198,9 @@ class TypingIndicatorManager(
         
         autoStopJobs.values.forEach { it.cancel() }
         autoStopJobs.clear()
+
+        subscriptionJobs.values.forEach { it.cancel() }
+        subscriptionJobs.clear()
         
         lastTypingTime.clear()
         isTypingInChat.clear()
@@ -221,10 +236,43 @@ class TypingIndicatorManager(
             val channel = realtimeService.getChannel(chatId) 
                 ?: realtimeService.subscribeToChat(chatId)
             
-            // FIXME: Implement broadcast listening for typing events once the Supabase Realtime API is finalized.
-            // This will involve listening for a specific event on the channel and invoking the onTypingUpdate callback.
-            // For now, we'll rely on polling fallback for typing indicator updates
-            Log.d(TAG, "Typing indicator subscription set up for chat: $chatId (broadcast listening pending API clarification)")
+            // Listen for broadcast events
+            val job = coroutineScope.launch(exceptionHandler) {
+                try {
+                    channel.broadcastFlow<JsonObject>("typing").collect { json ->
+                        try {
+                            val userId = json["user_id"]?.jsonPrimitive?.content ?: return@collect
+                            // Handle cases where is_typing might be string or boolean
+                            val isTyping = try {
+                                json["is_typing"]?.jsonPrimitive?.boolean ?: false
+                            } catch (e: Exception) {
+                                json["is_typing"]?.jsonPrimitive?.content?.toBoolean() ?: false
+                            }
+
+                            val timestamp = json["timestamp"]?.jsonPrimitive?.long ?: System.currentTimeMillis()
+                            val eventChatId = json["chat_id"]?.jsonPrimitive?.content ?: chatId
+
+                            // Ensure the event matches the expected chat ID
+                            if (eventChatId == chatId) {
+                                val status = TypingStatus(
+                                    userId = userId,
+                                    chatId = chatId,
+                                    isTyping = isTyping,
+                                    timestamp = timestamp
+                                )
+                                onTypingUpdate(status)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error parsing typing event for chat: $chatId", e)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error collecting typing events for chat: $chatId", e)
+                }
+            }
+
+            subscriptionJobs[chatId]?.cancel() // Cancel existing if any
+            subscriptionJobs[chatId] = job
 
             Log.d(TAG, "Successfully subscribed to typing events for chat: $chatId")
             
@@ -248,7 +296,7 @@ class TypingIndicatorManager(
         // Remove the callback
         typingCallbacks.remove(chatId)
         
-        // Clean up typing state
+        // Clean up typing state and subscription job
         cleanup(chatId)
         
         Log.d(TAG, "Successfully unsubscribed from typing events for chat: $chatId")
