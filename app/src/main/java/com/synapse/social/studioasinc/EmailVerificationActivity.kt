@@ -55,7 +55,7 @@ class EmailVerificationActivity : BaseActivity() {
         }
 
         if (userEmail.isEmpty()) {
-            // No email available, return to AuthActivity
+            // No email available, return to AuthComposeActivity
             Toast.makeText(this, "No email found for verification", Toast.LENGTH_SHORT).show()
             navigateBackToAuth()
             return
@@ -363,26 +363,26 @@ class EmailVerificationActivity : BaseActivity() {
     }
 
     /**
-     * Navigate back to AuthActivity
+     * Navigate back to AuthComposeActivity
      */
     private fun navigateBackToAuth() {
         clearSavedEmail()
         stopAutomaticVerificationChecking()
         
-        val intent = Intent(this, AuthActivity::class.java)
+        val intent = Intent(this, AuthComposeActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(intent)
         finish()
     }
 
     /**
-     * Navigate back to AuthActivity with success indication
+     * Navigate back to AuthComposeActivity with success indication
      */
     private fun navigateBackToAuthWithSuccess() {
         clearSavedEmail()
         stopAutomaticVerificationChecking()
         
-        val intent = Intent(this, AuthActivity::class.java)
+        val intent = Intent(this, AuthComposeActivity::class.java)
         intent.putExtra("verification_success", true)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(intent)

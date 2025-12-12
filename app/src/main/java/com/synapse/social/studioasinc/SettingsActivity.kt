@@ -86,12 +86,12 @@ class SettingsActivity : ComponentActivity() {
 
     /**
      * Performs user logout by signing out from auth repository
-     * and navigating to AuthActivity.
+     * and navigating to AuthComposeActivity.
      */
     private fun performLogout() {
         lifecycleScope.launch {
             authRepository.signOut()
-            startActivity(Intent(this@SettingsActivity, AuthActivity::class.java).apply {
+            startActivity(Intent(this@SettingsActivity, AuthComposeActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             })
             finish()
