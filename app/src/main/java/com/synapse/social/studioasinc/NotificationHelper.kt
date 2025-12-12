@@ -1,8 +1,11 @@
 package com.synapse.social.studioasinc
 
 import android.util.Log
-// Using direct Supabase services - NO Firebase
 import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -24,6 +27,9 @@ object NotificationHelper {
     
     private val JSON = "application/json; charset=utf-8".toMediaType()
     private const val ONESIGNAL_API_URL = "https://api.onesignal.com/notifications"
+
+    private val dbService = SupabaseDatabaseService()
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     
     /**
      * Sends a notification to a user.
@@ -51,24 +57,93 @@ object NotificationHelper {
             return
         }
 
-        // FIXME: Implement a proper Supabase notification system. This should involve
-        // fetching the recipient's OneSignal player ID from the `users` table
-        // and using it to send the notification. Also, implement presence checking
-        // to avoid sending notifications to users who are currently active.
-        Log.i(TAG, "Sending notification via OneSignal (Supabase implementation needed)")
+        scope.launch {
+            try {
+                // Fetch recipient data from Supabase
+                val userResult = dbService.getSingle("users", "uid", recipientUid)
+                val userData = userResult.getOrNull()
 
-        // Simple notification sending - would need proper Supabase implementation
-        if (NotificationConfig.USE_CLIENT_SIDE_NOTIFICATIONS) {
-            sendClientSideNotification(
-                "placeholder_player_id", // Would get from Supabase
-                message,
-                senderUid,
-                notificationType,
-                data
-            )
-        } else {
-            sendServerSideNotification("placeholder_player_id", message, notificationType, data)
+                if (userData == null) {
+                    Log.e(TAG, "User not found for notification: $recipientUid")
+                    return@launch
+                }
+
+                val playerId = userData["one_signal_player_id"] as? String
+                val status = userData["status"] as? String
+                val lastSeenStr = userData["last_seen"] as? String
+
+                // Check presence to suppress notification
+                if (shouldSuppressNotification(status, lastSeenStr, senderUid)) {
+                    Log.i(TAG, "Notification suppressed: User $recipientUid is active/chatting.")
+                    return@launch
+                }
+
+                Log.i(TAG, "Sending notification to user $recipientUid via ${NotificationConfig.getNotificationSystemDescription()}")
+
+                if (NotificationConfig.USE_CLIENT_SIDE_NOTIFICATIONS) {
+                    if (!playerId.isNullOrEmpty()) {
+                        sendClientSideNotification(
+                            playerId,
+                            message,
+                            senderUid,
+                            notificationType,
+                            data,
+                            recipientUid
+                        )
+                    } else {
+                        Log.w(TAG, "Cannot send client-side notification: No Player ID for user $recipientUid")
+                        // Try fallback if enabled, but passing null playerId might limit server fallback
+                        if (NotificationConfig.ENABLE_FALLBACK_MECHANISMS) {
+                             sendServerSideNotification(recipientUid, message, notificationType, data, playerId)
+                        }
+                    }
+                } else {
+                    // Send via server-side worker
+                    sendServerSideNotification(recipientUid, message, notificationType, data, playerId)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error processing notification for $recipientUid", e)
+            }
         }
+    }
+
+    /**
+     * Determines if a notification should be suppressed based on user status and last seen time.
+     */
+    private fun shouldSuppressNotification(status: String?, lastSeenStr: String?, senderUid: String): Boolean {
+        if (status == null) return false
+
+        // 1. Hard suppression: User is currently chatting with the sender
+        if (status == "chatting_with_$senderUid") {
+            return true
+        }
+
+        // 2. Smart suppression: User is online/active recently
+        if (NotificationConfig.ENABLE_SMART_SUPPRESSION) {
+            val isActive = status == "online" || status.startsWith("chatting_with_")
+
+            if (isActive && lastSeenStr != null) {
+                try {
+                    // Parse ISO 8601 timestamp (assuming standard format from Supabase)
+                    val lastSeenTime = try {
+                         java.time.Instant.parse(lastSeenStr).toEpochMilli()
+                    } catch (e: Exception) {
+                         // Fallback for potential legacy millis string
+                         lastSeenStr.toLongOrNull() ?: 0L
+                    }
+
+                    val currentTime = System.currentTimeMillis()
+                    // If active within threshold, suppress
+                    if (currentTime - lastSeenTime < NotificationConfig.RECENT_ACTIVITY_THRESHOLD) {
+                        return true
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to parse last_seen timestamp: $lastSeenStr", e)
+                }
+            }
+        }
+
+        return false
     }
 
     /**
@@ -101,13 +176,16 @@ object NotificationHelper {
 
     /**
      * Sends notification via the existing Cloudflare Worker (server-side).
+     * @param recipientUid The UID of the recipient (expected by server as recipientUserId).
+     * @param recipientPlayerId Optional Player ID for fallback purposes.
      */
     @JvmStatic
     fun sendServerSideNotification(
-        recipientId: String,
+        recipientUid: String,
         message: String,
         notificationType: String,
-        data: Map<String, String>? = null
+        data: Map<String, String>? = null,
+        recipientPlayerId: String? = null
     ) {
         if (notificationType != "chat_message") {
             Log.w(TAG, "Server-side notification for type $notificationType is not yet implemented. Sending a generic message.")
@@ -116,8 +194,10 @@ object NotificationHelper {
         val client = OkHttpClient()
         val jsonBody = JSONObject()
         try {
-            jsonBody.put("recipientUserId", recipientId)
+            // Server expects 'recipientUserId'
+            jsonBody.put("recipientUserId", recipientUid)
             jsonBody.put("notificationMessage", message)
+            // Add other fields if server supports them, e.g. type, data
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create JSON for server-side notification", e)
             return
@@ -133,8 +213,12 @@ object NotificationHelper {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(TAG, "Failed to send server-side notification", e)
                 if (NotificationConfig.ENABLE_FALLBACK_MECHANISMS && !NotificationConfig.USE_CLIENT_SIDE_NOTIFICATIONS) {
-                    Log.i(TAG, "Falling back to client-side notification due to server failure")
-                    sendClientSideNotification(recipientId, message, null, notificationType, data)
+                    if (!recipientPlayerId.isNullOrEmpty()) {
+                        Log.i(TAG, "Falling back to client-side notification due to server failure")
+                        sendClientSideNotification(recipientPlayerId, message, null, notificationType, data, recipientUid)
+                    } else {
+                        Log.w(TAG, "Cannot fallback to client-side: Missing Player ID")
+                    }
                 }
             }
 
@@ -145,8 +229,12 @@ object NotificationHelper {
                     } else {
                         Log.e(TAG, "Failed to send server-side notification: ${it.code}")
                         if (NotificationConfig.ENABLE_FALLBACK_MECHANISMS && !NotificationConfig.USE_CLIENT_SIDE_NOTIFICATIONS) {
-                            Log.i(TAG, "Falling back to client-side notification due to server error")
-                            sendClientSideNotification(recipientId, message, null, notificationType, data)
+                            if (!recipientPlayerId.isNullOrEmpty()) {
+                                Log.i(TAG, "Falling back to client-side notification due to server error")
+                                sendClientSideNotification(recipientPlayerId, message, null, notificationType, data, recipientUid)
+                            } else {
+                                Log.w(TAG, "Cannot fallback to client-side: Missing Player ID")
+                            }
                         }
                     }
                 }
@@ -156,6 +244,8 @@ object NotificationHelper {
 
     /**
      * Sends notification directly via OneSignal REST API (client-side).
+     * @param recipientPlayerId The OneSignal Player ID of the recipient.
+     * @param recipientUid Optional Recipient UID for fallback purposes.
      */
     @JvmStatic
     fun sendClientSideNotification(
@@ -163,7 +253,8 @@ object NotificationHelper {
         message: String,
         senderUid: String? = null,
         notificationType: String,
-        data: Map<String, String>? = null
+        data: Map<String, String>? = null,
+        recipientUid: String? = null
     ) {
         val client = OkHttpClient()
         val jsonBody = JSONObject()
@@ -215,8 +306,12 @@ object NotificationHelper {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(TAG, "Failed to send client-side notification", e)
                 if (NotificationConfig.ENABLE_FALLBACK_MECHANISMS && NotificationConfig.USE_CLIENT_SIDE_NOTIFICATIONS) {
-                    Log.i(TAG, "Falling back to server-side notification due to client-side failure")
-                    sendServerSideNotification(recipientPlayerId, message, notificationType, data)
+                    if (!recipientUid.isNullOrEmpty()) {
+                        Log.i(TAG, "Falling back to server-side notification due to client-side failure")
+                        sendServerSideNotification(recipientUid, message, notificationType, data, recipientPlayerId)
+                    } else {
+                        Log.w(TAG, "Cannot fallback to server-side: Missing Recipient UID")
+                    }
                 }
             }
 
@@ -227,8 +322,12 @@ object NotificationHelper {
                     } else {
                         Log.e(TAG, "Failed to send client-side notification: ${it.code} - ${it.body?.string()}")
                         if (NotificationConfig.ENABLE_FALLBACK_MECHANISMS && NotificationConfig.USE_CLIENT_SIDE_NOTIFICATIONS) {
-                            Log.i(TAG, "Falling back to server-side notification due to client-side error")
-                            sendServerSideNotification(recipientPlayerId, message, notificationType, data)
+                            if (!recipientUid.isNullOrEmpty()) {
+                                Log.i(TAG, "Falling back to server-side notification due to client-side error")
+                                sendServerSideNotification(recipientUid, message, notificationType, data, recipientPlayerId)
+                            } else {
+                                Log.w(TAG, "Cannot fallback to server-side: Missing Recipient UID")
+                            }
                         }
                     }
                 }
