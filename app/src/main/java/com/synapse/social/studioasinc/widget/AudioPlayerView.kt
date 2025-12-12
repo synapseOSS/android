@@ -12,6 +12,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.synapse.social.studioasinc.R
+import com.synapse.social.studioasinc.chat.service.MediaDownloadManager
 import com.synapse.social.studioasinc.databinding.ViewAudioPlayerBinding
 import kotlinx.coroutines.*
 import java.util.concurrent.TimeUnit
@@ -36,6 +37,9 @@ class AudioPlayerView @JvmOverloads constructor(
     private var lastPosition: Long = 0L
     private var isUserSeeking: Boolean = false
     
+    // Media Download Manager
+    private var mediaDownloadManager: MediaDownloadManager? = null
+
     // Coroutine scope for updating seek bar
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var updateJob: Job? = null
@@ -209,6 +213,7 @@ class AudioPlayerView @JvmOverloads constructor(
     private fun showWaveform() {
         binding.waveformContainer.isVisible = true
         currentAudioUrl?.let { url ->
+            mediaDownloadManager?.let { binding.waveformView.setMediaDownloadManager(it) }
             binding.waveformView.setAudioUrl(url)
             
             // Set up seek listener for waveform
@@ -220,6 +225,16 @@ class AudioPlayerView @JvmOverloads constructor(
                 }
             }
         }
+    }
+
+    /**
+     * Sets the MediaDownloadManager to use for downloading audio files.
+     *
+     * @param manager The MediaDownloadManager instance
+     */
+    fun setMediaDownloadManager(manager: MediaDownloadManager) {
+        this.mediaDownloadManager = manager
+        binding.waveformView.setMediaDownloadManager(manager)
     }
 
     /**
