@@ -11,6 +11,8 @@ import androidx.navigation.NavType
 import com.synapse.social.studioasinc.presentation.editprofile.EditProfileEvent
 import com.synapse.social.studioasinc.presentation.editprofile.EditProfileScreen
 import com.synapse.social.studioasinc.presentation.editprofile.EditProfileViewModel
+import com.synapse.social.studioasinc.presentation.editprofile.photohistory.PhotoHistoryScreen
+import com.synapse.social.studioasinc.presentation.editprofile.photohistory.PhotoType
 import com.synapse.social.studioasinc.ui.settings.SelectRegionScreen
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 
@@ -33,6 +35,9 @@ class ProfileEditActivity : BaseActivity() {
                             onNavigateToRegionSelection = { currentRegion ->
                                 val encodedRegion = java.net.URLEncoder.encode(currentRegion, "UTF-8")
                                 navController.navigate("select_region?currentRegion=$encodedRegion")
+                            },
+                            onNavigateToPhotoHistory = { type ->
+                                navController.navigate("photo_history/$type")
                             }
                         )
                     }
@@ -54,6 +59,25 @@ class ProfileEditActivity : BaseActivity() {
                             onBackClick = {
                                 navController.popBackStack()
                             }
+                        )
+                    }
+
+                    composable(
+                        route = "photo_history/{type}",
+                        arguments = listOf(navArgument("type") {
+                            type = NavType.StringType
+                        })
+                    ) { backStackEntry ->
+                        val typeStr = backStackEntry.arguments?.getString("type") ?: "PROFILE"
+                        val photoType = try {
+                             PhotoType.valueOf(typeStr)
+                        } catch (e: Exception) {
+                             PhotoType.PROFILE
+                        }
+
+                        PhotoHistoryScreen(
+                            type = photoType,
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
                 }

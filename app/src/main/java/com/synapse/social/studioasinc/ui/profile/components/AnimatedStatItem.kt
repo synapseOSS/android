@@ -123,14 +123,14 @@ fun AnimatedStatItem(
     ) {
         Text(
             text = formatCount(displayCount),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -151,7 +151,7 @@ fun AnimatedStatsRow(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
         AnimatedStatItem(
@@ -161,7 +161,7 @@ fun AnimatedStatsRow(
             animationDelay = 0
         )
         
-        StatDivider()
+        Spacer(modifier = Modifier.width(32.dp))
         
         AnimatedStatItem(
             label = "Followers",
@@ -170,7 +170,7 @@ fun AnimatedStatsRow(
             animationDelay = 100
         )
         
-        StatDivider()
+        Spacer(modifier = Modifier.width(32.dp))
         
         AnimatedStatItem(
             label = "Following",

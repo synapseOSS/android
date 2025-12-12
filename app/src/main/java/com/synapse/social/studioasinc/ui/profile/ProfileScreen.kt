@@ -69,6 +69,7 @@ fun ProfileScreen(
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
     var isRefreshing by remember { mutableStateOf(false) }
+    var showCustomizationDialog by remember { mutableStateOf(false) }
 
     // Calculate scroll progress for parallax effect
     val scrollProgress = remember {
@@ -123,7 +124,8 @@ fun ProfileScreen(
                         onNavigateToEditProfile = onNavigateToEditProfile,
                         onNavigateToFollowers = onNavigateToFollowers,
                         onNavigateToFollowing = onNavigateToFollowing,
-                        onNavigateToUserProfile = onNavigateToUserProfile
+                        onNavigateToUserProfile = onNavigateToUserProfile,
+                        onCustomizeClick = { showCustomizationDialog = true }
                     )
                 }
                 is ProfileUiState.Error -> {
@@ -220,6 +222,16 @@ fun ProfileScreen(
             )
         }
     }
+
+    if (showCustomizationDialog) {
+        ProfileInfoCustomizationDialog(
+            onDismiss = { showCustomizationDialog = false },
+            onNavigateToEditProfile = {
+                showCustomizationDialog = false
+                onNavigateToEditProfile()
+            }
+        )
+    }
 }
 
 @Composable
@@ -232,7 +244,8 @@ private fun ProfileContent(
     onNavigateToEditProfile: () -> Unit,
     onNavigateToFollowers: () -> Unit,
     onNavigateToFollowing: () -> Unit,
-    onNavigateToUserProfile: (String) -> Unit
+    onNavigateToUserProfile: (String) -> Unit,
+    onCustomizeClick: () -> Unit = {}
 ) {
     // Entry animation for content
     var contentVisible by remember { mutableStateOf(false) }
@@ -358,7 +371,7 @@ private fun ProfileContent(
                                     }
                                 ),
                                 isOwnProfile = state.isOwnProfile,
-                                onCustomizeClick = { /* TODO: Navigate to edit details */ },
+                                onCustomizeClick = onCustomizeClick,
                                 onWebsiteClick = { /* TODO: Open website */ },
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )

@@ -28,6 +28,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.util.*
 
+@Deprecated("Use PhotoHistoryScreen instead")
 class ProfilePhotoHistoryActivity : BaseActivity() {
 
     // Supabase services
