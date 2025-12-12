@@ -55,7 +55,6 @@ fun SettingsNavHost(
             SettingsHubScreen(
                 viewModel = viewModel,
                 onBackClick = onBackClick,
-                onEditProfileClick = onNavigateToProfileEdit,
                 onNavigateToCategory = { destination ->
                     navController.navigate(destination.route)
                 }
