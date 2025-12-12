@@ -95,12 +95,14 @@ class InboxViewModel(
                             enrichChatWithUserData(chat)
                         }
                         
-                        val pinnedChats = enrichedChats.filter { it.isPinned }
-                        val regularChats = enrichedChats.filter { !it.isPinned }
+                        val pinnedChats = enrichedChats.filter { it.isPinned && !it.isArchived }
+                        val regularChats = enrichedChats.filter { !it.isPinned && !it.isArchived }
+                        val archivedChats = enrichedChats.filter { it.isArchived }
                         
                         _uiState.value = InboxUiState.Success(
                             chats = regularChats.sortedByDescending { it.lastMessageTime },
-                            pinnedChats = pinnedChats.sortedByDescending { it.lastMessageTime }
+                            pinnedChats = pinnedChats.sortedByDescending { it.lastMessageTime },
+                            archivedChats = archivedChats.sortedByDescending { it.lastMessageTime }
                         )
                     },
                     onFailure = { error ->
@@ -266,7 +268,9 @@ class InboxViewModel(
      */
     private fun archiveChat(chatId: String) {
         viewModelScope.launch {
-            // TODO: Implement archive in backend
+            val userId = currentUserId ?: return@launch
+
+            // Optimistic update
             _uiState.update { currentState ->
                 if (currentState is InboxUiState.Success) {
                     val updatedChats = currentState.chats.filter { it.id != chatId }
@@ -276,38 +280,57 @@ class InboxViewModel(
                     val archivedChat = currentState.chats.find { it.id == chatId }
                         ?: currentState.pinnedChats.find { it.id == chatId }
 
+                    val newArchivedChat = archivedChat?.copy(isArchived = true)
+
                     currentState.copy(
                         chats = updatedChats,
                         pinnedChats = updatedPinned,
-                        archivedChats = currentState.archivedChats + listOfNotNull(archivedChat)
+                        archivedChats = currentState.archivedChats + listOfNotNull(newArchivedChat)
                     )
                 } else {
                     currentState
                 }
             }
+
+            // Backend update
+            chatService.archiveChat(chatId, userId)
         }
     }
 
     private fun archiveSelectedChats() {
+        val currentState = _uiState.value
+        val selectedItems = if (currentState is InboxUiState.Success) currentState.selectedItems else emptySet()
+        val userId = currentUserId ?: return
+
+        if (selectedItems.isEmpty()) return
+
         viewModelScope.launch {
-            _uiState.update { currentState ->
-                if (currentState is InboxUiState.Success) {
-                    val selected = currentState.selectedItems
-                    val updatedChats = currentState.chats.filter { !selected.contains(it.id) }
-                    val updatedPinned = currentState.pinnedChats.filter { !selected.contains(it.id) }
+            // Optimistic update
+            _uiState.update { state ->
+                if (state is InboxUiState.Success) {
+                    val updatedChats = state.chats.filter { !selectedItems.contains(it.id) }
+                    val updatedPinned = state.pinnedChats.filter { !selectedItems.contains(it.id) }
 
-                    val archivedChats = currentState.chats.filter { selected.contains(it.id) } +
-                                        currentState.pinnedChats.filter { selected.contains(it.id) }
+                    val newlyArchivedChats = (state.chats.filter { selectedItems.contains(it.id) } +
+                                        state.pinnedChats.filter { selectedItems.contains(it.id) })
+                                        .map { it.copy(isArchived = true) }
 
-                    currentState.copy(
+                    state.copy(
                         chats = updatedChats,
                         pinnedChats = updatedPinned,
-                        archivedChats = currentState.archivedChats + archivedChats,
+                        archivedChats = state.archivedChats + newlyArchivedChats,
                         selectionMode = false,
                         selectedItems = emptySet()
                     )
                 } else {
-                    currentState
+                    state
+                }
+            }
+
+            // Backend update for all selected chats
+            selectedItems.forEach { chatId ->
+                launch {
+                    chatService.archiveChat(chatId, userId)
                 }
             }
         }
@@ -457,7 +480,8 @@ class InboxViewModel(
             unreadCount = chatMap["unread_count"]?.toString()?.toIntOrNull() ?: 0,
             isOnline = chatMap["is_online"]?.toString()?.toBooleanStrictOrNull() ?: false,
             isMuted = chatMap["is_muted"]?.toString()?.toBooleanStrictOrNull() ?: false,
-            isPinned = chatMap["is_pinned"]?.toString()?.toBooleanStrictOrNull() ?: false
+            isPinned = chatMap["is_pinned"]?.toString()?.toBooleanStrictOrNull() ?: false,
+            isArchived = chatMap["is_archived"]?.toString()?.toBooleanStrictOrNull() ?: false
         )
     }
     
