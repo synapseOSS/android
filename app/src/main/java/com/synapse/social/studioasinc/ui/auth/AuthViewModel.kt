@@ -488,6 +488,7 @@ class AuthViewModel(
                 return@launch
             }
 
+            // Start cooldown immediately to prevent spamming
             startResendCooldown()
 
             val result = authRepository.resendVerificationEmail(state.email)
