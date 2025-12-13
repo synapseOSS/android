@@ -143,9 +143,10 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     id = index.toString(),
                     text = option.text,
                     voteCount = option.votes,
-                    isSelected = false // User vote tracking needed in Post model
+                    isSelected = post.userPollVote == index
                 )
-            }
+            },
+            userPollVote = post.userPollVote
         )
     }
 

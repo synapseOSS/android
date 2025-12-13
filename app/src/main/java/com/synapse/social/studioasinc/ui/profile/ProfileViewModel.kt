@@ -428,9 +428,10 @@ class ProfileViewModel(
                     id = index.toString(),
                     text = option.text,
                     voteCount = option.votes,
-                    isSelected = false 
+                    isSelected = post.userPollVote == index
                 )
-            }
+            },
+            userPollVote = post.userPollVote
         )
     }
 

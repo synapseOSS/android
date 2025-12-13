@@ -48,6 +48,7 @@ class PostRepository(private val postDao: PostDao) {
             System.currentTimeMillis() - timestamp > expirationMs
     }
 
+    // FIXME: Bug (Concurrency) - These MutableMaps are accessed via Coroutines and are not thread-safe. Suggest ConcurrentHashMap or Mutex.
     private val postsCache = mutableMapOf<String, CacheEntry<List<Post>>>()
     private val profileCache = mutableMapOf<String, CacheEntry<ProfileData>>()
 
@@ -68,6 +69,7 @@ class PostRepository(private val postDao: PostDao) {
         android.util.Log.d(TAG, "Cache invalidated")
     }
 
+    // TODO: Refactor (Hardcoding) - URL construction should be centralized in SupabaseClient or a config file, not hardcoded strings.
     fun constructMediaUrl(storagePath: String): String {
         if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
             return storagePath
@@ -106,6 +108,7 @@ class PostRepository(private val postDao: PostDao) {
         }
     }
 
+    // TODO: Refactor (Serialization) - Manual JSON construction is fragile. Suggest using kotlinx.serialization and @Serializable DTOs to map Supabase responses directly to objects.
     suspend fun createPost(post: Post): Result<Post> = withContext(Dispatchers.IO) {
         try {
             if (!SupabaseClient.isConfigured()) {
@@ -192,6 +195,7 @@ class PostRepository(private val postDao: PostDao) {
         }
     }
 
+    // TODO: Logic (Sync Strategy) - Currently uses insertAll (upsert) but does not handle local deletions if a post was removed from the server. Suggest implementing a sync strategy (e.g., fetch IDs -> delete missing -> upsert new).
     suspend fun refreshPosts(page: Int, pageSize: Int): Result<Unit> {
         return try {
             val offset = page * pageSize
@@ -252,6 +256,7 @@ class PostRepository(private val postDao: PostDao) {
         }
     }
 
+    // TODO: Refactor (Serialization) - Manual JSON parsing is fragile. Suggest using kotlinx.serialization and @Serializable DTOs.
     private fun parsePostWithUserData(data: JsonObject): Post {
         val post = Post(
             id = data["id"]?.jsonPrimitive?.contentOrNull ?: "",
@@ -418,6 +423,7 @@ class PostRepository(private val postDao: PostDao) {
 
     fun observePosts(): Flow<List<Post>> = flow { emit(emptyList()) }
 
+    // TODO: Optimization (Network/Atomicity) - This function lacks atomicity and makes multiple network calls. Suggest replacing this logic with a Supabase Edge Function or Postgres RPC.
     suspend fun toggleReaction(
         postId: String,
         userId: String,
@@ -487,6 +493,7 @@ class PostRepository(private val postDao: PostDao) {
         }
     }
 
+    // TODO: Optimization (N+1 Query) - Fetches reactions first, then users. Suggest refactoring to a single query using Supabase resource embedding (joins).
     suspend fun getUsersWhoReacted(
         postId: String,
         reactionType: ReactionType? = null
@@ -542,6 +549,7 @@ class PostRepository(private val postDao: PostDao) {
         }
     }
 
+    // TODO: Scalability - It uses isIn("post_id", postIds). For large pages, this list of IDs can exceed URL length limits. Suggest chunking or alternative query strategies.
     private suspend fun populatePostReactions(posts: List<Post>): List<Post> {
         if (posts.isEmpty()) return posts
 

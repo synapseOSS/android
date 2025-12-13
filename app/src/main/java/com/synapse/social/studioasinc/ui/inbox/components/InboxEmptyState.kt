@@ -24,10 +24,11 @@ import com.synapse.social.studioasinc.ui.inbox.models.EmptyStateType
 @Composable
 fun InboxEmptyState(
     type: EmptyStateType,
+    message: String? = null,
     onActionClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val (icon, title, description, actionText) = remember(type) {
+    val (icon, title, description, actionText) = remember(type, message) {
         when (type) {
             EmptyStateType.CHATS -> EmptyStateContent(
                 icon = Icons.Outlined.ChatBubbleOutline,
@@ -62,7 +63,7 @@ fun InboxEmptyState(
             EmptyStateType.ERROR -> EmptyStateContent(
                 icon = Icons.Default.Warning,
                 title = "Something went wrong",
-                description = "We couldn't load your messages. Please try again.",
+                description = message ?: "We couldn't load your messages. Please try again.",
                 actionText = "Retry"
             )
         }

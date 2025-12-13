@@ -38,6 +38,7 @@ fun ChatsTabScreen(
             is InboxUiState.Error -> {
                 InboxEmptyState(
                     type = EmptyStateType.ERROR,
+                    message = state.message,
                     onActionClick = { onAction(InboxAction.RefreshChats) },
                     modifier = Modifier.align(Alignment.Center)
                 )
