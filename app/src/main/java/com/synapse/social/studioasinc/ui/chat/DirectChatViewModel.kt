@@ -7,7 +7,6 @@ import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
-import com.synapse.social.studioasinc.domain.usecase.ObserveMessagesUseCase
 import com.synapse.social.studioasinc.model.Message
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.UserProfileManager
@@ -31,7 +30,6 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private val chatDao = AppDatabase.getDatabase(application).chatDao()
     private val chatRepository = ChatRepository(chatDao)
     private val authService = SupabaseAuthenticationService(application)
-    private val observeMessagesUseCase = ObserveMessagesUseCase(chatDao)
     
     // UI State
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -186,18 +184,9 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             val channel = realtimeService.subscribeToChat(chatId)
             
             // 2. Observe DB/Messages Flow from UseCase (Maintains Source of Truth / Initial History)
-            launch {
-                observeMessagesUseCase(chatId)
-                    .onEach { messageList ->
-                        val uiMessages = messageList.map { it.toUiModel(currentUserId) }
-                        _dbMessages.value = uiMessages
-                    }
-                    .catch { e ->
-                        // Log error but don't show to UI to avoid flickering if realtime is working
-                        android.util.Log.e("DirectChatViewModel", "Error observing messages use case", e)
-                    }
-                    .collect()
-            }
+            // REMOVED: observeMessagesUseCase caused issues by potentially emitting empty lists on error
+            // and conflicting with the manual postgresChangeFlow below.
+            // We rely on loadChat() for the initial fetch and the postgresChangeFlow below for updates.
 
             // 3. Observe Messages (Insert/Update/Delete) via Postgres Changes (Latency Compensation / Direct Updates)
             // This runs in parallel to observeMessagesUseCase to provide immediate UI updates
