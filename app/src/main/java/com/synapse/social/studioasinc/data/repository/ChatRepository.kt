@@ -389,4 +389,46 @@ class ChatRepository(private val chatDao: ChatDao) {
             isActive = data["is_active"]?.toString()?.toBooleanStrictOrNull() ?: true
         )
     }
+    suspend fun blockUser(blockerId: String, blockedId: String): Result<Unit> {
+        return try {
+            val data = mapOf(
+                "blocker_id" to blockerId,
+                "blocked_id" to blockedId,
+                "created_at" to System.currentTimeMillis()
+            )
+            databaseService.insert("user_blocks", data)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun reportUser(reporterId: String, reportedId: String, reason: String = "spam"): Result<Unit> {
+        return try {
+            val data = mapOf(
+                "reporter_id" to reporterId,
+                "reported_id" to reportedId,
+                "reason" to reason,
+                "created_at" to System.currentTimeMillis()
+            )
+            databaseService.insert("user_reports", data)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteChat(chatId: String, userId: String): Result<Unit> {
+        return try {
+            client.from("chat_participants").delete {
+                filter {
+                    eq("chat_id", chatId)
+                    eq("user_id", userId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

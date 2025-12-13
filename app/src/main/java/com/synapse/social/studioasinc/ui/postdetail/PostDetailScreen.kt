@@ -120,7 +120,8 @@ fun PostDetailScreen(
             onReport = { viewModel.reportPost("Spam") },
             onBlock = {
                 post.authorUid?.let { viewModel.blockUser(it) }
-            }
+            },
+            onRevokeVote = { viewModel.revokeVote() }
         )
     }
 
@@ -279,12 +280,13 @@ fun PostDetailScreen(
                              // Poll
                              if (postDetail.post.hasPoll == true) {
                                  val totalVotes = postDetail.pollResults?.sumOf { it.voteCount } ?: 0
+                                 val userVote = postDetail.userPollVote
                                  val options = postDetail.pollResults?.map {
                                      PollOption(
                                          id = it.index.toString(), // Mapped from PollOptionResult.index
                                          text = it.text,
                                          voteCount = it.voteCount,
-                                         isSelected = false
+                                         isSelected = userVote == it.index
                                      )
                                  } ?: emptyList()
 
@@ -292,6 +294,7 @@ fun PostDetailScreen(
                                      question = postDetail.post.pollQuestion ?: "",
                                      options = options,
                                      totalVotes = totalVotes,
+                                     hasVoted = userVote != null,
                                      onVote = { index -> viewModel.votePoll(index.toIntOrNull() ?: 0) }
                                  )
                              }

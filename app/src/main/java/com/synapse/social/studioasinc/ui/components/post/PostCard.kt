@@ -30,7 +30,8 @@ data class PostCardState(
     val mediaUrls: List<String> = emptyList(), // Extract from post
     val isVideo: Boolean = false,
     val pollQuestion: String? = null,
-    val pollOptions: List<PollOption>? = null
+    val pollOptions: List<PollOption>? = null,
+    val userPollVote: Int? = null // Track user's vote for poll
 )
 
 @Composable

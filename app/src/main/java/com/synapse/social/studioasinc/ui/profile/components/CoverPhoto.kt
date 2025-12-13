@@ -62,9 +62,31 @@ fun CoverPhoto(
         animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
         label = "coverFadeIn"
     )
+
+    val density = LocalDensity.current
+    val heightPx = with(density) { height.toPx() }
     
-    // Calculate parallax offset
-    val parallaxOffset = scrollOffset * parallaxFactor * 100f
+    // Enhanced parallax with spring animation for smoothness
+    val animatedScrollOffset by animateFloatAsState(
+        targetValue = scrollOffset,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "smoothParallax"
+    )
+    
+    // Calculate parallax offset based on height
+    val parallaxOffset = animatedScrollOffset * heightPx * parallaxFactor
+    
+    // Depth-based scale effect: zoom in slightly as user scrolls
+    val depthScale = 1.1f + (animatedScrollOffset * 0.15f).coerceIn(0f, 0.2f)
+    
+    // Dynamic blur based on scroll
+    val blurRadius = (animatedScrollOffset * 12).coerceIn(0f, 15f)
+    
+    // Vignette intensity increases with scroll
+    val vignetteAlpha = (0.3f + animatedScrollOffset * 0.4f).coerceIn(0.3f, 0.7f)
     
     Box(
         modifier = modifier
@@ -81,10 +103,14 @@ fun CoverPhoto(
                     .fillMaxSize()
                     .graphicsLayer {
                         translationY = parallaxOffset
-                        // Slight zoom for smoother parallax
-                        scaleX = 1.1f
-                        scaleY = 1.1f
+                        // Enhanced depth-based zoom for immersive parallax
+                        scaleX = depthScale
+                        scaleY = depthScale
                     }
+                    .blur(
+                        radius = blurRadius.dp,
+                        edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded
+                    )
                     .graphicsLayer { this.alpha = alpha },
                 contentScale = ContentScale.Crop,
                 onState = { state ->
@@ -97,12 +123,12 @@ fun CoverPhoto(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        translationY = parallaxOffset * 0.3f
+                        translationY = parallaxOffset * 0.5f
                     }
             )
         }
         
-        // Gradient overlay for better readability
+        // Enhanced gradient overlay with vignette effect
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -110,8 +136,8 @@ fun CoverPhoto(
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.1f),
-                            Color.Black.copy(alpha = 0.4f)
+                            Color.Black.copy(alpha = vignetteAlpha * 0.3f),
+                            Color.Black.copy(alpha = vignetteAlpha)
                         ),
                         startY = 0f,
                         endY = Float.POSITIVE_INFINITY

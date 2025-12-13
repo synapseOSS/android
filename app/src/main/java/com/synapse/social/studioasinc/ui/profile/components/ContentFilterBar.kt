@@ -51,10 +51,11 @@ fun ContentFilterBar(
     var tabWidth by remember { mutableStateOf(0.dp) }
     
     // Calculate indicator offset based on selected filter
+    // Order matches enum declaration: PHOTOS, POSTS, REELS
     val indicatorOffset by animateDpAsState(
         targetValue = when (selectedFilter) {
-            ProfileContentFilter.POSTS -> 0.dp
-            ProfileContentFilter.PHOTOS -> tabWidth
+            ProfileContentFilter.PHOTOS -> 0.dp
+            ProfileContentFilter.POSTS -> tabWidth
             ProfileContentFilter.REELS -> tabWidth * 2
         },
         animationSpec = spring(

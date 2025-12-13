@@ -117,6 +117,24 @@ class PollRepository {
         
         Log.d(TAG, "Vote submitted: post=$postId, option=$optionIndex")
     }
+
+    /**
+     * Revoke user's vote for a poll.
+     */
+    suspend fun revokeVote(postId: String): Result<Unit> = runCatching {
+        val userId = client.auth.currentUserOrNull()?.id
+            ?: return Result.failure(Exception("Not authenticated"))
+
+        // Delete vote
+        client.from("poll_votes").delete {
+            filter {
+                eq("post_id", postId)
+                eq("user_id", userId)
+            }
+        }
+
+        Log.d(TAG, "Vote revoked: post=$postId")
+    }
     
     /**
      * Get poll results with vote counts and percentages.

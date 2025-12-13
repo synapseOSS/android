@@ -1,5 +1,7 @@
 package com.synapse.social.studioasinc.ui.search
 
+// TODO: Fix Search Animation and Theme - ensure animations respect light/dark theme settings
+
 import android.text.format.DateUtils
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -222,7 +224,9 @@ fun SearchContent(
                         // Staggered entrance animation
                         val isVisible = remember { androidx.compose.runtime.mutableStateOf(false) }
                         LaunchedEffect(Unit) {
-                            kotlinx.coroutines.delay(index * 50L) // Stagger by 50ms
+                            // Stagger only the first few items to prevent long delays
+                            val delay = if (index < 10) index * 50L else 0L
+                            kotlinx.coroutines.delay(delay)
                             isVisible.value = true
                         }
 

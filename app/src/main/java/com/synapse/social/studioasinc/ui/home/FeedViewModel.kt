@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.map
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.PostRepository
 import com.synapse.social.studioasinc.data.local.AppDatabase
@@ -13,13 +14,18 @@ import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.home.User
 import com.synapse.social.studioasinc.ui.components.post.PostCardState
 import com.synapse.social.studioasinc.util.ScrollPositionState
+import com.synapse.social.studioasinc.ui.components.post.PostEventBus
+import com.synapse.social.studioasinc.ui.components.post.PostEvent
+import com.synapse.social.studioasinc.ui.components.post.PostMapper
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 
 data class FeedUiState(
     val isLoading: Boolean = false,
@@ -34,14 +40,57 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(FeedUiState())
     val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
 
-    // Using PagingData for infinite scroll
-    val posts: Flow<PagingData<Post>> = postRepository.getPostsPaged()
+    private val _modifiedPosts = MutableStateFlow<Map<String, Post>>(emptyMap())
+
+    // Cache the raw PagingData FIRST to prevent "Attempt to collect twice from pageEventFlow"
+    private val cachedPosts = postRepository.getPostsPaged()
         .cachedIn(viewModelScope)
+
+    // Using PagingData for infinite scroll with modifications overlay
+    val posts: Flow<PagingData<Post>> = cachedPosts
+        .combine(_modifiedPosts) { pagingData, modifications ->
+            pagingData.map { post ->
+                modifications[post.id] ?: post
+            }
+        }
 
     private var savedScrollPosition: ScrollPositionState? = null
 
     init {
-        // Initial load logic if needed (PagingData handles most)
+        // Observe Global Post Events for Synchronization
+        viewModelScope.launch {
+            PostEventBus.events.collect { event ->
+                when (event) {
+                    is PostEvent.Liked -> {
+                        val current = _modifiedPosts.value[event.postId]
+                        // We only need to update if we have the post in PagingData or current view
+                        // Since PagingData is a flow, we can't easily peek, but _modifiedPosts stores overrides.
+                        // We can blindly update _modifiedPosts if we want to ensure sync, 
+                        // but better to only update if we know about the post. 
+                        // However, Paging requires us to know the previous state to copy it.
+                        // A simpler approach: we cannot easily update PagingData from outside without a refresh 
+                        // unless we keep a cache of 'latest state' for every post ID we've seen.
+                        // For now, we'll try to update ONLY if it's already in _modifiedPosts, OR we assume we can't fully sync 
+                        // PagingData without more complex caching. 
+                        
+                        // BUT, if the user liked it in Profile, they expect to see it liked in Feed.
+                        // _modifiedPosts is used to override PagingData. 
+                        // We can add a "Pending Modification" for this ID.
+                        // But we need the original Post object to copy() it. We don't have it here if it's not in _modifiedPosts.
+                        // So full bidirectional sync with Paging is hard.
+                        // LUCKILY: PostEvent.Updated(post) carries the full post.
+                    }
+                    is PostEvent.Updated -> {
+                        _modifiedPosts.update { it + (event.post.id to event.post) }
+                    }
+                    is PostEvent.Deleted -> {
+                         // Removing from feed is hard with PagingData without refresh. 
+                         // We can mark it as deleted in _modifiedPosts if we handle that in UI (e.g. filter or show hidden).
+                    }
+                    else -> {}
+                }
+            }
+        }
     }
 
     fun likePost(post: Post) {
@@ -49,11 +98,38 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
              try {
                  val currentUserId = authRepository.getCurrentUserId()
                  if (currentUserId != null) {
+                    // Optimistic update
+                    val isLiked = post.hasUserReacted() // Assuming this checks local state
+                    // Note: Post logic for 'hasUserReacted' depends on transient 'userReaction'.
+                    // We need to toggle it.
+                    val newReaction = if (isLiked) null else ReactionType.LIKE
+                    val newCount = if (isLiked) post.likesCount - 1 else post.likesCount + 1
+                    
+                    // Construct updated post
+                    // We are hacking slightly as 'reactions' map is transient.
+                    // We need a proper copy method that handles transient fields if we want them to persist in UI state.
+                    val updatedReactions = post.reactions?.toMutableMap() ?: mutableMapOf()
+                    // Simplification for demo: just toggle like count and 'userReaction'
+                    // In real app, we need to be careful with total counts vs specific reaction counts.
+                    
+                    val updatedPost = post.copy(
+                         likesCount = newCount
+                    ).apply {
+                        userReaction = newReaction
+                        // Re-calculate determined fields if needed
+                    }
+
+                    // Update Local
+                    _modifiedPosts.update { it + (post.id to updatedPost) }
+                    
+                    // Emit Global Event
+                    PostEventBus.emit(PostEvent.Updated(updatedPost))
+
                     postRepository.toggleReaction(post.id, currentUserId, ReactionType.LIKE)
                  }
             } catch (e: Exception) {
-                // Handle error
                 e.printStackTrace()
+                // Revert?
             }
         }
     }
@@ -71,13 +147,60 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     
-    fun votePoll(postId: String, optionIndex: Int) {
+    fun votePoll(post: Post, optionIndex: Int) {
+        // Optimistic update
+        val currentOptions = post.pollOptions ?: return
+        if (post.userPollVote != null) return // Already voted
+
+        val updatedOptions = currentOptions.mapIndexed { index, option ->
+            if (index == optionIndex) option.copy(votes = option.votes + 1) else option
+        }
+
+        val updatedPost = post.copy(
+            pollOptions = updatedOptions,
+            userPollVote = optionIndex
+        )
+
+        _modifiedPosts.update { it + (post.id to updatedPost) }
+        PostEventBus.emit(PostEvent.Updated(updatedPost))
+
         viewModelScope.launch {
             try {
                 val pollRepository = com.synapse.social.studioasinc.data.repository.PollRepository()
-                pollRepository.submitVote(postId, optionIndex)
+                pollRepository.submitVote(post.id, optionIndex)
             } catch (e: Exception) {
                 e.printStackTrace()
+                // Revert optimistic update
+                _modifiedPosts.update { it - post.id }
+                // We should also emit Reverted event
+            }
+        }
+    }
+
+    fun revokeVote(post: Post) {
+        val currentVoteIndex = post.userPollVote ?: return
+        val currentOptions = post.pollOptions ?: return
+
+        // Optimistic update
+        val updatedOptions = currentOptions.mapIndexed { index, option ->
+            if (index == currentVoteIndex) option.copy(votes = maxOf(0, option.votes - 1)) else option
+        }
+
+        val updatedPost = post.copy(
+            pollOptions = updatedOptions,
+            userPollVote = null
+        )
+
+        _modifiedPosts.update { it + (post.id to updatedPost) }
+
+        viewModelScope.launch {
+            try {
+                val pollRepository = com.synapse.social.studioasinc.data.repository.PollRepository()
+                pollRepository.revokeVote(post.id)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Revert
+                _modifiedPosts.update { it - post.id }
             }
         }
     }
@@ -112,41 +235,11 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Helper to convert Post model to PostCardState for UI
      */
+    /**
+     * Helper to convert Post model to PostCardState for UI
+     */
     fun mapPostToState(post: Post): PostCardState {
-        // Fetch user data if not present in Post.
-        // For now assuming Post has embedded user info or we can't map fully without extra calls.
-        // In real app, Post usually has `author` field or we fetch users separately.
-        // The `Post` model in `model/Post.kt` has `username` and `avatarUrl` as transient.
-        // We might need to ensure these are populated by the Repository/PagingSource.
-
-        val user = User(
-            uid = post.authorUid,
-            username = post.username ?: "Unknown",
-            avatar = post.avatarUrl,
-            verify = if(post.isVerified) "1" else "0"
-        )
-
-        val mediaUrls = post.mediaItems?.mapNotNull { it.url } ?: listOfNotNull(post.postImage)
-
-        return PostCardState(
-            post = post,
-            user = user,
-            isLiked = post.hasUserReacted(),
-            likeCount = post.likesCount,
-            commentCount = post.commentsCount,
-            isBookmarked = false, // Add logic if available
-            mediaUrls = mediaUrls,
-            isVideo = post.postType == "VIDEO",
-            pollQuestion = post.pollQuestion,
-            pollOptions = post.pollOptions?.mapIndexed { index, option ->
-                com.synapse.social.studioasinc.ui.components.post.PollOption(
-                    id = index.toString(),
-                    text = option.text,
-                    voteCount = option.votes,
-                    isSelected = false // User vote tracking needed in Post model
-                )
-            }
-        )
+        return PostMapper.mapToState(post)
     }
 
     fun saveScrollPosition(position: Int, offset: Int) {

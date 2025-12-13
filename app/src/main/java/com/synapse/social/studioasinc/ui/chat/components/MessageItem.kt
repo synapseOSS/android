@@ -14,8 +14,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Reply
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +37,7 @@ import com.synapse.social.studioasinc.ui.chat.AttachmentType
 import com.synapse.social.studioasinc.ui.chat.MessagePosition
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
 import com.synapse.social.studioasinc.ui.chat.MessageType
+import com.synapse.social.studioasinc.ui.chat.DeliveryStatus
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -176,7 +180,8 @@ fun MessageItem(
                             modifier = Modifier
                                 .align(Alignment.End)
                                 .padding(top = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
                                 text = message.formattedTime,
@@ -184,6 +189,23 @@ fun MessageItem(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 fontSize = androidx.compose.ui.unit.TextUnit.Unspecified
                             )
+                            
+                            // Read Receipt Ticks (only for current user's messages)
+                            if (message.isFromCurrentUser) {
+                                val (icon, tint) = when (message.deliveryStatus) {
+                                    DeliveryStatus.Sending -> Icons.Default.Schedule to MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                    DeliveryStatus.Sent -> Icons.Default.Done to MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    DeliveryStatus.Delivered -> Icons.Default.DoneAll to MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    DeliveryStatus.Read -> Icons.Default.DoneAll to MaterialTheme.colorScheme.primary
+                                    DeliveryStatus.Failed -> Icons.Default.Schedule to MaterialTheme.colorScheme.error
+                                }
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = message.deliveryStatus.name,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = tint
+                                )
+                            }
                         }
                     }
                 }

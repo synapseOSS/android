@@ -141,6 +141,17 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun revokeVote() {
+        val postId = currentPostId ?: return
+        viewModelScope.launch {
+            pollRepository.revokeVote(postId).onSuccess {
+                postDetailRepository.getPostWithDetails(postId).onSuccess { updatedPost ->
+                     _uiState.update { it.copy(post = updatedPost) }
+                 }
+            }
+        }
+    }
+
     fun toggleBookmark() {
         val postId = currentPostId ?: return
         viewModelScope.launch {

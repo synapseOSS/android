@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.synapse.social.studioasinc.ui.inbox.InboxScreen
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.util.ActivityTransitions
 import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 
 /**
@@ -60,18 +61,11 @@ class InboxComposeActivity : ComponentActivity() {
                     InboxScreen(
                         onNavigateBack = { finish() },
                         onNavigateToChat = { chatId, userId ->
-                            // Navigate to existing ChatActivity
-                            // ChatActivity expects "chatId" and "uid" as intent extras
+                            // Navigate to ChatActivity with premium transition
                             Log.d("InboxComposeActivity", "Navigating to chat - chatId: $chatId, userId: $userId")
                             
-                            val intent = Intent(this, ChatActivity::class.java).apply {
-                                // Use correct intent extra keys that ChatActivity expects
-                                putExtra("chatId", chatId)  // ChatActivity reads from "chatId" (line 132)
-                                putExtra("uid", userId)      // ChatActivity reads from "uid" (line 133)
-                            }
-                            
-                            Log.d("InboxComposeActivity", "Starting ChatActivity with extras - chatId: $chatId, uid: $userId")
-                            startActivity(intent)
+                            val intent = ChatActivity.createIntent(this, chatId, userId)
+                            ActivityTransitions.startActivityWithTransition(this, intent)
                         }
                     )
                 }
