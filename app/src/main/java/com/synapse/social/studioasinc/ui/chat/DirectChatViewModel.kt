@@ -79,8 +79,40 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
         // Ensure sorted by timestamp descending (newest first) ?? No, UI expects newest at bottom usually, but LazyColumn is reversed. 
         // The original code passed `items(messages.reversed())` to a reversed LazyColumn.
         // That means `messages` should be sorted Oldest -> Newest (ascending timestamp).
-        merged.sortedBy { it.timestamp }
+        val sorted = merged.sortedBy { it.timestamp }
+        calculateMessagePositions(sorted)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private fun calculateMessagePositions(messages: List<MessageUiModel>): List<MessageUiModel> {
+        if (messages.isEmpty()) return emptyList()
+
+        val groupedMessages = ArrayList<MessageUiModel>(messages.size)
+        val threshold = 60 * 1000 // 60 seconds to group messages
+
+        for (i in messages.indices) {
+            val current = messages[i]
+            val prev = messages.getOrNull(i - 1)
+            val next = messages.getOrNull(i + 1)
+
+            val isSameAsPrev = prev != null && prev.senderId == current.senderId &&
+                    (current.timestamp - prev.timestamp < threshold)
+            
+            val isSameAsNext = next != null && next.senderId == current.senderId &&
+                    (next.timestamp - current.timestamp < threshold)
+
+            val position = when {
+                !isSameAsPrev && !isSameAsNext -> MessagePosition.Single
+                !isSameAsPrev && isSameAsNext -> MessagePosition.First
+                isSameAsPrev && isSameAsNext -> MessagePosition.Middle
+                isSameAsPrev && !isSameAsNext -> MessagePosition.Last
+                else -> MessagePosition.Single
+            }
+
+            groupedMessages.add(current.copy(position = position))
+        }
+
+        return groupedMessages
+    }
     
     private var currentChatId: String? = null
     private var currentUserId: String? = null
