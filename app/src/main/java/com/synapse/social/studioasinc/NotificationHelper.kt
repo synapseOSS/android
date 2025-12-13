@@ -40,6 +40,13 @@ object NotificationHelper {
      * @param notificationType The type of notification to send.
      * @param data A map of additional data to send with the notification.
      */
+    /**
+     * Sends a notification to a user.
+     * This method handles:
+     * 1. Fetching the recipient's OneSignal Player ID from Supabase 'users' table.
+     * 2. Checking user presence (status, last_seen) to suppress notifications if active.
+     * 3. Sending the notification via Client-side OneSignal or Server-side Worker.
+     */
     @JvmStatic
     fun sendNotification(
         recipientUid: String,

@@ -9,6 +9,7 @@ import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.domain.usecase.ObserveMessagesUseCase
 import com.synapse.social.studioasinc.model.Message
+import com.synapse.social.studioasinc.PresenceManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -110,6 +111,11 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                  chatRepository.getChatParticipants(chatId).onSuccess { userIds ->
                      val otherId = userIds.firstOrNull { it != currentUserId }
                      if (otherId != null) {
+                         // Update presence status to "chatting with"
+                         currentUserId?.let { uid ->
+                             PresenceManager.setChattingWith(uid, otherId)
+                         }
+
                          // Fetch actual user profile from UserProfileManager
                          val userProfile = com.synapse.social.studioasinc.UserProfileManager.getUserProfile(otherId)
                          _uiState.update {
@@ -502,6 +508,10 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
 
     override fun onCleared() {
         super.onCleared()
+        // Reset presence status when leaving chat
+        currentUserId?.let { uid ->
+            PresenceManager.stopChatting(uid)
+        }
         viewModelScope.launch {
             realtimeService.cleanup()
         }

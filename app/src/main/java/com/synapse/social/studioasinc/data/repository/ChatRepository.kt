@@ -7,13 +7,16 @@ import com.synapse.social.studioasinc.data.local.ChatDao
 import com.synapse.social.studioasinc.data.local.ChatEntity
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.model.Message
+import com.synapse.social.studioasinc.NotificationHelper
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -25,6 +28,9 @@ class ChatRepository(private val chatDao: ChatDao) {
     private val chatService = SupabaseChatService()
     private val databaseService = SupabaseDatabaseService()
     private val client = SupabaseClient.client
+    // Scope for background operations like notifications that shouldn't block the main flow
+    // or be cancelled immediately if the calling scope is cancelled.
+    private val repositoryScope = CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
     
     private data class CacheEntry<T>(
         val data: T,
@@ -90,6 +96,24 @@ class ChatRepository(private val chatDao: ChatDao) {
         result.onSuccess { messageId ->
             android.util.Log.d("ChatRepository", "✓ Message sent successfully, messageId: $messageId")
             refreshUserChats(senderId)
+
+            // Trigger notification
+            repositoryScope.launch {
+                try {
+                    val participants = getChatParticipants(chatId).getOrNull()
+                    participants?.filter { it != senderId }?.forEach { recipientId ->
+                        NotificationHelper.sendNotification(
+                            recipientUid = recipientId,
+                            senderUid = senderId,
+                            message = content,
+                            notificationType = "chat_message",
+                            data = mapOf("chat_id" to chatId)
+                        )
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("ChatRepository", "Failed to send notification", e)
+                }
+            }
         }.onFailure { error ->
             android.util.Log.e("ChatRepository", "✗ Failed to send message: ${error.message}", error)
         }

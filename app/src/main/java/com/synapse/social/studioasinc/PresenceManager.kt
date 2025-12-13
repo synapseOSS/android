@@ -56,6 +56,11 @@ object PresenceManager {
      * @param currentUserUid The UID of the current user.
      * @param otherUserUid The UID of the user they are chatting with.
      */
+    /**
+     * Sets status to "chatting_with_<otherUserUid>".
+     * This status is used by NotificationHelper to suppress push notifications
+     * when the user is already looking at the chat.
+     */
     @JvmStatic
     fun setChattingWith(currentUserUid: String, otherUserUid: String) {
         UserActivity.setActivity(currentUserUid, "chatting_with_$otherUserUid")
