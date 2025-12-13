@@ -76,6 +76,10 @@ fun DirectChatScreen(
     
     // Top Bar Menu State
     var showTopBarMenu by remember { mutableStateOf(false) }
+    
+    // Confirmation Dialog States
+    var showBlockDialog by remember { mutableStateOf(false) }
+    var showDeleteChatDialog by remember { mutableStateOf(false) }
 
     // Snackbar Host
     val snackbarHostState = remember { SnackbarHostState() }
@@ -191,10 +195,7 @@ fun DirectChatScreen(
                         text = { Text("Block User") },
                         onClick = { 
                             showTopBarMenu = false
-                            // TODO: Call Block Logic
-                            // Backend: Trigger RPC to add to 'user_blocks'.
-                            // UI: Show confirmation dialog first.
-                            viewModel.blockUser(uiState.otherUser?.id ?: "")
+                            showBlockDialog = true
                         }
                     )
                     DropdownMenuItem(
@@ -210,9 +211,7 @@ fun DirectChatScreen(
                         text = { Text("Delete Chat") },
                         onClick = {
                             showTopBarMenu = false
-                            // Backend: 'chat_participants' delete -> trigger 'chats' cleanup if last user.
-                            // UI: Navigate back to inbox after success.
-                            viewModel.deleteChat()
+                            showDeleteChatDialog = true
                         },
                          colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error)
                     )
