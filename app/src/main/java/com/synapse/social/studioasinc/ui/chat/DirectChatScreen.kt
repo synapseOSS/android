@@ -177,6 +177,78 @@ fun DirectChatScreen(
         }
     }
 
+    // Block User Confirmation Dialog
+    if (showBlockDialog) {
+        AlertDialog(
+            onDismissRequest = { showBlockDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Block,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = { Text("Block User") },
+            text = { 
+                Text("Are you sure you want to block ${uiState.otherUser?.displayName ?: uiState.otherUser?.username ?: "this user"}? They won't be able to message you anymore.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showBlockDialog = false
+                        viewModel.blockUser(uiState.otherUser?.id ?: "")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Block")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBlockDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Delete Chat Confirmation Dialog
+    if (showDeleteChatDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteChatDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = { Text("Delete Chat") },
+            text = { 
+                Text("Are you sure you want to delete this conversation? This action cannot be undone.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteChatDialog = false
+                        viewModel.deleteChat()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteChatDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
