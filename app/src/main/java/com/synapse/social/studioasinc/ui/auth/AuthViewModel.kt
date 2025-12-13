@@ -233,9 +233,22 @@ class AuthViewModel(
             val result = authRepository.signIn(email, password)
             result.fold(
                 onSuccess = {
-                    _uiState.value = AuthUiState.Success("Sign in successful")
-                    delay(500) // Show success state briefly
-                    _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
+                    if (authRepository.isEmailVerified()) {
+                        _uiState.value = AuthUiState.Success("Sign in successful")
+                        delay(500) // Show success state briefly
+                        _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
+                    } else {
+                        sharedPreferences.edit()
+                            .putString(PREF_KEY_VERIFICATION_EMAIL, email)
+                            .apply()
+                        _uiState.value = AuthUiState.EmailVerification(email = email)
+                        _navigationEvent.emit(AuthNavigationEvent.NavigateToEmailVerification)
+
+                        // Start polling for verification
+                        launch {
+                            checkEmailVerification(email)
+                        }
+                    }
                 },
                 onFailure = { error ->
                     _uiState.value = AuthUiState.SignIn(
