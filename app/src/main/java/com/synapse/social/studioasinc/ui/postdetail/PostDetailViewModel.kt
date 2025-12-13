@@ -77,7 +77,7 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
     fun toggleReaction(reactionType: ReactionType) {
         val postId = currentPostId ?: return
         viewModelScope.launch {
-            reactionRepository.togglePostReaction(postId, reactionType).onSuccess {
+            reactionRepository.toggleReaction(postId, "post", reactionType).onSuccess {
                  postDetailRepository.getPostWithDetails(postId).onSuccess { updatedPost ->
                      _uiState.update { it.copy(post = updatedPost) }
                  }
@@ -88,7 +88,7 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
     fun toggleCommentReaction(commentId: String, reactionType: ReactionType) {
         val postId = currentPostId ?: return
         viewModelScope.launch {
-            reactionRepository.toggleCommentReaction(commentId, reactionType).onSuccess {
+            reactionRepository.toggleReaction(commentId, "comment", reactionType).onSuccess {
                  refreshComments()
             }
         }

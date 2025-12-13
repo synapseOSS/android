@@ -21,6 +21,7 @@ import kotlinx.serialization.json.*
 class CommentRepository(private val commentDao: CommentDao) {
     
     private val client = SupabaseClient.client
+    private val reactionRepository = com.synapse.social.studioasinc.data.repository.ReactionRepository()
     
     companion object {
         private const val TAG = "CommentRepository"
@@ -379,8 +380,8 @@ class CommentRepository(private val commentDao: CommentDao) {
             val user = parseUserProfileFromJson(data["users"]?.jsonObject)
             val commentId = data["id"]?.jsonPrimitive?.contentOrNull ?: return null
             
-            val reactionSummary = getCommentReactionSummarySync(commentId)
-            val userReaction = getUserCommentReactionSync(commentId)
+            val reactionSummary = reactionRepository.getReactionSummary(commentId, "comment").getOrDefault(emptyMap())
+            val userReaction = reactionRepository.getUserReaction(commentId, "comment").getOrNull()
             
             CommentWithUser(
                 id = commentId,
@@ -406,37 +407,7 @@ class CommentRepository(private val commentDao: CommentDao) {
         }
     }
     
-    private suspend fun getCommentReactionSummarySync(commentId: String): Map<ReactionType, Int> {
-        return try {
-            val reactions = client.from("comment_reactions")
-                .select { filter { eq("comment_id", commentId) } }
-                .decodeList<JsonObject>()
-            
-            reactions
-                .groupBy { ReactionType.fromString(it["reaction_type"]?.jsonPrimitive?.contentOrNull ?: "like") }
-                .mapValues { it.value.size }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to fetch comment reaction summary: ${e.message}")
-            emptyMap()
-        }
-    }
-    
-    private suspend fun getUserCommentReactionSync(commentId: String): ReactionType? {
-        return try {
-            val currentUser = client.auth.currentUserOrNull() ?: return null
-            
-            val reaction = client.from("comment_reactions")
-                .select { filter { eq("comment_id", commentId); eq("user_id", currentUser.id) } }
-                .decodeSingleOrNull<JsonObject>()
-            
-            reaction?.get("reaction_type")?.jsonPrimitive?.contentOrNull?.let {
-                ReactionType.fromString(it)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to fetch user comment reaction: ${e.message}")
-            null
-        }
-    }
+
     
     private fun parseUserProfileFromJson(userData: JsonObject?): UserProfile? {
         if (userData == null) return null

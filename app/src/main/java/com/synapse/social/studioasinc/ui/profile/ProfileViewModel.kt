@@ -71,7 +71,8 @@ class ProfileViewModel(
     private val archiveProfileUseCase: ArchiveProfileUseCase,
     private val blockUserUseCase: BlockUserUseCase,
     private val reportUserUseCase: ReportUserUseCase,
-    private val muteUserUseCase: MuteUserUseCase
+    private val muteUserUseCase: MuteUserUseCase,
+    private val isFollowingUseCase: IsFollowingUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileScreenState())
@@ -98,6 +99,15 @@ class ProfileViewModel(
     fun loadProfile(userId: String, currentUserId: String) {
         _state.update { it.copy(profileState = ProfileUiState.Loading, currentUserId = currentUserId) }
         viewModelScope.launch {
+            // Check follow status
+            if (userId != currentUserId) {
+                launch {
+                    isFollowingUseCase(currentUserId, userId).onSuccess { isFollowing ->
+                        _state.update { it.copy(isFollowing = isFollowing) }
+                    }
+                }
+            }
+
             getProfileUseCase(userId).collect { result ->
                 result.onSuccess { profile ->
                     _state.update {
@@ -184,17 +194,19 @@ class ProfileViewModel(
     }
 
     fun followUser(targetUserId: String) {
+        _state.update { it.copy(isFollowing = true) }
         viewModelScope.launch {
-            followUserUseCase(_state.value.currentUserId, targetUserId).onSuccess {
-                _state.update { it.copy(isFollowing = true) }
+            followUserUseCase(_state.value.currentUserId, targetUserId).onFailure {
+                _state.update { it.copy(isFollowing = false) }
             }
         }
     }
 
     fun unfollowUser(targetUserId: String) {
+        _state.update { it.copy(isFollowing = false) }
         viewModelScope.launch {
-            unfollowUserUseCase(_state.value.currentUserId, targetUserId).onSuccess {
-                _state.update { it.copy(isFollowing = false) }
+            unfollowUserUseCase(_state.value.currentUserId, targetUserId).onFailure {
+                _state.update { it.copy(isFollowing = true) }
             }
         }
     }
@@ -203,18 +215,47 @@ class ProfileViewModel(
         _state.update { it.copy(showMoreMenu = !it.showMoreMenu) }
     }
 
+    private val reactionRepository = com.synapse.social.studioasinc.data.repository.ReactionRepository()
+
     fun toggleLike(postId: String) {
+         reactToPost(postId, com.synapse.social.studioasinc.model.ReactionType.LIKE)
+    }
+
+    fun reactToPost(postId: String, reactionType: com.synapse.social.studioasinc.model.ReactionType) {
         // Find the post to toggle
         val post = _state.value.posts.filterIsInstance<Post>().find { it.id == postId } ?: return
-        val isLiked = post.hasUserReacted() // Use Post state, not local Set which might be desynced
-        
+        val currentReaction = post.userReaction // Unified source
+
         // Optimistic update
-        val newReaction = if (isLiked) null else com.synapse.social.studioasinc.model.ReactionType.LIKE
-        val newCount = if (isLiked) post.likesCount - 1 else post.likesCount + 1
+        val isRemoving = currentReaction == reactionType
+        val newReaction = if (isRemoving) null else reactionType
         
-        val updatedPost = post.copy(likesCount = newCount).apply {
-            userReaction = newReaction
+        val countChange = when {
+             isRemoving -> -1
+             currentReaction == null -> 1
+             else -> 0
         }
+        
+        val newCount = post.likesCount + countChange
+        
+        val updatedReactions = post.reactions?.toMutableMap() ?: mutableMapOf()
+        if (isRemoving) {
+             val currentCount = updatedReactions[reactionType] ?: 1
+             updatedReactions[reactionType] = maxOf(0, currentCount - 1)
+        } else {
+             if (currentReaction != null) {
+                 val oldTypeCount = updatedReactions[currentReaction] ?: 1
+                 updatedReactions[currentReaction] = maxOf(0, oldTypeCount - 1)
+             }
+             val newTypeCount = updatedReactions[reactionType] ?: 0
+             updatedReactions[reactionType] = newTypeCount + 1
+        }
+
+        val updatedPost = post.copy(
+            likesCount = maxOf(0, newCount),
+            userReaction = newReaction,
+            reactions = updatedReactions
+        )
         
         // Update Local
         _state.update { state ->
@@ -227,26 +268,15 @@ class ProfileViewModel(
         
         // Backend call
         viewModelScope.launch {
-            val result = if (isLiked) {
-                unlikePostUseCase(postId, _state.value.currentUserId)
-            } else {
-                likePostUseCase(postId, _state.value.currentUserId)
-            }
-            
-            result.collect { res ->
-                res.onFailure {
+            reactionRepository.toggleReaction(postId, "post", reactionType)
+                .onFailure {
                     // Revert on failure
-                    _state.update { state ->
-                        val likedPostIds = state.likedPostIds.toMutableSet()
-                        if (isLiked) {
-                            likedPostIds.add(postId)
-                        } else {
-                            likedPostIds.remove(postId)
-                        }
-                        state.copy(likedPostIds = likedPostIds)
+                     _state.update { state ->
+                        val updatedPosts = state.posts.map { if (it is Post && it.id == postId) post else it }
+                        state.copy(posts = updatedPosts)
                     }
+                    PostEventBus.emit(PostEvent.Updated(post))
                 }
-            }
         }
     }
 
@@ -450,7 +480,12 @@ class ProfileViewModel(
             when (filter) {
                 ProfileContentFilter.POSTS -> {
                     getProfileContentUseCase.getPosts(userId).onSuccess { posts ->
-                        _state.update { it.copy(posts = posts, postsOffset = posts.size) }
+                        // Enriched with reactions from SSOT
+                        val enrichedPosts = if (posts.isNotEmpty()) {
+                            reactionRepository.populatePostReactions(posts.filterIsInstance<Post>())
+                        } else posts
+                        
+                        _state.update { it.copy(posts = enrichedPosts, postsOffset = posts.size) }
                     }
                 }
                 ProfileContentFilter.PHOTOS -> {

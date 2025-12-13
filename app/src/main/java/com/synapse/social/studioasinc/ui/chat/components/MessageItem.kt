@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.PlayArrow
@@ -38,12 +39,24 @@ import com.synapse.social.studioasinc.ui.chat.MessagePosition
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
 import com.synapse.social.studioasinc.ui.chat.MessageType
 import com.synapse.social.studioasinc.ui.chat.DeliveryStatus
+import com.synapse.social.studioasinc.ui.components.mentions.MentionTextFormatter
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.ui.text.TextLayoutResult
 import kotlin.math.roundToInt
+
+/**
+ * Color for selected message overlay (#E0F7FA)
+ */
+private val SelectionOverlayColor = Color(0xFFE0F7FA)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageItem(
     message: MessageUiModel,
+    isSelectionMode: Boolean,
+    onSelect: (MessageUiModel) -> Unit,
     onReply: (MessageUiModel) -> Unit,
     onLongClick: (MessageUiModel) -> Unit,
     onAttachmentClick: (String, AttachmentType) -> Unit,
@@ -53,6 +66,30 @@ fun MessageItem(
     var offsetX by remember { mutableFloatStateOf(0f) }
     val threshold = with(LocalDensity.current) { 60.dp.toPx() }
     val replyIconAlpha by animateFloatAsState(targetValue = if (offsetX > threshold / 2) 1f else 0f, label = "alpha")
+    
+    var showMentionDialogForUser by remember { mutableStateOf<String?>(null) }
+    
+    if (showMentionDialogForUser != null) {
+        AlertDialog(
+            onDismissRequest = { showMentionDialogForUser = null },
+            title = { Text("Open Profile") },
+            text = { Text("Are you sure you want to open the account @${showMentionDialogForUser}?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    // TODO: Open Profile Navigation
+                    // onProfileClick(showMentionDialogForUser!!)
+                    showMentionDialogForUser = null
+                }) {
+                    Text("Open")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showMentionDialogForUser = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Box(
         modifier = modifier
@@ -143,8 +180,43 @@ fun MessageItem(
                     }
                 }
 
+                // Selection indicator row wrapper
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Checkmark for selection mode
+                    if (isSelectionMode) {
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (message.isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else {
+                                // Empty circle placeholder
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Color.Transparent,
+                                    border = androidx.compose.foundation.BorderStroke(
+                                        2.dp,
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                    ),
+                                    modifier = Modifier.size(24.dp)
+                                ) {}
+                            }
+                        }
+                    }
+
                 Surface(
                     color = when {
+                        message.isSelected -> SelectionOverlayColor
                         message.isFromCurrentUser -> MaterialTheme.colorScheme.primaryContainer
                         else -> MaterialTheme.colorScheme.surfaceVariant
                     },
@@ -152,8 +224,14 @@ fun MessageItem(
                     modifier = Modifier
                         .widthIn(max = 280.dp)
                         .combinedClickable(
-                            onClick = { /* Handle click */ },
-                            onLongClick = { onLongClick(message) }
+                            onClick = { 
+                                if (isSelectionMode) onSelect(message) 
+                                // else normal click handler if needed
+                            },
+                            onLongClick = { 
+                                if (!isSelectionMode) onLongClick(message)
+                                else onSelect(message)
+                            }
                         )
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -165,14 +243,111 @@ fun MessageItem(
 
                         // Text Content
                         if (message.content.isNotEmpty()) {
-                            Text(
-                                text = message.content,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (message.isFromCurrentUser)
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            val textColor = if (message.isFromCurrentUser)
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            
+                            val pillColor = if(message.isFromCurrentUser) 
+                                MaterialTheme.colorScheme.surface.copy(alpha=0.3f) 
+                            else 
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha=0.3f)
+
+                            // Get colors outside remember block (Composable context)
+                            val mentionColor = MaterialTheme.colorScheme.primary
+                            val annotatedText = remember(message.content, mentionColor, pillColor) {
+                                MentionTextFormatter.buildMentionText(
+                                    text = message.content,
+                                    mentionColor = mentionColor,
+                                    pillColor = pillColor
+                                )
+                            }
+                            
+                            // Use BasicText with pointerInput to allow long-press to propagate
+                            // This fixes the issue where ClickableText consumes long-press events
+                            var textLayoutResult by remember { mutableStateOf<androidx.compose.ui.text.TextLayoutResult?>(null) }
+                            
+                            androidx.compose.foundation.text.BasicText(
+                                text = annotatedText,
+                                style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
+                                onTextLayout = { textLayoutResult = it },
+                                modifier = Modifier.pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onTap = { offset ->
+                                            // Only handle taps on mentions, don't consume long-press
+                                            textLayoutResult?.let { layoutResult ->
+                                                val position = layoutResult.getOffsetForPosition(offset)
+                                                val annotations = annotatedText.getStringAnnotations(
+                                                    tag = "MENTION", 
+                                                    start = position, 
+                                                    end = position
+                                                )
+                                                if (annotations.isNotEmpty()) {
+                                                    showMentionDialogForUser = annotations.first().item
+                                                } else if (isSelectionMode) {
+                                                    // Forward tap to parent for selection
+                                                    onSelect(message)
+                                                }
+                                            }
+                                        },
+                                        onLongPress = {
+                                            // Forward long-press to parent handler
+                                            if (!isSelectionMode) {
+                                                onLongClick(message)
+                                            } else {
+                                                onSelect(message)
+                                            }
+                                        }
+                                    )
+                                }
                             )
+                        }
+
+                        // Link Preview
+                        message.linkPreview?.let { preview ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Surface(
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(8.dp)) {
+                                    preview.imageUrl?.let { imgUrl ->
+                                        AsyncImage(
+                                            model = imgUrl,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .heightIn(max = 120.dp)
+                                                .clip(RoundedCornerShape(8.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                    }
+                                    preview.title?.let { title ->
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    preview.description?.let { desc ->
+                                        Text(
+                                            text = desc,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    Text(
+                                        text = preview.domain,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                    )
+                                }
+                            }
                         }
 
                         // Timestamp & Status
@@ -209,6 +384,7 @@ fun MessageItem(
                         }
                     }
                 }
+                } // Close Row wrapper for selection indicator
             }
         }
     }

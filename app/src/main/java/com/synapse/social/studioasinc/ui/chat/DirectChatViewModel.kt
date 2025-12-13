@@ -1,17 +1,20 @@
 package com.synapse.social.studioasinc.ui.chat
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
+import com.synapse.social.studioasinc.backend.LinkPreviewService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
-import com.synapse.social.studioasinc.domain.usecase.ObserveMessagesUseCase
 import com.synapse.social.studioasinc.model.Message
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.UserProfileManager
+import com.synapse.social.studioasinc.util.LinkDetectionService
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
@@ -20,6 +23,9 @@ import kotlinx.serialization.json.JsonObject
 import io.github.jan.supabase.realtime.broadcastFlow
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.decodeRecord
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
+import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
 
 /**
  * ViewModel for DirectChatScreen
@@ -30,8 +36,8 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     // Dependencies
     private val chatDao = AppDatabase.getDatabase(application).chatDao()
     private val chatRepository = ChatRepository(chatDao)
+    private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
-    private val observeMessagesUseCase = ObserveMessagesUseCase(chatDao)
     
     // UI State
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -42,9 +48,16 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     val availableChats: StateFlow<List<ChatForwardUiModel>> = _availableChats.asStateFlow()
 
     private var loadChatsJob: Job? = null
+    private var linkPreviewJob: Job? = null
+    
+    // Link Preview Service
+    private val linkPreviewService = LinkPreviewService()
     
     // Messages list (Source of Truth: Realtime/DB)
     private val _dbMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
+    
+    // Storage Service
+    private val storageService = com.synapse.social.studioasinc.backend.SupabaseStorageService()
 
     // Optimistic Messages (Temporary local state)
     private val _optimisticMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
@@ -79,8 +92,40 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
         // Ensure sorted by timestamp descending (newest first) ?? No, UI expects newest at bottom usually, but LazyColumn is reversed. 
         // The original code passed `items(messages.reversed())` to a reversed LazyColumn.
         // That means `messages` should be sorted Oldest -> Newest (ascending timestamp).
-        merged.sortedBy { it.timestamp }
+        val sorted = merged.sortedBy { it.timestamp }
+        calculateMessagePositions(sorted)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private fun calculateMessagePositions(messages: List<MessageUiModel>): List<MessageUiModel> {
+        if (messages.isEmpty()) return emptyList()
+
+        val groupedMessages = ArrayList<MessageUiModel>(messages.size)
+        val threshold = 60 * 1000 // 60 seconds to group messages
+
+        for (i in messages.indices) {
+            val current = messages[i]
+            val prev = messages.getOrNull(i - 1)
+            val next = messages.getOrNull(i + 1)
+
+            val isSameAsPrev = prev != null && prev.senderId == current.senderId &&
+                    (current.timestamp - prev.timestamp < threshold)
+            
+            val isSameAsNext = next != null && next.senderId == current.senderId &&
+                    (next.timestamp - current.timestamp < threshold)
+
+            val position = when {
+                !isSameAsPrev && !isSameAsNext -> MessagePosition.Single
+                !isSameAsPrev && isSameAsNext -> MessagePosition.First
+                isSameAsPrev && isSameAsNext -> MessagePosition.Middle
+                isSameAsPrev && !isSameAsNext -> MessagePosition.Last
+                else -> MessagePosition.Single
+            }
+
+            groupedMessages.add(current.copy(position = position))
+        }
+
+        return groupedMessages
+    }
     
     private var currentChatId: String? = null
     private var currentUserId: String? = null
@@ -111,6 +156,9 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                     val uiMessages = domainMessages.map { it.toUiModel(currentUserId) }
                     _dbMessages.value = uiMessages
                     _uiState.update { it.copy(isLoading = false, error = null) }
+                    
+                    // Fetch link previews for messages containing URLs
+                    fetchLinkPreviewsForMessages(uiMessages)
                     
                     // Start realtime observation
                     observeRealtimeMessages(chatId)
@@ -154,18 +202,9 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             val channel = realtimeService.subscribeToChat(chatId)
             
             // 2. Observe DB/Messages Flow from UseCase (Maintains Source of Truth / Initial History)
-            launch {
-                observeMessagesUseCase(chatId)
-                    .onEach { messageList ->
-                        val uiMessages = messageList.map { it.toUiModel(currentUserId) }
-                        _dbMessages.value = uiMessages
-                    }
-                    .catch { e ->
-                        // Log error but don't show to UI to avoid flickering if realtime is working
-                        android.util.Log.e("DirectChatViewModel", "Error observing messages use case", e)
-                    }
-                    .collect()
-            }
+            // REMOVED: observeMessagesUseCase caused issues by potentially emitting empty lists on error
+            // and conflicting with the manual postgresChangeFlow below.
+            // We rely on loadChat() for the initial fetch and the postgresChangeFlow below for updates.
 
             // 3. Observe Messages (Insert/Update/Delete) via Postgres Changes (Latency Compensation / Direct Updates)
             // This runs in parallel to observeMessagesUseCase to provide immediate UI updates
@@ -258,10 +297,13 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
      * Handle incoming new message
      */
     private fun handleMessageInsert(message: Message) {
-        val uiMessage = message.toUiModel(currentUserId)
+        val uiMessage = message.toUiModel(currentUserId).copy(isAnimating = true)
         _dbMessages.update { current ->
             if (current.any { it.id == uiMessage.id }) current else current + uiMessage
         }
+        
+        // Fetch link preview if message contains URL
+        fetchLinkPreviewForMessage(uiMessage)
     }
 
     /**
@@ -292,6 +334,36 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             is ChatIntent.SendMessage -> sendMessage(intent.content)
             is ChatIntent.UpdateInputText -> {
                 _uiState.update { it.copy(inputText = intent.text) }
+                // Check for mention
+                val mentionQuery = MentionHelper.getMentionQuery(intent.text)
+                if (mentionQuery != null) {
+                    viewModelScope.launch {
+                        searchRepository.searchUsers(mentionQuery.query).onSuccess { users ->
+                             _uiState.update { it.copy(mentionSuggestions = users) }
+                        }.onFailure {
+                             _uiState.update { it.copy(mentionSuggestions = emptyList()) }
+                        }
+                    }
+                } else {
+                     _uiState.update { it.copy(mentionSuggestions = emptyList()) }
+                }
+                // Debounced link detection
+                detectLinksDebounced(intent.text.text)
+            }
+            is ChatIntent.InsertMention -> {
+                val currentInput = _uiState.value.inputText
+                val mentionQuery = MentionHelper.getMentionQuery(currentInput)
+                if (mentionQuery != null) {
+                    val range = mentionQuery.range
+                    val newText = currentInput.text.replaceRange(range.start, range.end, "@${intent.user.username} ")
+                    val newCursor = range.start + intent.user.username.length + 2 // @ + name + space
+                    _uiState.update { 
+                        it.copy(
+                            inputText = TextFieldValue(newText, selection = TextRange(newCursor)),
+                            mentionSuggestions = emptyList()
+                        ) 
+                    }
+                }
             }
             is ChatIntent.SetReplyTo -> {
                 _uiState.update { it.copy(replyTo = intent.message) }
@@ -310,7 +382,217 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             is ChatIntent.ForwardMessage -> {
                 forwardMessage(intent.messageId, intent.toChatIds)
             }
+            // Multi-select intents
+            is ChatIntent.ToggleMessageSelection -> {
+                val currentIds = _uiState.value.selectedMessageIds
+                val newIds = if (currentIds.contains(intent.messageId)) {
+                    currentIds - intent.messageId
+                } else {
+                    currentIds + intent.messageId
+                }
+                _uiState.update { 
+                    it.copy(
+                        selectedMessageIds = newIds,
+                        isMultiSelectMode = newIds.isNotEmpty()
+                    )
+                }
+            }
+            is ChatIntent.EnterMultiSelectMode -> {
+                _uiState.update { it.copy(isMultiSelectMode = true) }
+            }
+            is ChatIntent.ExitMultiSelectMode -> {
+                _uiState.update { it.copy(isMultiSelectMode = false, selectedMessageIds = emptySet()) }
+            }
+            is ChatIntent.DeleteSelectedMessages -> {
+                viewModelScope.launch {
+                    _uiState.value.selectedMessageIds.forEach { deleteMessage(it) }
+                    _uiState.update { it.copy(isMultiSelectMode = false, selectedMessageIds = emptySet()) }
+                }
+            }
+            is ChatIntent.CopySelectedMessages -> {
+                val selectedMsgs = messages.value.filter { _uiState.value.selectedMessageIds.contains(it.id) }
+                val content = selectedMsgs
+                    .sortedBy { it.timestamp }
+                    .joinToString("\n") { it.content }
+                viewModelScope.launch { 
+                    _effects.send(ChatEffect.CopyToClipboard(content))
+                    _effects.send(ChatEffect.ShowSnackbar("Copied ${selectedMsgs.size} message(s)"))
+                    _uiState.update { it.copy(isMultiSelectMode = false, selectedMessageIds = emptySet()) }
+                }
+            }
+            is ChatIntent.ForwardSelectedMessages -> {
+                // Load chats for forwarding, UI will handle showing the sheet
+                loadUserChats()
+            }
+            // Media picker intents
+            is ChatIntent.ShowMediaPicker -> {
+                _uiState.update { it.copy(showMediaPicker = true) }
+            }
+            is ChatIntent.HideMediaPicker -> {
+                _uiState.update { it.copy(showMediaPicker = false) }
+            }
+            is ChatIntent.AddPendingAttachment -> {
+                val pending = PendingAttachment(
+                    id = "pending_${System.currentTimeMillis()}",
+                    uri = intent.uri,
+                    type = intent.type
+                )
+                _uiState.update { 
+                    it.copy(pendingAttachments = it.pendingAttachments + pending)
+                }
+            }
+            is ChatIntent.RemovePendingAttachment -> {
+                _uiState.update {
+                    it.copy(pendingAttachments = it.pendingAttachments.filter { p -> p.id != intent.id })
+                }
+            }
+            is ChatIntent.ClearPendingAttachments -> {
+                _uiState.update { it.copy(pendingAttachments = emptyList()) }
+            }
+            is ChatIntent.SendWithAttachments -> {
+                sendMediaMessage()
+            }
             else -> { /* TODO: Implement other intents */ }
+        }
+    }
+
+    /**
+     * Debounced link detection - triggers link preview fetch after user stops typing
+     */
+    private fun detectLinksDebounced(text: String) {
+        linkPreviewJob?.cancel()
+        
+        // Clear preview if text is empty or no links
+        if (text.isBlank() || !LinkDetectionService.containsUrl(text)) {
+            _uiState.update { it.copy(detectedLinkPreview = null, linkPreviewLoading = false) }
+            return
+        }
+        
+        linkPreviewJob = viewModelScope.launch {
+            delay(500) // 500ms debounce
+            
+            val url = LinkDetectionService.extractFirstUrl(text) ?: return@launch
+            
+            // Don't refetch if same URL
+            if (_uiState.value.detectedLinkPreview?.url == url) return@launch
+            
+            _uiState.update { it.copy(linkPreviewLoading = true) }
+            
+            linkPreviewService.fetchLinkPreview(url)
+                .onSuccess { preview ->
+                    _uiState.update { 
+                        it.copy(detectedLinkPreview = preview, linkPreviewLoading = false)
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(linkPreviewLoading = false) }
+                }
+        }
+    }
+
+    /**
+     * Fetch link preview for a single message and update it in the message list
+     */
+    private fun fetchLinkPreviewForMessage(message: MessageUiModel) {
+        // Skip if no URL or already has preview
+        if (message.linkPreview != null) return
+        
+        val url = LinkDetectionService.extractFirstUrl(message.content) ?: return
+        
+        viewModelScope.launch {
+            linkPreviewService.fetchLinkPreview(url)
+                .onSuccess { preview ->
+                    // Update the message with the fetched preview
+                    _dbMessages.update { current ->
+                        current.map { msg ->
+                            if (msg.id == message.id) msg.copy(linkPreview = preview) else msg
+                        }
+                    }
+                    // Also update optimistic messages if applicable
+                    _optimisticMessages.update { current ->
+                        current.map { msg ->
+                            if (msg.id == message.id) msg.copy(linkPreview = preview) else msg
+                        }
+                    }
+                }
+        }
+    }
+    
+    /**
+     * Fetch link previews for all messages containing URLs (batch processing)
+     */
+    private fun fetchLinkPreviewsForMessages(messages: List<MessageUiModel>) {
+        viewModelScope.launch {
+            messages.forEach { message ->
+                fetchLinkPreviewForMessage(message)
+            }
+        }
+    }
+
+    /**
+     * Send media message with pending attachments
+     */
+    private fun sendMediaMessage() {
+        val chatId = currentChatId ?: return
+        val senderId = currentUserId ?: return
+        val pending = _uiState.value.pendingAttachments
+        
+        if (pending.isEmpty()) return
+        
+        val caption = _uiState.value.inputText.text.takeIf { it.isNotBlank() }
+        val tempId = "temp_${System.currentTimeMillis()}"
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isUploadingMedia = true) }
+            
+            // Upload each attachment
+            val uploadedUrls = mutableListOf<String>()
+            pending.forEach { attachment ->
+                try {
+                    val bytes = getApplication<Application>().contentResolver
+                        .openInputStream(attachment.uri)?.use { it.readBytes() }
+                        ?: return@forEach
+                    
+                    val fileName = "upload_${System.currentTimeMillis()}"
+                    val path = storageService.generateStoragePath(chatId, fileName)
+                    
+                    storageService.uploadFileBytes(bytes, path)
+                        .onSuccess { url -> uploadedUrls.add(url) }
+                }  catch (e: Exception) {
+                    // Log error but continue
+                }
+            }
+            
+            if (uploadedUrls.isNotEmpty()) {
+                // Send message with first attachment URL (or all as content for now)
+                val type = when (pending.first().type) {
+                    AttachmentType.Image -> "image"
+                    AttachmentType.Video -> "video"
+                    AttachmentType.Audio -> "audio"
+                    else -> "file"
+                }
+                
+                val content = caption ?: uploadedUrls.first()
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    senderId = senderId,
+                    content = content,
+                    messageType = type
+                )
+                
+                _effects.send(ChatEffect.ShowSnackbar("Media sent"))
+            } else {
+                _effects.send(ChatEffect.ShowSnackbar("Failed to upload media"))
+            }
+            
+            _uiState.update { 
+                it.copy(
+                    pendingAttachments = emptyList(),
+                    isUploadingMedia = false,
+                    inputText = androidx.compose.ui.text.input.TextFieldValue(""),
+                    showMediaPicker = false
+                )
+            }
         }
     }
 
@@ -457,7 +739,10 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
         val tempId = "temp_${System.currentTimeMillis()}"
 
         viewModelScope.launch {
-            // Optimistic Update: Add to optimistic state
+            // 1. Trigger coordinated animation sequence
+            _uiState.update { it.copy(isSendingAnimation = true) }
+            
+            // 2. Optimistic Update: Add to optimistic state
             val optimisticMessage = MessageUiModel(
                 id = tempId,
                 content = content,
@@ -476,12 +761,18 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                         senderName = it.senderName ?: "User",
                         content = it.content
                     )
-                }
+                },
+                isAnimating = true // Mark as newly sent for animation
             )
             
             _optimisticMessages.update { it + optimisticMessage }
-            _uiState.update { it.copy(inputText = "", replyTo = null) }
+            _uiState.update { it.copy(inputText = TextFieldValue(""), replyTo = null) }
             
+            // 3. Reset animation flag after input clear animation completes
+            delay(100) // Match SendInputClearDuration
+            _uiState.update { it.copy(isSendingAnimation = false) }
+            
+            // 4. Network send
             val result = chatRepository.sendMessage(
                 chatId = chatId,
                 senderId = senderId,
@@ -494,14 +785,14 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                 // Success: Update the optimistic message with the Real ID.
                 _optimisticMessages.update { list -> 
                     list.map { 
-                        if (it.id == tempId) it.copy(id = realMessageId, deliveryStatus = DeliveryStatus.Sent) else it 
+                        if (it.id == tempId) it.copy(id = realMessageId, deliveryStatus = DeliveryStatus.Sent, isAnimating = false) else it 
                     } 
                 }
             }.onFailure { error ->
                 // Mark optimistic message as failed
                 _optimisticMessages.update { list ->
                     list.map {
-                        if (it.id == tempId) it.copy(deliveryStatus = DeliveryStatus.Failed) else it
+                        if (it.id == tempId) it.copy(deliveryStatus = DeliveryStatus.Failed, isAnimating = false) else it
                     }
                 }
                 _uiState.update { it.copy(error = "Failed to send: ${error.message}") }
@@ -542,6 +833,32 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
              null
         } else null
 
+        // Handle attachments: Use existing list OR create synthetic one from content if it's a media message
+        val uiAttachments = if (!this.attachments.isNullOrEmpty()) {
+            this.attachments.map {
+                AttachmentUiModel(
+                    id = it.id,
+                    url = it.url,
+                    type = mapAttachmentType(it.type),
+                    thumbnailUrl = it.thumbnailUrl,
+                    fileName = it.fileName,
+                    fileSize = it.fileSize
+                )
+            }
+        } else if (this.isMediaMessage() && this.content.startsWith("http")) {
+            // Synthetic attachment from content URL
+            listOf(AttachmentUiModel(
+                id = this.id, // Use message ID for attachment ID
+                url = this.content,
+                type = mapAttachmentType(this.messageType),
+                fileName = "Media", // Generic name
+                fileSize = 0L,
+                thumbnailUrl = null // No thumbnail available
+            ))
+        } else {
+            emptyList()
+        }
+
         return MessageUiModel(
             id = this.id,
             content = this.content,
@@ -555,16 +872,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             deliveryStatus = DeliveryStatus.Read, // Placeholder
             position = MessagePosition.Single,
             replyTo = replyPreview,
-            attachments = this.attachments?.map {
-                AttachmentUiModel(
-                    id = it.id,
-                    url = it.url,
-                    type = mapAttachmentType(it.type),
-                    thumbnailUrl = it.thumbnailUrl,
-                    fileName = it.fileName,
-                    fileSize = it.fileSize
-                )
-            }
+            attachments = uiAttachments
         )
     }
 
@@ -659,60 +967,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
      * Backend Context:
      * 1. Supabase Storage: Use bucket 'chat-attachments'.
      * 2. Path structure: '{chat_id}/{timestamp}_{filename}'.
-     * 3. Process:
-     *    a. uploadFile(bucket, path, fileBytes)
-     *    b. getPublicUrl(bucket, path)
-     *    c. sendMessage(type="image/video", content=publicUrl)
-     * 4. RLS: Storage bucket needs 'authenticated' role permissions.
      */
-    private val storageService = com.synapse.social.studioasinc.backend.SupabaseStorageService()
-
-    /**
-     * Upload and Send Attachment
-     */
-    fun sendAttachment(uri: Any, type: String) {
-         val contentUri = uri as? android.net.Uri ?: return
-         val chatId = currentChatId ?: return
-         
-         viewModelScope.launch {
-             try {
-                 _effects.send(ChatEffect.ShowSnackbar("Uploading..."))
-                 
-                 val bytes = getApplication<Application>().contentResolver.openInputStream(contentUri)?.use { 
-                     it.readBytes() 
-                 } ?: throw Exception("Failed to read file")
-                 
-                 // Generate path: chat_id/timestamp_filename
-                 val filename = "upload_${System.currentTimeMillis()}" // Simple filename for now
-                 val path = storageService.generateStoragePath(chatId, filename)
-                 
-                 val result = storageService.uploadFileBytes(bytes, path)
-                 
-                 result.onSuccess { publicUrl ->
-                     sendMessage(content = publicUrl) // Send as text url for now? Or update sendMessage to support types?
-                     // Verify: sendMessage implementation hardcodes "text" currently.
-                     // I need to update sendMessage to accept messageType.
-                     // But for now, let's just send the URL. 
-                     // Wait, the UI needs to know it's an image.
-                     // I should call a modified sendMessage or update sendMessage signature.
-                     
-                     // Let's check sendMessage signature below. 
-                     // It calls repository.sendMessage(..., messageType = "text", ...)
-                     // I need to overload sendMessage or change it.
-                     
-                     // Direct call to repository for now to bypass the hardcoded "text" in the private helper
-                     // Actually, better to refactor the private helper `sendMessage` to take `type`.
-                     
-                     sendMessage(content = publicUrl, type = "image") 
-                 }.onFailure {
-                     _uiState.update { state -> state.copy(error = "Upload failed: ${it.message}") }
-                 }
-                 
-             } catch (e: Exception) {
-                 _uiState.update { state -> state.copy(error = "Upload error: ${e.message}") }
-             }
-         }
-    }
 
     /**
      * Set Typing Status

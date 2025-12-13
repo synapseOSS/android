@@ -93,58 +93,77 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private val reactionRepository: com.synapse.social.studioasinc.data.repository.ReactionRepository = com.synapse.social.studioasinc.data.repository.ReactionRepository()
+
     fun likePost(post: Post) {
-        viewModelScope.launch {
-             try {
-                 val currentUserId = authRepository.getCurrentUserId()
-                 if (currentUserId != null) {
-                    // Optimistic update
-                    val isLiked = post.hasUserReacted() // Assuming this checks local state
-                    // Note: Post logic for 'hasUserReacted' depends on transient 'userReaction'.
-                    // We need to toggle it.
-                    val newReaction = if (isLiked) null else ReactionType.LIKE
-                    val newCount = if (isLiked) post.likesCount - 1 else post.likesCount + 1
-                    
-                    // Construct updated post
-                    // We are hacking slightly as 'reactions' map is transient.
-                    // We need a proper copy method that handles transient fields if we want them to persist in UI state.
-                    val updatedReactions = post.reactions?.toMutableMap() ?: mutableMapOf()
-                    // Simplification for demo: just toggle like count and 'userReaction'
-                    // In real app, we need to be careful with total counts vs specific reaction counts.
-                    
-                    val updatedPost = post.copy(
-                         likesCount = newCount
-                    ).apply {
-                        userReaction = newReaction
-                        // Re-calculate determined fields if needed
-                    }
-
-                    // Update Local
-                    _modifiedPosts.update { it + (post.id to updatedPost) }
-                    
-                    // Emit Global Event
-                    PostEventBus.emit(PostEvent.Updated(updatedPost))
-
-                    postRepository.toggleReaction(post.id, currentUserId, ReactionType.LIKE)
-                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                // Revert?
-            }
-        }
+        performReaction(post, ReactionType.LIKE)
     }
     
     fun reactToPost(post: Post, reactionType: ReactionType) {
-        viewModelScope.launch {
-            try {
-                val currentUserId = authRepository.getCurrentUserId()
-                if (currentUserId != null) {
-                    postRepository.toggleReaction(post.id, currentUserId, reactionType)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        performReaction(post, reactionType)
+    }
+
+    private fun performReaction(post: Post, reactionType: ReactionType) {
+         viewModelScope.launch {
+             // 1. Calculate Optimistic Update
+             val currentReaction = post.userReaction
+             
+             // Toggle logic: If selecting same reaction -> Remove. If different -> Update/Add.
+             val isRemoving = currentReaction == reactionType
+             val newReaction = if (isRemoving) null else reactionType
+             
+             // Calculate count change
+             // If removing: -1
+             // If adding (was null): +1
+             // If changing (was A, now B): 0
+             val countChange = when {
+                 isRemoving -> -1
+                 currentReaction == null -> 1
+                 else -> 0
+             }
+             
+             val newCount = post.likesCount + countChange
+             
+             // Update reactions summary map locally
+             val updatedReactions = post.reactions?.toMutableMap() ?: mutableMapOf()
+             if (isRemoving) {
+                 val currentCount = updatedReactions[reactionType] ?: 1
+                 updatedReactions[reactionType] = maxOf(0, currentCount - 1)
+             } else {
+                 // Decrement old if exists
+                 if (currentReaction != null) {
+                     val oldTypeCount = updatedReactions[currentReaction] ?: 1
+                     updatedReactions[currentReaction] = maxOf(0, oldTypeCount - 1)
+                 }
+                 // Increment new
+                 val newTypeCount = updatedReactions[reactionType] ?: 0
+                 updatedReactions[reactionType] = newTypeCount + 1
+             }
+
+             // Create Updated Post
+             val updatedPost = post.copy(
+                 likesCount = maxOf(0, newCount),
+                 userReaction = newReaction,
+                 reactions = updatedReactions
+             )
+
+             // 2. Apply Local Update
+             _modifiedPosts.update { it + (post.id to updatedPost) }
+             PostEventBus.emit(PostEvent.Updated(updatedPost))
+
+             // 3. Remote Update
+             try {
+                  reactionRepository.toggleReaction(post.id, "post", reactionType).onFailure {
+                      // Revert on failure
+                      _modifiedPosts.update { map -> map + (post.id to post) }
+                      PostEventBus.emit(PostEvent.Updated(post))
+                  }
+             } catch (e: Exception) {
+                  // Revert on exception
+                  _modifiedPosts.update { map -> map + (post.id to post) }
+                  PostEventBus.emit(PostEvent.Updated(post))
+             }
+         }
     }
     
     fun votePoll(post: Post, optionIndex: Int) {

@@ -6,6 +6,7 @@ package com.synapse.social.studioasinc.ui.chat
 // TODO: Implement Delete Chat - Handle soft delete and navigation after success
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.automirrored.filled.Forward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -44,6 +47,8 @@ import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
 import com.synapse.social.studioasinc.ui.chat.components.MessageItem
 import com.synapse.social.studioasinc.ui.chat.components.ForwardMessageSheet
 import com.synapse.social.studioasinc.ui.chat.components.topbar.ChatTopBar
+import com.synapse.social.studioasinc.ui.chat.components.topbar.SelectionModeTopBar
+import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
 import com.synapse.social.studioasinc.ui.chat.RealtimeConnectionState
 import kotlinx.coroutines.launch
 
@@ -90,16 +95,45 @@ fun DirectChatScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
 
-    // Media Picker
+    // Media Pickers
     val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
-             viewModel.sendAttachment(uri, "image")
+            viewModel.handleIntent(ChatIntent.AddPendingAttachment(uri, AttachmentType.Image))
+            viewModel.handleIntent(ChatIntent.HideMediaPicker)
+        }
+    }
+    
+    val pickVideo = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            viewModel.handleIntent(ChatIntent.AddPendingAttachment(uri, AttachmentType.Video))
+            viewModel.handleIntent(ChatIntent.HideMediaPicker)
+        }
+    }
+    
+    val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            viewModel.handleIntent(ChatIntent.AddPendingAttachment(uri, AttachmentType.Audio))
+            viewModel.handleIntent(ChatIntent.HideMediaPicker)
         }
     }
 
     // Effect: Load Chat
     LaunchedEffect(chatId) {
         viewModel.loadChat(chatId)
+    }
+
+    // Effect: Auto-scroll to bottom when new user message is added
+    var previousMessageCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(messages.size) {
+        if (messages.size > previousMessageCount) {
+            // Scroll if we have new messages and the latest one is from current user
+            if (messages.isNotEmpty() && messages.last().isFromCurrentUser) {
+                // Delay to let bubble entrance animation start (per spec)
+                kotlinx.coroutines.delay(50)
+                listState.animateScrollToItem(0)
+            }
+        }
+        previousMessageCount = messages.size
     }
 
     // Effect: Handle One-time Effects
@@ -186,6 +220,14 @@ fun DirectChatScreen(
                         }
                     )
                 }
+                ListItem(
+                    headlineContent = { Text("Select") },
+                    leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.CheckCircle, contentDescription = null) },
+                    modifier = Modifier.clickable {
+                        viewModel.handleIntent(ChatIntent.ToggleMessageSelection(msg.id))
+                        scope.launch { sheetState.hide() }.invokeOnCompletion { showMessageOptions = false }
+                    }
+                )
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
@@ -275,46 +317,144 @@ fun DirectChatScreen(
         )
     }
 
+    // Derived: Check if all selected messages are text (for copy action)
+    val canCopySelected = remember(uiState.selectedMessageIds, messages) {
+        val selectedMsgs = messages.filter { uiState.selectedMessageIds.contains(it.id) }
+        selectedMsgs.isNotEmpty() && selectedMsgs.all { it.messageType == MessageType.Text }
+    }
+
+    // Multi-select delete confirmation dialog
+    var showDeleteSelectedDialog by remember { mutableStateOf(false) }
+    
+    if (showDeleteSelectedDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteSelectedDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = { Text("Delete ${uiState.selectedMessageIds.size} message(s)?") },
+            text = { Text("This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteSelectedDialog = false
+                        viewModel.handleIntent(ChatIntent.DeleteSelectedMessages)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteSelectedDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Multi-select forward sheet
+    var showForwardSelectedSheet by remember { mutableStateOf(false) }
+    
+    if (showForwardSelectedSheet && uiState.selectedMessageIds.isNotEmpty()) {
+        ForwardMessageSheet(
+            chats = availableChats,
+            onDismiss = { showForwardSelectedSheet = false },
+            onForward = { chatIds ->
+                // Forward each selected message to selected chats
+                uiState.selectedMessageIds.forEach { messageId ->
+                    viewModel.handleIntent(ChatIntent.ForwardMessage(messageId, chatIds))
+                }
+                showForwardSelectedSheet = false
+                viewModel.handleIntent(ChatIntent.ExitMultiSelectMode)
+            }
+        )
+    }
+
+    // Media Picker Bottom Sheet
+    if (uiState.showMediaPicker) {
+        MediaPickerBottomSheet(
+            onDismiss = { viewModel.handleIntent(ChatIntent.HideMediaPicker) },
+            onSelectCamera = {
+                // TODO: Implement camera capture
+                viewModel.handleIntent(ChatIntent.HideMediaPicker)
+            },
+            onSelectGallery = {
+                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            },
+            onSelectVideo = {
+                pickVideo.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
+            },
+            onSelectAudio = {
+                pickAudio.launch("audio/*")
+            },
+            onVoiceRecord = {
+                // TODO: Implement voice recording UI
+                viewModel.handleIntent(ChatIntent.HideMediaPicker)
+            }
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            ChatTopBar(
-                userInfo = uiState.otherUser,
-                connectionState = RealtimeConnectionState.Connected, // TODO: observe real connection state
-                onBackClick = onBackClick,
-                onProfileClick = { /* TODO: Open Profile */ },
-                onCallClick = { /* TODO: Call */ },
-                onVideoCallClick = { /* TODO: Video Call */ },
-                onMenuClick = { showTopBarMenu = true },
-                isMenuExpanded = showTopBarMenu,
-                onDismissMenu = { showTopBarMenu = false },
-                menuContent = {
-                    DropdownMenuItem(
-                        text = { Text("Block User") },
-                        onClick = { 
-                            showTopBarMenu = false
-                            showBlockDialog = true
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Report User") },
-                        onClick = {
-                            showTopBarMenu = false
-                             // TODO: Report User
-                            // Backend: Insert into 'reports' table.
-                            viewModel.reportUser(uiState.otherUser?.id ?: "")
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Delete Chat") },
-                        onClick = {
-                            showTopBarMenu = false
-                            showDeleteChatDialog = true
-                        },
-                         colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error)
-                    )
-                }
-            )
+            if (uiState.isMultiSelectMode) {
+                SelectionModeTopBar(
+                    selectedCount = uiState.selectedMessageIds.size,
+                    canCopy = canCopySelected,
+                    onBackClick = { viewModel.handleIntent(ChatIntent.ExitMultiSelectMode) },
+                    onDeleteClick = { showDeleteSelectedDialog = true },
+                    onCopyClick = { viewModel.handleIntent(ChatIntent.CopySelectedMessages) },
+                    onForwardClick = { 
+                        viewModel.loadUserChats()
+                        showForwardSelectedSheet = true 
+                    }
+                )
+            } else {
+                ChatTopBar(
+                    userInfo = uiState.otherUser,
+                    connectionState = RealtimeConnectionState.Connected, // TODO: observe real connection state
+                    onBackClick = onBackClick,
+                    onProfileClick = { /* TODO: Open Profile */ },
+                    onCallClick = { /* TODO: Call */ },
+                    onVideoCallClick = { /* TODO: Video Call */ },
+                    onMenuClick = { showTopBarMenu = true },
+                    isMenuExpanded = showTopBarMenu,
+                    onDismissMenu = { showTopBarMenu = false },
+                    menuContent = {
+                        DropdownMenuItem(
+                            text = { Text("Block User") },
+                            onClick = { 
+                                showTopBarMenu = false
+                                showBlockDialog = true
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Report User") },
+                            onClick = {
+                                showTopBarMenu = false
+                                 // TODO: Report User
+                                // Backend: Insert into 'reports' table.
+                                viewModel.reportUser(uiState.otherUser?.id ?: "")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete Chat") },
+                            onClick = {
+                                showTopBarMenu = false
+                                showDeleteChatDialog = true
+                            },
+                             colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error)
+                        )
+                    }
+                )
+            }
         }
     ) { paddingValues ->
         Box(
@@ -342,10 +482,37 @@ fun DirectChatScreen(
                     items = messages.reversed(), // Reverse list because LazyColumn is reversed
                     key = { it.id }
                 ) { message ->
-                    // Animate item placement
-                    Box(modifier = Modifier) {
+                    // Animate item placement with smooth entrance for new messages
+                    val isNewMessage = message.isAnimating
+                    
+                    // Entrance animation for new messages
+                    var visible by remember { mutableStateOf(!isNewMessage) }
+                    LaunchedEffect(message.id) {
+                        if (isNewMessage) {
+                            kotlinx.coroutines.delay(50) // Small delay for stagger effect
+                            visible = true
+                        }
+                    }
+                    
+                    AnimatedVisibility(
+                        visible = visible || !isNewMessage,
+                        enter = fadeIn(
+                            animationSpec = tween(150, easing = androidx.compose.animation.core.FastOutSlowInEasing)
+                        ) + scaleIn(
+                            initialScale = 0.92f,
+                            animationSpec = tween(150, easing = androidx.compose.animation.core.FastOutSlowInEasing)
+                        ),
+                        modifier = Modifier.animateItem(
+                            placementSpec = spring<IntOffset>(
+                                dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+                                stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+                            )
+                        )
+                    ) {
                         MessageItem(
-                            message = message,
+                            message = message.copy(isSelected = uiState.selectedMessageIds.contains(message.id)),
+                            isSelectionMode = uiState.isMultiSelectMode,
+                            onSelect = { msg -> viewModel.handleIntent(ChatIntent.ToggleMessageSelection(msg.id)) },
                             onReply = { msg -> viewModel.handleIntent(ChatIntent.SetReplyTo(msg)) },
                             onLongClick = { msg -> 
                                 selectedMessage = msg
@@ -390,34 +557,40 @@ fun DirectChatScreen(
                 }
             }
 
-            // Floating Input Bar
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .onGloballyPositioned { coordinates ->
-                        inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
-                    }
-            ) {
-                ChatInputBar(
-                    value = uiState.inputText,
-                    onValueChange = { 
-                        viewModel.handleIntent(ChatIntent.UpdateInputText(it)) 
-                        // TODO: Trigger Typing Indicator
-                        // Backend: Update Realtime Presence 'is_typing: true'
-                        if (it.isNotEmpty()) viewModel.setTypingStatus(true)
-                    },
-                    onSendClick = { 
-                        viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText))
-                        // Backend: Presence 'is_typing: false'
-                        viewModel.setTypingStatus(false)
-                    },
-                    onAttachClick = { 
-                        pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    },
-                    replyingTo = uiState.replyTo,
-                    onCancelReply = { viewModel.handleIntent(ChatIntent.ClearReply) },
-                    typingUsers = uiState.typingUsers
-                )
+            // Floating Input Bar (hidden during selection mode)
+            if (!uiState.isMultiSelectMode) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .onGloballyPositioned { coordinates ->
+                            inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
+                        }
+                ) {
+                    ChatInputBar(
+                        value = uiState.inputText,
+                        onValueChange = { 
+                            viewModel.handleIntent(ChatIntent.UpdateInputText(it)) 
+                            // Backend: Update Realtime Presence 'is_typing: true'
+                            if (it.text.isNotEmpty()) viewModel.setTypingStatus(true)
+                        },
+                        onSendClick = { 
+                            viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText.text))
+                            // Backend: Presence 'is_typing: false'
+                            viewModel.setTypingStatus(false)
+                        },
+                        suggestions = uiState.mentionSuggestions,
+                        onInsertMention = { user ->
+                            viewModel.handleIntent(ChatIntent.InsertMention(user))
+                        },
+                        onAttachClick = { 
+                            viewModel.handleIntent(ChatIntent.ShowMediaPicker)
+                        },
+                        replyingTo = uiState.replyTo,
+                        onCancelReply = { viewModel.handleIntent(ChatIntent.ClearReply) },
+                        typingUsers = uiState.typingUsers,
+                        isSending = uiState.isSendingAnimation  // Animation trigger
+                    )
+                }
             }
         }
     }

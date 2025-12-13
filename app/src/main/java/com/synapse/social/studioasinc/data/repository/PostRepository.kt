@@ -423,75 +423,47 @@ class PostRepository(private val postDao: PostDao) {
 
     fun observePosts(): Flow<List<Post>> = flow { emit(emptyList()) }
 
-    // TODO: Optimization (Network/Atomicity) - This function lacks atomicity and makes multiple network calls. Suggest replacing this logic with a Supabase Edge Function or Postgres RPC.
+    // Delegate to ReactionRepository for Single Source of Truth
+    private val reactionRepository = ReactionRepository()
+
     suspend fun toggleReaction(
         postId: String,
         userId: String,
         reactionType: ReactionType
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            android.util.Log.d(TAG, "Toggling reaction: ${reactionType.name} for post $postId")
-            val currentUser = client.auth.currentUserOrNull()
-            if (currentUser == null || userId.isEmpty()) {
-                return@withContext Result.failure(Exception("User must be authenticated to react"))
-            }
-            var lastException: Exception? = null
-            repeat(3) { attempt ->
-                try {
-                    val existingReaction = client.from("reactions")
-                        .select { filter { eq("post_id", postId); eq("user_id", userId) } }
-                        .decodeSingleOrNull<JsonObject>()
-
-                    if (existingReaction != null) {
-                        val existingType = existingReaction["reaction_type"]?.jsonPrimitive?.contentOrNull
-                        if (existingType == reactionType.name.lowercase()) {
-                            client.from("reactions")
-                                .delete { filter { eq("post_id", postId); eq("user_id", userId) } }
-                            android.util.Log.d(TAG, "Reaction removed")
-                        } else {
-                            client.from("reactions")
-                                .update({
-                                    set("reaction_type", reactionType.name.lowercase())
-                                    set("updated_at", java.time.Instant.now().toString())
-                                }) { filter { eq("post_id", postId); eq("user_id", userId) } }
-                            android.util.Log.d(TAG, "Reaction updated to ${reactionType.name}")
-                        }
-                    } else {
-                        client.from("reactions").insert(buildJsonObject {
-                            put("user_id", userId)
-                            put("post_id", postId)
-                            put("reaction_type", reactionType.name.lowercase())
-                        })
-                        android.util.Log.d(TAG, "New reaction created")
-                    }
-                    return@withContext Result.success(Unit)
-                } catch (e: Exception) {
-                    lastException = e
-                    val isRLSError = e.message?.contains("policy", true) == true
-                    if (isRLSError || attempt == 2) throw e
-                    kotlinx.coroutines.delay(100L * (attempt + 1))
-                }
-            }
-            Result.failure(Exception(mapSupabaseError(lastException ?: Exception("Unknown"))))
-        } catch (e: Exception) {
-            Result.failure(Exception(mapSupabaseError(e)))
-        }
+        // We ignore userId param as ReactionRepository uses the authenticated user securely
+        reactionRepository.toggleReaction(postId, "post", reactionType)
+            .map { Unit } // Convert ReactionToggleResult to Unit for backward compatibility
     }
 
-    suspend fun getReactionSummary(postId: String): Result<Map<ReactionType, Int>> = withContext(Dispatchers.IO) {
-        try {
-            val reactions = client.from("reactions")
-                .select { filter { eq("post_id", postId) } }
-                .decodeList<JsonObject>()
+    suspend fun getReactionSummary(postId: String): Result<Map<ReactionType, Int>> = 
+        reactionRepository.getReactionSummary(postId, "post")
 
-            val summary = reactions
-                .groupBy { ReactionType.fromString(it["reaction_type"]?.jsonPrimitive?.contentOrNull ?: "LIKE") }
-                .mapValues { it.value.size }
-            Result.success(summary)
-        } catch (e: Exception) {
-            Result.failure(Exception(mapSupabaseError(e)))
+    suspend fun getUserReaction(postId: String, userId: String): Result<ReactionType?> = 
+        // ReactionRepository uses current auth user, so we ignore userId param if it matches current user.
+        // If userId != current user, we fall back to manual query or return null as ReactionRepository focuses on 'my' reaction.
+        // However, the original method was fetching *specific* user reaction. 
+        // ReactionRepository.getUserReaction gets *current* user reaction.
+        // If we need another user's reaction, we might need a specific method.
+        // But typically we only check OUR reaction for UI highligts.
+        if (userId == client.auth.currentUserOrNull()?.id) {
+             reactionRepository.getUserReaction(postId, "post")
+        } else {
+             // Fallback for other users (rarely used for "My Reaction" state)
+             // We can keep the manual query here if needed, or assume it's mostly for "me".
+             // Let's implement the manual query using the unified table structure just in case.
+             withContext(Dispatchers.IO) {
+                 try {
+                     val reaction = client.from("reactions")
+                         .select { filter { eq("post_id", postId); eq("user_id", userId) } }
+                         .decodeSingleOrNull<JsonObject>()
+                     val typeStr = reaction?.get("reaction_type")?.jsonPrimitive?.contentOrNull
+                     Result.success(typeStr?.let { ReactionType.fromString(it) })
+                 } catch (e: Exception) {
+                     Result.failure(Exception("Error fetching user reaction"))
+                 }
+             }
         }
-    }
 
     // TODO: Optimization (N+1 Query) - Fetches reactions first, then users. Suggest refactoring to a single query using Supabase resource embedding (joins).
     suspend fun getUsersWhoReacted(
@@ -536,49 +508,8 @@ class PostRepository(private val postDao: PostDao) {
         }
     }
 
-    suspend fun getUserReaction(postId: String, userId: String): Result<ReactionType?> = withContext(Dispatchers.IO) {
-        try {
-            val reaction = client.from("reactions")
-                .select { filter { eq("post_id", postId); eq("user_id", userId) } }
-                .decodeSingleOrNull<JsonObject>()
-
-            val typeStr = reaction?.get("reaction_type")?.jsonPrimitive?.contentOrNull
-            Result.success(typeStr?.let { ReactionType.fromString(it) })
-        } catch (e: Exception) {
-            Result.failure(Exception(mapSupabaseError(e)))
-        }
-    }
-
-    // TODO: Scalability - It uses isIn("post_id", postIds). For large pages, this list of IDs can exceed URL length limits. Suggest chunking or alternative query strategies.
+    // Use unified batch fetch logic
     private suspend fun populatePostReactions(posts: List<Post>): List<Post> {
-        if (posts.isEmpty()) return posts
-
-        return try {
-            val postIds = posts.map { it.id }
-            val currentUserId = client.auth.currentUserOrNull()?.id
-
-            val allReactions = client.from("reactions")
-                .select { filter { isIn("post_id", postIds) } }
-                .decodeList<JsonObject>()
-
-            val reactionsByPost = allReactions.groupBy { it["post_id"]?.jsonPrimitive?.contentOrNull }
-
-            posts.map { post ->
-                val postReactions = reactionsByPost[post.id] ?: emptyList()
-                val summary = postReactions
-                    .groupBy { ReactionType.fromString(it["reaction_type"]?.jsonPrimitive?.contentOrNull ?: "LIKE") }
-                    .mapValues { it.value.size }
-
-                val userReactionType = if (currentUserId != null) {
-                    postReactions.find { it["user_id"]?.jsonPrimitive?.contentOrNull == currentUserId }
-                        ?.let { ReactionType.fromString(it["reaction_type"]?.jsonPrimitive?.contentOrNull ?: "LIKE") }
-                } else null
-
-                post.copy(reactions = summary, userReaction = userReactionType)
-            }
-        } catch (e: Exception) {
-            android.util.Log.e(TAG, "Failed to populate reactions", e)
-            posts
-        }
+        return reactionRepository.populatePostReactions(posts)
     }
 }
