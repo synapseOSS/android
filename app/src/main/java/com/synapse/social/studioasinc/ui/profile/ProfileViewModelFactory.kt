@@ -33,7 +33,8 @@ class ProfileViewModelFactory(private val context: Context) : ViewModelProvider.
                 archiveProfileUseCase = ArchiveProfileUseCase(profileActionRepository),
                 blockUserUseCase = BlockUserUseCase(profileActionRepository),
                 reportUserUseCase = ReportUserUseCase(profileActionRepository),
-                muteUserUseCase = MuteUserUseCase(profileActionRepository)
+                muteUserUseCase = MuteUserUseCase(profileActionRepository),
+                isFollowingUseCase = IsFollowingUseCase(profileRepository)
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

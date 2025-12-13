@@ -1,7 +1,66 @@
 package com.synapse.social.studioasinc.model
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
+import java.time.Instant
+import java.time.format.DateTimeParseException
+
+/**
+ * Custom serializer that handles both ISO 8601 strings and Long timestamps
+ * Uses JsonElement to properly handle the JSON value regardless of its type
+ */
+object FlexibleTimestampSerializer : KSerializer<Long> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FlexibleTimestamp", PrimitiveKind.LONG)
+    
+    override fun deserialize(decoder: Decoder): Long {
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: return decoder.decodeLong() // Fallback for non-JSON decoders
+        
+        val element = jsonDecoder.decodeJsonElement().jsonPrimitive
+        
+        // Try to get as Long first (for numeric values)
+        element.longOrNull?.let { return it }
+        
+        // Otherwise parse as string (ISO 8601 format)
+        val stringValue = element.content
+        return try {
+            Instant.parse(stringValue).toEpochMilli()
+        } catch (e: DateTimeParseException) {
+            // Try parsing with offset format like "2025-12-13T16:18:31.301132+00:00"
+            try {
+                java.time.OffsetDateTime.parse(stringValue).toInstant().toEpochMilli()
+            } catch (e2: Exception) {
+                // Try without the timezone suffix
+                try {
+                    stringValue.toLong()
+                } catch (e3: NumberFormatException) {
+                    0L // Last resort fallback
+                }
+            }
+        }
+    }
+    
+    override fun serialize(encoder: Encoder, value: Long) {
+        val jsonEncoder = encoder as? JsonEncoder
+        if (jsonEncoder != null) {
+            // Serialize as ISO 8601 string for database compatibility
+            jsonEncoder.encodeJsonElement(JsonPrimitive(Instant.ofEpochMilli(value).toString()))
+        } else {
+            encoder.encodeLong(value)
+        }
+    }
+}
 
 /**
  * Message model for Supabase
@@ -18,8 +77,10 @@ data class Message(
     val messageType: String = "text", // text, image, video, audio, file
     @SerialName("media_url")
     val mediaUrl: String? = null,
+    @Serializable(with = FlexibleTimestampSerializer::class)
     @SerialName("created_at")
     val createdAt: Long = 0L,
+    @Serializable(with = FlexibleTimestampSerializer::class)
     @SerialName("updated_at")
     val updatedAt: Long = 0L,
     @SerialName("is_deleted")

@@ -23,6 +23,7 @@ import kotlinx.serialization.json.*
 class PostDetailRepository {
     
     private val client = SupabaseClient.client
+    private val reactionRepository = com.synapse.social.studioasinc.data.repository.ReactionRepository()
     
     companion object {
         private const val TAG = "PostDetailRepository"
@@ -62,12 +63,12 @@ class PostDetailRepository {
             var hasReshared = false
             
             if (currentUserId != null) {
-                userReaction = getUserReactionForPost(postId, currentUserId)
+                userReaction = reactionRepository.getUserReaction(postId, "post").getOrNull()
                 isBookmarked = checkBookmarkStatus(postId, currentUserId)
                 hasReshared = checkReshareStatus(postId, currentUserId)
             }
             
-            val reactionSummary = getReactionSummary(postId)
+            val reactionSummary = reactionRepository.getReactionSummary(postId, "post").getOrDefault(emptyMap())
             
             var pollResults: List<PollOptionResult>? = null
             var userPollVote: Int? = null
@@ -234,35 +235,7 @@ class PostDetailRepository {
         }
     }
 
-    private suspend fun getUserReactionForPost(postId: String, userId: String): ReactionType? {
-        return try {
-            val reaction = client.from("reactions")
-                .select { filter { eq("post_id", postId); eq("user_id", userId) } }
-                .decodeSingleOrNull<JsonObject>()
-            
-            reaction?.get("reaction_type")?.jsonPrimitive?.contentOrNull?.let {
-                ReactionType.fromString(it)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get user reaction: ${e.message}")
-            null
-        }
-    }
-    
-    private suspend fun getReactionSummary(postId: String): Map<ReactionType, Int> {
-        return try {
-            val reactions = client.from("reactions")
-                .select { filter { eq("post_id", postId) } }
-                .decodeList<JsonObject>()
-            
-            reactions
-                .groupBy { ReactionType.fromString(it["reaction_type"]?.jsonPrimitive?.contentOrNull ?: "LIKE") }
-                .mapValues { it.value.size }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get reaction summary: ${e.message}")
-            emptyMap()
-        }
-    }
+
     
     private suspend fun checkBookmarkStatus(postId: String, userId: String): Boolean {
         return try {

@@ -102,6 +102,18 @@ fun DirectChatScreen(
         viewModel.loadChat(chatId)
     }
 
+    // Effect: Auto-scroll to bottom when new user message is added
+    var previousMessageCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(messages.size) {
+        if (messages.size > previousMessageCount) {
+            // Scroll if we have new messages and the latest one is from current user
+            if (messages.isNotEmpty() && messages.last().isFromCurrentUser) {
+                listState.animateScrollToItem(0)
+            }
+        }
+        previousMessageCount = messages.size
+    }
+
     // Effect: Handle One-time Effects
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->

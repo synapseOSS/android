@@ -27,74 +27,72 @@ class ReactionRepository {
         private const val RETRY_DELAY_MS = 100L
     }
     
-    // ==================== POST REACTIONS ====================
-    
+    // ==================== UNIFIED REACTION LOGIC ====================
+
     /**
-     * Toggle a reaction on a post.
-     * - If no reaction exists, adds the reaction
-     * - If same reaction type exists, removes it
-     * - If different reaction type exists, updates to new type
-     * 
-     * @param postId The ID of the post
+     * Toggle a reaction on any target (Post, Comment, etc.)
+     * This is the Single Source of Truth for reaction updates.
+     *
+     * @param targetId The ID of the target (post or comment)
+     * @param targetType The type of target ("post" or "comment")
      * @param reactionType The type of reaction to toggle
-     * @return Result indicating success or failure
-     * 
-     * Requirements: 3.2, 3.3, 3.4
      */
-    suspend fun togglePostReaction(
-        postId: String,
+    suspend fun toggleReaction(
+        targetId: String,
+        targetType: String,
         reactionType: ReactionType
     ): Result<ReactionToggleResult> = withContext(Dispatchers.IO) {
         try {
             if (!SupabaseClient.isConfigured()) {
                 return@withContext Result.failure(Exception("Supabase not configured"))
             }
-            
+
             val currentUser = client.auth.currentUserOrNull()
-            if (currentUser == null) {
-                return@withContext Result.failure(Exception("User must be authenticated to react"))
-            }
-            
+                ?: return@withContext Result.failure(Exception("User must be authenticated to react"))
+
             val userId = currentUser.id
-            Log.d(TAG, "Toggling post reaction: ${reactionType.name} for post $postId by user $userId")
-            
+            val tableName = getTableName(targetType)
+            val idColumn = getIdColumn(targetType)
+
+            Log.d(TAG, "Toggling reaction: ${reactionType.name} for $targetType $targetId by user $userId")
+
             var lastException: Exception? = null
             repeat(MAX_RETRIES) { attempt ->
                 try {
                     // Check for existing reaction
-                    val existingReaction = client.from("reactions")
-                        .select { filter { eq("post_id", postId); eq("user_id", userId) } }
+                    val existingReaction = client.from(tableName)
+                        .select { filter { eq(idColumn, targetId); eq("user_id", userId) } }
                         .decodeSingleOrNull<JsonObject>()
-                    
+
                     val result = if (existingReaction != null) {
                         val existingType = existingReaction["reaction_type"]?.jsonPrimitive?.contentOrNull
                         if (existingType == reactionType.name.lowercase()) {
                             // Same reaction - remove it
-                            client.from("reactions")
-                                .delete { filter { eq("post_id", postId); eq("user_id", userId) } }
-                            Log.d(TAG, "Reaction removed for post $postId")
+                            client.from(tableName)
+                                .delete { filter { eq(idColumn, targetId); eq("user_id", userId) } }
+                            Log.d(TAG, "Reaction removed for $targetType $targetId")
                             ReactionToggleResult.REMOVED
                         } else {
                             // Different reaction - update it
-                            client.from("reactions")
+                            client.from(tableName)
                                 .update({
                                     set("reaction_type", reactionType.name.lowercase())
                                     set("updated_at", java.time.Instant.now().toString())
-                                }) { filter { eq("post_id", postId); eq("user_id", userId) } }
-                            Log.d(TAG, "Reaction updated to ${reactionType.name} for post $postId")
+                                }) { filter { eq(idColumn, targetId); eq("user_id", userId) } }
+                            Log.d(TAG, "Reaction updated to ${reactionType.name} for $targetType $targetId")
                             ReactionToggleResult.UPDATED
                         }
                     } else {
                         // No existing reaction - add new one
-                        client.from("reactions").insert(buildJsonObject {
+                        client.from(tableName).insert(buildJsonObject {
                             put("user_id", userId)
-                            put("post_id", postId)
+                            put(idColumn, targetId)
                             put("reaction_type", reactionType.name.lowercase())
                         })
-                        Log.d(TAG, "New reaction ${reactionType.name} added for post $postId")
+                        Log.d(TAG, "New reaction ${reactionType.name} added for $targetType $targetId")
                         ReactionToggleResult.ADDED
                     }
-                    
+
                     return@withContext Result.success(result)
                 } catch (e: Exception) {
                     lastException = e
@@ -103,236 +101,149 @@ class ReactionRepository {
                     delay(RETRY_DELAY_MS * (attempt + 1))
                 }
             }
-            
             Result.failure(Exception(mapSupabaseError(lastException ?: Exception("Unknown error"))))
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to toggle post reaction: ${e.message}", e)
-            Result.failure(Exception(mapSupabaseError(e)))
-        }
-    }
-    
-    /**
-     * Get aggregated reaction counts for a post.
-     * 
-     * @param postId The ID of the post
-     * @return Result containing a map of ReactionType to count
-     * 
-     * Requirements: 3.5
-     */
-    suspend fun getPostReactionSummary(postId: String): Result<Map<ReactionType, Int>> = withContext(Dispatchers.IO) {
-        try {
-            if (!SupabaseClient.isConfigured()) {
-                return@withContext Result.failure(Exception("Supabase not configured"))
-            }
-            
-            Log.d(TAG, "Fetching reaction summary for post $postId")
-            
-            val reactions = client.from("reactions")
-                .select { filter { eq("post_id", postId) } }
-                .decodeList<JsonObject>()
-            
-            val summary = reactions
-                .groupBy { ReactionType.fromString(it["reaction_type"]?.jsonPrimitive?.contentOrNull ?: "LIKE") }
-                .mapValues { it.value.size }
-            
-            Log.d(TAG, "Reaction summary for post $postId: $summary")
-            Result.success(summary)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get post reaction summary: ${e.message}", e)
-            Result.failure(Exception(mapSupabaseError(e)))
-        }
-    }
-    
-    /**
-     * Get the current user's reaction for a post.
-     * 
-     * @param postId The ID of the post
-     * @return Result containing the user's ReactionType or null if no reaction
-     * 
-     * Requirements: 3.3
-     */
-    suspend fun getUserPostReaction(postId: String): Result<ReactionType?> = withContext(Dispatchers.IO) {
-        try {
-            if (!SupabaseClient.isConfigured()) {
-                return@withContext Result.failure(Exception("Supabase not configured"))
-            }
-            
-            val currentUser = client.auth.currentUserOrNull()
-            if (currentUser == null) {
-                return@withContext Result.success(null)
-            }
-            
-            val userId = currentUser.id
-            Log.d(TAG, "Fetching user reaction for post $postId")
-            
-            val reaction = client.from("reactions")
-                .select { filter { eq("post_id", postId); eq("user_id", userId) } }
-                .decodeSingleOrNull<JsonObject>()
-            
-            val reactionType = reaction?.get("reaction_type")?.jsonPrimitive?.contentOrNull?.let {
-                ReactionType.fromString(it)
-            }
-            
-            Log.d(TAG, "User reaction for post $postId: $reactionType")
-            Result.success(reactionType)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get user post reaction: ${e.message}", e)
+            Log.e(TAG, "Failed to toggle reaction: ${e.message}", e)
             Result.failure(Exception(mapSupabaseError(e)))
         }
     }
 
-    
-    // ==================== COMMENT REACTIONS ====================
-    
     /**
-     * Toggle a reaction on a comment.
-     * - If no reaction exists, adds the reaction
-     * - If same reaction type exists, removes it
-     * - If different reaction type exists, updates to new type
-     * 
-     * @param commentId The ID of the comment
-     * @param reactionType The type of reaction to toggle
-     * @return Result indicating success or failure
-     * 
-     * Requirements: 6.2, 6.3, 6.4
+     * Get aggregated reaction counts for any target.
      */
-    suspend fun toggleCommentReaction(
-        commentId: String,
-        reactionType: ReactionType
-    ): Result<ReactionToggleResult> = withContext(Dispatchers.IO) {
+    suspend fun getReactionSummary(
+        targetId: String,
+        targetType: String
+    ): Result<Map<ReactionType, Int>> = withContext(Dispatchers.IO) {
         try {
-            if (!SupabaseClient.isConfigured()) {
-                return@withContext Result.failure(Exception("Supabase not configured"))
-            }
-            
-            val currentUser = client.auth.currentUserOrNull()
-            if (currentUser == null) {
-                return@withContext Result.failure(Exception("User must be authenticated to react"))
-            }
-            
-            val userId = currentUser.id
-            Log.d(TAG, "Toggling comment reaction: ${reactionType.name} for comment $commentId by user $userId")
-            
-            var lastException: Exception? = null
-            repeat(MAX_RETRIES) { attempt ->
-                try {
-                    // Check for existing reaction
-                    val existingReaction = client.from("comment_reactions")
-                        .select { filter { eq("comment_id", commentId); eq("user_id", userId) } }
-                        .decodeSingleOrNull<JsonObject>()
-                    
-                    val result = if (existingReaction != null) {
-                        val existingType = existingReaction["reaction_type"]?.jsonPrimitive?.contentOrNull
-                        if (existingType == reactionType.name.lowercase()) {
-                            // Same reaction - remove it
-                            client.from("comment_reactions")
-                                .delete { filter { eq("comment_id", commentId); eq("user_id", userId) } }
-                            Log.d(TAG, "Comment reaction removed for comment $commentId")
-                            ReactionToggleResult.REMOVED
-                        } else {
-                            // Different reaction - update it
-                            client.from("comment_reactions")
-                                .update({
-                                    set("reaction_type", reactionType.name.lowercase())
-                                    set("updated_at", java.time.Instant.now().toString())
-                                }) { filter { eq("comment_id", commentId); eq("user_id", userId) } }
-                            Log.d(TAG, "Comment reaction updated to ${reactionType.name} for comment $commentId")
-                            ReactionToggleResult.UPDATED
-                        }
-                    } else {
-                        // No existing reaction - add new one
-                        client.from("comment_reactions").insert(buildJsonObject {
-                            put("user_id", userId)
-                            put("comment_id", commentId)
-                            put("reaction_type", reactionType.name.lowercase())
-                        })
-                        Log.d(TAG, "New comment reaction ${reactionType.name} added for comment $commentId")
-                        ReactionToggleResult.ADDED
-                    }
-                    
-                    return@withContext Result.success(result)
-                } catch (e: Exception) {
-                    lastException = e
-                    val isRLSError = e.message?.contains("policy", true) == true
-                    if (isRLSError || attempt == MAX_RETRIES - 1) throw e
-                    delay(RETRY_DELAY_MS * (attempt + 1))
-                }
-            }
-            
-            Result.failure(Exception(mapSupabaseError(lastException ?: Exception("Unknown error"))))
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to toggle comment reaction: ${e.message}", e)
-            Result.failure(Exception(mapSupabaseError(e)))
-        }
-    }
-    
-    /**
-     * Get aggregated reaction counts for a comment.
-     * 
-     * @param commentId The ID of the comment
-     * @return Result containing a map of ReactionType to count
-     * 
-     * Requirements: 6.2
-     */
-    suspend fun getCommentReactionSummary(commentId: String): Result<Map<ReactionType, Int>> = withContext(Dispatchers.IO) {
-        try {
-            if (!SupabaseClient.isConfigured()) {
-                return@withContext Result.failure(Exception("Supabase not configured"))
-            }
-            
-            Log.d(TAG, "Fetching reaction summary for comment $commentId")
-            
-            val reactions = client.from("comment_reactions")
-                .select { filter { eq("comment_id", commentId) } }
+            val tableName = getTableName(targetType)
+            val idColumn = getIdColumn(targetType)
+
+            val reactions = client.from(tableName)
+                .select { filter { eq(idColumn, targetId) } }
                 .decodeList<JsonObject>()
-            
+
             val summary = reactions
                 .groupBy { ReactionType.fromString(it["reaction_type"]?.jsonPrimitive?.contentOrNull ?: "LIKE") }
                 .mapValues { it.value.size }
-            
-            Log.d(TAG, "Reaction summary for comment $commentId: $summary")
+
             Result.success(summary)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to get comment reaction summary: ${e.message}", e)
             Result.failure(Exception(mapSupabaseError(e)))
         }
     }
-    
+
     /**
-     * Get the current user's reaction for a comment.
-     * 
-     * @param commentId The ID of the comment
-     * @return Result containing the user's ReactionType or null if no reaction
-     * 
-     * Requirements: 6.3
+     * Get the current user's reaction for any target.
      */
-    suspend fun getUserCommentReaction(commentId: String): Result<ReactionType?> = withContext(Dispatchers.IO) {
+    suspend fun getUserReaction(
+        targetId: String,
+        targetType: String
+    ): Result<ReactionType?> = withContext(Dispatchers.IO) {
         try {
-            if (!SupabaseClient.isConfigured()) {
-                return@withContext Result.failure(Exception("Supabase not configured"))
-            }
-            
-            val currentUser = client.auth.currentUserOrNull()
-            if (currentUser == null) {
-                return@withContext Result.success(null)
-            }
-            
+            val currentUser = client.auth.currentUserOrNull() ?: return@withContext Result.success(null)
             val userId = currentUser.id
-            Log.d(TAG, "Fetching user reaction for comment $commentId")
-            
-            val reaction = client.from("comment_reactions")
-                .select { filter { eq("comment_id", commentId); eq("user_id", userId) } }
+            val tableName = getTableName(targetType)
+            val idColumn = getIdColumn(targetType)
+
+            val reaction = client.from(tableName)
+                .select { filter { eq(idColumn, targetId); eq("user_id", userId) } }
                 .decodeSingleOrNull<JsonObject>()
-            
+
             val reactionType = reaction?.get("reaction_type")?.jsonPrimitive?.contentOrNull?.let {
                 ReactionType.fromString(it)
             }
-            
-            Log.d(TAG, "User reaction for comment $commentId: $reactionType")
             Result.success(reactionType)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to get user comment reaction: ${e.message}", e)
             Result.failure(Exception(mapSupabaseError(e)))
+        }
+    }
+
+    /**
+     * Batch fetch reactions for multiple posts to avoid N+1 queries.
+     * Efficiently populates a list of posts with their reaction summaries and current user status.
+     */
+    suspend fun populatePostReactions(posts: List<com.synapse.social.studioasinc.model.Post>): List<com.synapse.social.studioasinc.model.Post> = withContext(Dispatchers.IO) {
+        if (posts.isEmpty()) return@withContext posts
+
+        try {
+            val allPostIds = posts.map { it.id }
+            val currentUserId = client.auth.currentUserOrNull()?.id
+            val allReactions = mutableListOf<JsonObject>()
+            
+            // Process in chunks to avoid URL length limits
+            allPostIds.chunked(20).forEach { chunkIds ->
+                 try {
+                     val chunkReactions = client.from("reactions")
+                        .select { filter { isIn("post_id", chunkIds) } }
+                        .decodeList<JsonObject>()
+                     allReactions.addAll(chunkReactions)
+                 } catch(e: Exception) {
+                     Log.e(TAG, "Failed to fetch reactions for chunk", e)
+                 }
+            }
+
+            // Group by Post ID
+            val reactionsByPost = allReactions.groupBy { it["post_id"]?.jsonPrimitive?.contentOrNull }
+
+            posts.map { post ->
+                val postReactions = reactionsByPost[post.id] ?: emptyList()
+
+                // Calculate Summary
+                val summary = postReactions
+                    .groupBy { ReactionType.fromString(it["reaction_type"]?.jsonPrimitive?.contentOrNull ?: "LIKE") }
+                    .mapValues { it.value.size }
+
+                // Determine User Reaction
+                val userReactionType = if (currentUserId != null) {
+                    postReactions.find { it["user_id"]?.jsonPrimitive?.contentOrNull == currentUserId }
+                        ?.let { ReactionType.fromString(it["reaction_type"]?.jsonPrimitive?.contentOrNull ?: "LIKE") }
+                } else null
+
+                post.copy(reactions = summary, userReaction = userReactionType, likesCount = summary.values.sum())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to populate reactions", e)
+            posts
+        }
+    }
+
+    // ==================== DEPRECATED / LEGACY SUPPORT (Delegates) ====================
+
+    suspend fun togglePostReaction(postId: String, reactionType: ReactionType) =
+        toggleReaction(postId, "post", reactionType)
+
+    suspend fun toggleCommentReaction(commentId: String, reactionType: ReactionType) =
+        toggleReaction(commentId, "comment", reactionType)
+
+    suspend fun getPostReactionSummary(postId: String) =
+        getReactionSummary(postId, "post")
+
+    suspend fun getCommentReactionSummary(commentId: String) =
+        getReactionSummary(commentId, "comment")
+
+    suspend fun getUserPostReaction(postId: String) =
+        getUserReaction(postId, "post")
+
+    suspend fun getUserCommentReaction(commentId: String) =
+        getUserReaction(commentId, "comment")
+
+
+    // ==================== HELPERS ====================
+
+    private fun getTableName(targetType: String): String {
+        return when (targetType.lowercase()) {
+            "post" -> "reactions"
+            "comment" -> "comment_reactions"
+            else -> "reactions"
+        }
+    }
+
+    private fun getIdColumn(targetType: String): String {
+        return when (targetType.lowercase()) {
+            "post" -> "post_id"
+            "comment" -> "comment_id"
+            else -> "post_id"
         }
     }
     
