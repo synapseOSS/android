@@ -1,5 +1,8 @@
 package com.synapse.social.studioasinc.ui.inbox
 
+// TODO: Fix 'column_participants.is_archived' error - check Supabase schema for correct column name
+// TODO: Fix 'Something went wrong' error message - improve error text and add retry logic
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService

@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+// TODO: Ensure polls display correctly in Home Feed - verify PagingData flow and PostEventBus sync
+// FIXME: Previous crash was due to collecting pageEventFlow twice - ensure cachedIn is always used
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val authRepository: AuthRepository = AuthRepository()
     private val postRepository: PostRepository = PostRepository(AppDatabase.getDatabase(application).postDao())

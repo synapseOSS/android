@@ -1,5 +1,7 @@
 package com.synapse.social.studioasinc.ui.search
 
+// TODO: Fix Search Animation and Theme - ensure animations respect light/dark theme settings
+
 import android.text.format.DateUtils
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*

@@ -1,5 +1,10 @@
 package com.synapse.social.studioasinc.ui.chat
 
+// TODO: Implement Typing Indicators - Show when other user is typing (Realtime Presence)
+// TODO: Implement File Attachments - Support images, videos, documents with upload progress
+// TODO: Implement Block & Report - Add confirmation dialogs and backend RPC calls
+// TODO: Implement Delete Chat - Handle soft delete and navigation after success
+
 import androidx.compose.animation.*
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest

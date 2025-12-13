@@ -66,9 +66,27 @@ fun CoverPhoto(
     val density = LocalDensity.current
     val heightPx = with(density) { height.toPx() }
     
+    // Enhanced parallax with spring animation for smoothness
+    val animatedScrollOffset by animateFloatAsState(
+        targetValue = scrollOffset,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "smoothParallax"
+    )
+    
     // Calculate parallax offset based on height
-    // If we scroll 100% of height, we want the image to translate down by 50% of height (if factor is 0.5)
-    val parallaxOffset = scrollOffset * heightPx * parallaxFactor
+    val parallaxOffset = animatedScrollOffset * heightPx * parallaxFactor
+    
+    // Depth-based scale effect: zoom in slightly as user scrolls
+    val depthScale = 1.1f + (animatedScrollOffset * 0.15f).coerceIn(0f, 0.2f)
+    
+    // Dynamic blur based on scroll
+    val blurRadius = (animatedScrollOffset * 12).coerceIn(0f, 15f)
+    
+    // Vignette intensity increases with scroll
+    val vignetteAlpha = (0.3f + animatedScrollOffset * 0.4f).coerceIn(0.3f, 0.7f)
     
     Box(
         modifier = modifier
@@ -85,12 +103,12 @@ fun CoverPhoto(
                     .fillMaxSize()
                     .graphicsLayer {
                         translationY = parallaxOffset
-                        // Slight zoom to prevent edges showing during parallax
-                        scaleX = 1.1f
-                        scaleY = 1.1f
+                        // Enhanced depth-based zoom for immersive parallax
+                        scaleX = depthScale
+                        scaleY = depthScale
                     }
                     .blur(
-                        radius = (scrollOffset * 10).dp,
+                        radius = blurRadius.dp,
                         edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded
                     )
                     .graphicsLayer { this.alpha = alpha },
@@ -110,7 +128,7 @@ fun CoverPhoto(
             )
         }
         
-        // Gradient overlay for better readability
+        // Enhanced gradient overlay with vignette effect
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -118,8 +136,8 @@ fun CoverPhoto(
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.1f),
-                            Color.Black.copy(alpha = 0.4f)
+                            Color.Black.copy(alpha = vignetteAlpha * 0.3f),
+                            Color.Black.copy(alpha = vignetteAlpha)
                         ),
                         startY = 0f,
                         endY = Float.POSITIVE_INFINITY
