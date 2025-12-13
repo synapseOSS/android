@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc.data.repository
 import android.net.Uri
 import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.user.UserSession
 // Google and Apple providers removed - not available in current Supabase version
@@ -235,6 +236,21 @@ class AuthRepository {
                 return Result.failure(Exception("Supabase not configured"))
             }
             client.auth.resetPasswordForEmail(email)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Resend verification email
+     */
+    suspend fun resendVerificationEmail(email: String): Result<Unit> {
+        return try {
+            if (!isSupabaseConfigured()) {
+                return Result.failure(Exception("Supabase not configured"))
+            }
+            client.auth.resendEmail(OtpType.Email.SIGNUP, email)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
