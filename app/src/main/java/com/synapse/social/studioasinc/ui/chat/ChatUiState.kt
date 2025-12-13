@@ -31,6 +31,16 @@ data class ChatUiState(
 )
 
 /**
+ * Model representing a chat available for forwarding, including display name and avatar.
+ */
+data class ChatForwardUiModel(
+    val id: String,
+    val displayName: String,
+    val avatarUrl: String?,
+    val isGroup: Boolean
+)
+
+/**
  * Simplified user info for chat header
  */
 data class ChatUserInfo(

@@ -1,8 +1,5 @@
 package com.synapse.social.studioasinc.ui.inbox
 
-// TODO: Fix 'column_participants.is_archived' error - check Supabase schema for correct column name
-// TODO: Fix 'Something went wrong' error message - improve error text and add retry logic
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
@@ -299,7 +296,12 @@ class InboxViewModel(
             }
 
             // Backend update
-            chatService.archiveChat(chatId, userId)
+            val result = chatService.archiveChat(chatId, userId)
+
+            if (result.isFailure) {
+                android.util.Log.e("InboxViewModel", "Failed to archive chat", result.exceptionOrNull())
+                loadChats() // Reload to restore correct state
+            }
         }
     }
 
@@ -333,11 +335,16 @@ class InboxViewModel(
                 }
             }
 
-            // Backend update for all selected chats
-            selectedItems.forEach { chatId ->
-                launch {
-                    chatService.archiveChat(chatId, userId)
-                }
+            // Backend update for all selected chats (parallel execution)
+            val results = coroutineScope {
+                selectedItems.map { chatId ->
+                    async { chatService.archiveChat(chatId, userId) }
+                }.awaitAll()
+            }
+
+            // If any failed, reload chats to ensure consistency
+            if (results.any { it.isFailure }) {
+                loadChats()
             }
         }
     }
@@ -419,13 +426,14 @@ class InboxViewModel(
     }
     
     /**
-     * Mutes a chat for specified duration
+     * Mutes a chat for specified duration.
+     * Persists the mute state and duration to the backend.
      */
     private fun muteChat(chatId: String, duration: MuteDuration) {
         val userId = currentUserId ?: return
 
         viewModelScope.launch {
-            // Optimistic update
+            // Optimistic update to UI immediately
             _uiState.update { currentState ->
                 if (currentState is InboxUiState.Success) {
                     val updatedChats = currentState.chats.map { chat ->

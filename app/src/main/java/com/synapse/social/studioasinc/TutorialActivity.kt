@@ -96,7 +96,7 @@ class TutorialActivity : BaseActivity() {
         
         // Container for fragments
         containerLayout = FrameLayout(this).apply {
-            id = android.R.id.content
+            id = android.view.View.generateViewId()
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 0,

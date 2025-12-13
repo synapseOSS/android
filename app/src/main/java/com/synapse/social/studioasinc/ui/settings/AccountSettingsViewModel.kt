@@ -59,28 +59,26 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // Refresh the session to get the latest linked accounts from the backend
-                com.synapse.social.studioasinc.SupabaseClient.client.auth.refreshCurrentSession()
-                val currentUser = com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()
+                // Refresh session to ensure we have the latest identities from backend
+                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                supabaseClient.auth.refreshCurrentSession()
+
+                val currentUser = supabaseClient.auth.currentUserOrNull()
 
                 if (currentUser != null) {
-                    val identities = currentUser.identities
-                    val googleLinked = identities?.any { it.provider == "google" } == true
-                    val facebookLinked = identities?.any { it.provider == "facebook" } == true
-                    val appleLinked = identities?.any { it.provider == "apple" } == true
+                    val identities = currentUser.identities ?: emptyList()
 
                     _linkedAccounts.value = LinkedAccountsState(
-                        googleLinked = googleLinked,
-                        facebookLinked = facebookLinked,
-                        appleLinked = appleLinked
+                        googleLinked = identities.any { it.provider == "google" },
+                        facebookLinked = identities.any { it.provider == "facebook" },
+                        appleLinked = identities.any { it.provider == "apple" }
                     )
                 } else {
-                    // Reset if no user found
                     _linkedAccounts.value = LinkedAccountsState()
                 }
             } catch (e: Exception) {
                 android.util.Log.e("AccountSettingsViewModel", "Failed to load linked accounts", e)
-                _error.value = "Failed to load linked accounts"
+                _error.value = "Failed to load linked accounts: ${e.message}"
             } finally {
                 _isLoading.value = false
             }

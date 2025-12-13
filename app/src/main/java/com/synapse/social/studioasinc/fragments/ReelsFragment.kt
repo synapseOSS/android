@@ -59,10 +59,9 @@ class ReelsFragment : Fragment() {
         val lineVideoViewSnapHelper = PagerSnapHelper()
         lineVideoViewSnapHelper.attachToRecyclerView(videosRecyclerView)
         
-        if (context != null) {
-            lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap, requireContext())
-            videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
-        }
+        // Ensure adapter is initialized with required context
+        lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap, requireContext())
+        videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
 
         loadReels()
     }
@@ -107,13 +106,12 @@ class ReelsFragment : Fragment() {
                         lineVideosRecyclerViewAdapter.notifyDataSetChanged()
                         loadedBody.visibility = View.VISIBLE
                     } else {
-                         if (context != null) {
-                             lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap, requireContext())
-                             videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
-                             loadedBody.visibility = View.VISIBLE
-                         } else {
-                             loadedBody.visibility = View.GONE
-                         }
+                        // Fallback in case initialization was skipped (unlikely with requireContext)
+                        if (context != null) {
+                            lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap, requireContext())
+                            videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
+                            loadedBody.visibility = View.VISIBLE
+                        }
                     }
                     
                 }.onFailure { error ->

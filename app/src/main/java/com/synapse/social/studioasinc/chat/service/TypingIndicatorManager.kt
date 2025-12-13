@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
@@ -229,15 +230,20 @@ class TypingIndicatorManager(
         
         // Store the callback
         typingCallbacks[chatId] = onTypingUpdate
+
+        subscriptionJobs[chatId]?.cancel() // Cancel existing if any
         
-        try {
-            // Get or create the Realtime channel
-            val channel = realtimeService.getChannel(chatId) 
-                ?: realtimeService.subscribeToChat(chatId)
-            
-            // Listen for broadcast events
-            val job = coroutineScope.launch(exceptionHandler) {
+        // Launch a resilient subscription job that retries on failure/completion
+        val job = coroutineScope.launch(exceptionHandler) {
+            while (isActive) {
                 try {
+                    // Get or create the Realtime channel
+                    // We verify channel inside the loop to handle potential reconnections
+                    val channel = realtimeService.getChannel(chatId)
+                        ?: realtimeService.subscribeToChat(chatId)
+
+                    // Listen for broadcast events
+                    // This will suspend until flow completes or throws
                     channel.broadcastFlow<JsonObject>("typing").collect { json ->
                         try {
                             val userId = json["user_id"]?.jsonPrimitive?.content ?: return@collect
@@ -265,20 +271,21 @@ class TypingIndicatorManager(
                             Log.e(TAG, "Error parsing typing event for chat: $chatId", e)
                         }
                     }
+
+                    Log.d(TAG, "Typing broadcast flow completed for chat: $chatId. Retrying...")
+
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error collecting typing events for chat: $chatId", e)
+                    Log.e(TAG, "Error in typing subscription loop for chat: $chatId", e)
                 }
+
+                // Wait before retrying to avoid tight loops on persistent errors
+                delay(1000)
             }
-
-            subscriptionJobs[chatId]?.cancel() // Cancel existing if any
-            subscriptionJobs[chatId] = job
-
-            Log.d(TAG, "Successfully subscribed to typing events for chat: $chatId")
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to subscribe to typing events for chat: $chatId", e)
-            throw e
         }
+
+        subscriptionJobs[chatId] = job
+
+        Log.d(TAG, "Successfully subscribed to typing events for chat: $chatId")
     }
     
     /**

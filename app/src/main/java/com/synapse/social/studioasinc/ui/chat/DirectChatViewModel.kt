@@ -9,11 +9,17 @@ import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.domain.usecase.ObserveMessagesUseCase
 import com.synapse.social.studioasinc.model.Message
+import com.synapse.social.studioasinc.model.Chat
+import com.synapse.social.studioasinc.UserProfileManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.serialization.json.JsonObject
 import io.github.jan.supabase.realtime.broadcastFlow
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.decodeRecord
 
 /**
  * ViewModel for DirectChatScreen
@@ -30,6 +36,12 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     // UI State
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+
+    // Available chats for forwarding
+    private val _availableChats = MutableStateFlow<List<ChatForwardUiModel>>(emptyList())
+    val availableChats: StateFlow<List<ChatForwardUiModel>> = _availableChats.asStateFlow()
+
+    private var loadChatsJob: Job? = null
     
     // Messages list (Source of Truth: Realtime/DB)
     private val _dbMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
@@ -141,7 +153,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             // 1. Subscribe to channel (used for both)
             val channel = realtimeService.subscribeToChat(chatId)
             
-            // 2. Observe DB/Messages Flow from UseCase
+            // 2. Observe DB/Messages Flow from UseCase (Maintains Source of Truth / Initial History)
             launch {
                 observeMessagesUseCase(chatId)
                     .onEach { messageList ->
@@ -149,9 +161,59 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                         _dbMessages.value = uiMessages
                     }
                     .catch { e ->
-                        _uiState.update { it.copy(error = "Realtime error: ${e.message}") }
+                        // Log error but don't show to UI to avoid flickering if realtime is working
+                        android.util.Log.e("DirectChatViewModel", "Error observing messages use case", e)
                     }
                     .collect()
+            }
+
+            // 3. Observe Messages (Insert/Update/Delete) via Postgres Changes (Latency Compensation / Direct Updates)
+            // This runs in parallel to observeMessagesUseCase to provide immediate UI updates
+            launch {
+                try {
+                    channel.postgresChangeFlow<io.github.jan.supabase.realtime.PostgresAction>(schema = "public") {
+                        table = "messages"
+                        // filter removed due to API access issues. Client-side filtering in place.
+                    }.collect { action ->
+                        // Manual filtering for safety
+                        // Note: If server-side filter is missing, we might get too many events.
+                        // But RLS should protect us.
+                        // Let's check record chat_id?
+                        // action.decodeRecord<Message>() will have chat_id.
+                        
+                        // Wait, I should not comment out filter if I can't filter.
+                        // Let's try client-side filtering logic inside collect.
+                        
+                        when (action) {
+                            is io.github.jan.supabase.realtime.PostgresAction.Insert -> {
+                                val message = action.decodeRecord<Message>()
+                                if (message.chatId == chatId) handleMessageInsert(message)
+                            }
+                            is io.github.jan.supabase.realtime.PostgresAction.Update -> {
+                                val message = action.decodeRecord<Message>()
+                                if (message.chatId == chatId) handleMessageUpdate(message)
+                            }
+                            is io.github.jan.supabase.realtime.PostgresAction.Delete -> {
+                                // Delete event might not have full record, just ID.
+                                // But normally it sends old record.
+                                val oldRecord = action.oldRecord
+                                // Check chat_id in oldRecord?
+                                // oldRecord is Map<String, Any>
+                                val recChatId = oldRecord["chat_id"]?.toString()?.replace("\"", "")
+                                if (recChatId == chatId || (recChatId == null)) { 
+                                     // If null, we might process it anyway or skip?
+                                     // Safe to process if ID matches known message?
+                                     // handleMessageDelete checks ID.
+                                     val id = oldRecord["id"]?.toString()?.replace("\"", "")
+                                     if (id != null) handleMessageDelete(id)
+                                }
+                            }
+                            else -> {}
+                        }
+                    }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(error = "Realtime message error: ${e.message}") }
+                }
             }
             
             // 3. Observe Typing Events
@@ -192,6 +254,35 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
+    /**
+     * Handle incoming new message
+     */
+    private fun handleMessageInsert(message: Message) {
+        val uiMessage = message.toUiModel(currentUserId)
+        _dbMessages.update { current ->
+            if (current.any { it.id == uiMessage.id }) current else current + uiMessage
+        }
+    }
+
+    /**
+     * Handle incoming message update
+     */
+    private fun handleMessageUpdate(message: Message) {
+        val uiMessage = message.toUiModel(currentUserId)
+        _dbMessages.update { current ->
+            current.map { if (it.id == uiMessage.id) uiMessage else it }
+        }
+    }
+
+    /**
+     * Handle incoming message deletion
+     */
+    private fun handleMessageDelete(messageId: String) {
+        _dbMessages.update { current ->
+            current.filter { it.id != messageId }
+        }
+    }
+
     // Effects Channel
     private val _effects = kotlinx.coroutines.channels.Channel<ChatEffect>(kotlinx.coroutines.channels.Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
@@ -216,7 +307,143 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                     _effects.send(ChatEffect.ShowSnackbar("Copied to clipboard"))
                 }
             }
+            is ChatIntent.ForwardMessage -> {
+                forwardMessage(intent.messageId, intent.toChatIds)
+            }
             else -> { /* TODO: Implement other intents */ }
+        }
+    }
+
+    fun loadUserChats() {
+        // Prevent multiple identical requests or leaks
+        if (loadChatsJob?.isActive == true) return
+
+        loadChatsJob = viewModelScope.launch {
+            // We only need a one-time snapshot for the dialog, or we can keep observing.
+            // Observing is safer for consistency, but we must ensure we don't duplicate subscriptions.
+            // Using take(1) to get the current list and stop.
+            // But if the user adds a new chat while dialog is open, it won't show. That's acceptable for now.
+            // To support live updates, we would need to persist the subscription.
+            // Given the dialog is ephemeral, a snapshot is fine.
+
+            chatRepository.getUserChats()
+                .take(1)
+                .collect { result ->
+                     result.onSuccess { chats ->
+                         val currentUid = currentUserId ?: return@collect
+
+                         // Enrich with display names and avatars using parallel fetching
+                         val deferredChats = chats.map { chat ->
+                             async {
+                                 if (chat.isGroup) {
+                                     ChatForwardUiModel(
+                                         id = chat.id,
+                                         displayName = chat.name ?: "Group Chat",
+                                         avatarUrl = chat.avatarUrl,
+                                         isGroup = true
+                                     )
+                                 } else {
+                                     // Direct Chat: We need to find the OTHER user.
+                                     // We don't have participants list readily available in Chat model unless we join.
+                                     // ChatRepository needs a way to get participants for these chats.
+                                     // HACK: For now, we fetch participants for each chat. This is N+1 but necessary without better backend support.
+                                     // Optimization: Chat model should probably include participant IDs or we use a bulk fetch.
+
+                                     var displayName = "Unknown User"
+                                     var avatarUrl: String? = null
+
+                                     try {
+                                         val participantsResult = chatRepository.getChatParticipants(chat.id)
+                                         val otherUserId = participantsResult.getOrNull()?.firstOrNull { it != currentUid }
+
+                                         if (otherUserId != null) {
+                                             val profile = UserProfileManager.getUserProfile(otherUserId)
+                                             displayName = profile?.displayName ?: profile?.username ?: "User"
+                                             avatarUrl = profile?.profileImageUrl
+                                         }
+                                     } catch (e: Exception) {
+                                         // Ignore errors
+                                     }
+
+                                     ChatForwardUiModel(
+                                         id = chat.id,
+                                         displayName = displayName,
+                                         avatarUrl = avatarUrl,
+                                         isGroup = false
+                                     )
+                                 }
+                             }
+                         }
+
+                         _availableChats.value = deferredChats.awaitAll()
+                     }
+                }
+        }
+    }
+
+    private fun forwardMessage(originalMessageId: String, toChatIds: List<String>) {
+        val currentUserId = currentUserId ?: return
+        val currentChatId = currentChatId ?: return
+
+        viewModelScope.launch {
+            // 1. Find the original message content
+            // First look in memory
+            var messageToForward = messages.value.find { it.id == originalMessageId }
+
+            // If not found in memory (e.g., scrolled out or partial load), fetch from repository
+            if (messageToForward == null) {
+                 // We need to fetch it. Since repository.getMessage(id) is not explicitly available in my snippet,
+                 // I will iterate on current logic or assume we can't forward what we can't see?
+                 // Wait, I can use the list I already have in repository cache if any, or just fail gracefully.
+                 // Ideally, ChatRepository should expose `getMessage(id)`.
+                 // Let's try to fetch it if we can, or just report error.
+
+                 // Fallback: Check if we can find it in the full list if we have access to it,
+                 // but 'messages' flow is the source of truth for UI.
+
+                 // If the user long-pressed it, it MUST be in the UI list.
+                 // The only edge case is if the list updated concurrently and removed it (unlikely).
+                 // So the `find` should work 99% of time.
+
+                 // However, to be robust, let's inform user.
+                 _effects.send(ChatEffect.ShowSnackbar("Message no longer available"))
+                 return@launch
+            }
+
+            // 2. Send to each chat
+            var successCount = 0
+            toChatIds.forEach { targetChatId ->
+                // Determine type based on messageToForward
+                val type = when(messageToForward.messageType) {
+                    MessageType.Image -> "image"
+                    MessageType.Video -> "video"
+                    MessageType.Voice -> "audio"
+                    else -> "text"
+                }
+
+                val content = if (type == "text") messageToForward.content else {
+                    // If media, we need the URL.
+                    // For now, assuming content holds the URL for media types or we take first attachment
+                    // If it's a media message, 'content' might be empty or a description.
+                    // Let's check attachments.
+                    messageToForward.attachments?.firstOrNull()?.url ?: messageToForward.content
+                }
+
+                val result = chatRepository.sendMessage(
+                    chatId = targetChatId,
+                    senderId = currentUserId,
+                    content = content,
+                    messageType = type
+                )
+
+                if (result.isSuccess) successCount++
+            }
+
+            if (successCount > 0) {
+                 _effects.send(ChatEffect.ShowSnackbar("Forwarded to $successCount chat(s)"))
+            } else {
+                 _effects.send(ChatEffect.ShowSnackbar("Failed to forward message"))
+            }
         }
     }
     

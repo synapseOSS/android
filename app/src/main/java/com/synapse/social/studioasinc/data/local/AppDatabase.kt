@@ -32,6 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "synapse_database"
                 )
+                // Add proper migrations to preserve user data
                 .addMigrations(MIGRATION_1_2)
                 .build()
                 INSTANCE = instance
@@ -41,6 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                // Add parentCommentId column to comments table
                 db.execSQL("ALTER TABLE comments ADD COLUMN parentCommentId TEXT")
             }
         }

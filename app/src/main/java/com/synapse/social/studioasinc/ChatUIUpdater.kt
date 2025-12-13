@@ -14,7 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -47,13 +48,13 @@ class ChatUIUpdater(
                 // Subscribe to the chat channel directly using SupabaseClient
                 val newChannel = SupabaseClient.client.realtime.channel("messages_$chatId")
                 channel = newChannel
-                newChannel.subscribe()
 
                 // Listen for new messages
+                // Start collecting the flow BEFORE subscribing to ensure no events are missed
                 newChannel.postgresChangeFlow<PostgresAction>(schema = "public") {
                     table = "messages"
                     filter("chat_id", FilterOperator.EQ, chatId)
-                }.collect { action ->
+                }.onEach { action ->
                     when (action) {
                         is PostgresAction.Insert -> {
                             handleNewMessage(action.record)
@@ -62,7 +63,11 @@ class ChatUIUpdater(
                             // Handle other actions (Update, Delete) if needed
                         }
                     }
-                }
+                }.launchIn(this) // Launch in the current scope (updatesJob)
+
+                // Subscribe to the channel
+                newChannel.subscribe()
+
             } catch (e: Exception) {
                 Log.e(TAG, "Error in chat UI updates", e)
             }
@@ -76,12 +81,15 @@ class ChatUIUpdater(
         updatesJob?.cancel()
         updatesJob = null
 
-        scope.launch {
-            try {
-                channel?.unsubscribe()
-                channel = null
-            } catch (e: Exception) {
-                Log.e(TAG, "Error stopping updates", e)
+        val currentChannel = channel
+        if (currentChannel != null) {
+            channel = null // Prevent double unsubscribe
+            scope.launch {
+                try {
+                    currentChannel.unsubscribe()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error stopping updates", e)
+                }
             }
         }
     }
