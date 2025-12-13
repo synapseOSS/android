@@ -55,6 +55,9 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     
     // Messages list (Source of Truth: Realtime/DB)
     private val _dbMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
+    
+    // Storage Service
+    private val storageService = com.synapse.social.studioasinc.backend.SupabaseStorageService()
 
     // Optimistic Messages (Temporary local state)
     private val _optimisticMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
@@ -153,6 +156,9 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                     val uiMessages = domainMessages.map { it.toUiModel(currentUserId) }
                     _dbMessages.value = uiMessages
                     _uiState.update { it.copy(isLoading = false, error = null) }
+                    
+                    // Fetch link previews for messages containing URLs
+                    fetchLinkPreviewsForMessages(uiMessages)
                     
                     // Start realtime observation
                     observeRealtimeMessages(chatId)
@@ -291,10 +297,13 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
      * Handle incoming new message
      */
     private fun handleMessageInsert(message: Message) {
-        val uiMessage = message.toUiModel(currentUserId)
+        val uiMessage = message.toUiModel(currentUserId).copy(isAnimating = true)
         _dbMessages.update { current ->
             if (current.any { it.id == uiMessage.id }) current else current + uiMessage
         }
+        
+        // Fetch link preview if message contains URL
+        fetchLinkPreviewForMessage(uiMessage)
     }
 
     /**
@@ -478,6 +487,45 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                 .onFailure {
                     _uiState.update { it.copy(linkPreviewLoading = false) }
                 }
+        }
+    }
+
+    /**
+     * Fetch link preview for a single message and update it in the message list
+     */
+    private fun fetchLinkPreviewForMessage(message: MessageUiModel) {
+        // Skip if no URL or already has preview
+        if (message.linkPreview != null) return
+        
+        val url = LinkDetectionService.extractFirstUrl(message.content) ?: return
+        
+        viewModelScope.launch {
+            linkPreviewService.fetchLinkPreview(url)
+                .onSuccess { preview ->
+                    // Update the message with the fetched preview
+                    _dbMessages.update { current ->
+                        current.map { msg ->
+                            if (msg.id == message.id) msg.copy(linkPreview = preview) else msg
+                        }
+                    }
+                    // Also update optimistic messages if applicable
+                    _optimisticMessages.update { current ->
+                        current.map { msg ->
+                            if (msg.id == message.id) msg.copy(linkPreview = preview) else msg
+                        }
+                    }
+                }
+        }
+    }
+    
+    /**
+     * Fetch link previews for all messages containing URLs (batch processing)
+     */
+    private fun fetchLinkPreviewsForMessages(messages: List<MessageUiModel>) {
+        viewModelScope.launch {
+            messages.forEach { message ->
+                fetchLinkPreviewForMessage(message)
+            }
         }
     }
 
@@ -785,6 +833,32 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
              null
         } else null
 
+        // Handle attachments: Use existing list OR create synthetic one from content if it's a media message
+        val uiAttachments = if (!this.attachments.isNullOrEmpty()) {
+            this.attachments.map {
+                AttachmentUiModel(
+                    id = it.id,
+                    url = it.url,
+                    type = mapAttachmentType(it.type),
+                    thumbnailUrl = it.thumbnailUrl,
+                    fileName = it.fileName,
+                    fileSize = it.fileSize
+                )
+            }
+        } else if (this.isMediaMessage() && this.content.startsWith("http")) {
+            // Synthetic attachment from content URL
+            listOf(AttachmentUiModel(
+                id = this.id, // Use message ID for attachment ID
+                url = this.content,
+                type = mapAttachmentType(this.messageType),
+                fileName = "Media", // Generic name
+                fileSize = 0L,
+                thumbnailUrl = null // No thumbnail available
+            ))
+        } else {
+            emptyList()
+        }
+
         return MessageUiModel(
             id = this.id,
             content = this.content,
@@ -798,16 +872,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             deliveryStatus = DeliveryStatus.Read, // Placeholder
             position = MessagePosition.Single,
             replyTo = replyPreview,
-            attachments = this.attachments?.map {
-                AttachmentUiModel(
-                    id = it.id,
-                    url = it.url,
-                    type = mapAttachmentType(it.type),
-                    thumbnailUrl = it.thumbnailUrl,
-                    fileName = it.fileName,
-                    fileSize = it.fileSize
-                )
-            }
+            attachments = uiAttachments
         )
     }
 
@@ -902,60 +967,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
      * Backend Context:
      * 1. Supabase Storage: Use bucket 'chat-attachments'.
      * 2. Path structure: '{chat_id}/{timestamp}_{filename}'.
-     * 3. Process:
-     *    a. uploadFile(bucket, path, fileBytes)
-     *    b. getPublicUrl(bucket, path)
-     *    c. sendMessage(type="image/video", content=publicUrl)
-     * 4. RLS: Storage bucket needs 'authenticated' role permissions.
      */
-    private val storageService = com.synapse.social.studioasinc.backend.SupabaseStorageService()
-
-    /**
-     * Upload and Send Attachment
-     */
-    fun sendAttachment(uri: Any, type: String) {
-         val contentUri = uri as? android.net.Uri ?: return
-         val chatId = currentChatId ?: return
-         
-         viewModelScope.launch {
-             try {
-                 _effects.send(ChatEffect.ShowSnackbar("Uploading..."))
-                 
-                 val bytes = getApplication<Application>().contentResolver.openInputStream(contentUri)?.use { 
-                     it.readBytes() 
-                 } ?: throw Exception("Failed to read file")
-                 
-                 // Generate path: chat_id/timestamp_filename
-                 val filename = "upload_${System.currentTimeMillis()}" // Simple filename for now
-                 val path = storageService.generateStoragePath(chatId, filename)
-                 
-                 val result = storageService.uploadFileBytes(bytes, path)
-                 
-                 result.onSuccess { publicUrl ->
-                     sendMessage(content = publicUrl) // Send as text url for now? Or update sendMessage to support types?
-                     // Verify: sendMessage implementation hardcodes "text" currently.
-                     // I need to update sendMessage to accept messageType.
-                     // But for now, let's just send the URL. 
-                     // Wait, the UI needs to know it's an image.
-                     // I should call a modified sendMessage or update sendMessage signature.
-                     
-                     // Let's check sendMessage signature below. 
-                     // It calls repository.sendMessage(..., messageType = "text", ...)
-                     // I need to overload sendMessage or change it.
-                     
-                     // Direct call to repository for now to bypass the hardcoded "text" in the private helper
-                     // Actually, better to refactor the private helper `sendMessage` to take `type`.
-                     
-                     sendMessage(content = publicUrl, type = "image") 
-                 }.onFailure {
-                     _uiState.update { state -> state.copy(error = "Upload failed: ${it.message}") }
-                 }
-                 
-             } catch (e: Exception) {
-                 _uiState.update { state -> state.copy(error = "Upload error: ${e.message}") }
-             }
-         }
-    }
 
     /**
      * Set Typing Status

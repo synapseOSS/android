@@ -40,7 +40,10 @@ import com.synapse.social.studioasinc.ui.chat.MessageUiModel
 import com.synapse.social.studioasinc.ui.chat.MessageType
 import com.synapse.social.studioasinc.ui.chat.DeliveryStatus
 import com.synapse.social.studioasinc.ui.components.mentions.MentionTextFormatter
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.ui.text.TextLayoutResult
 import kotlin.math.roundToInt
 
 /**
@@ -179,8 +182,7 @@ fun MessageItem(
 
                 // Selection indicator row wrapper
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Checkmark for selection mode
                     if (isSelectionMode) {
@@ -251,41 +253,54 @@ fun MessageItem(
                             else 
                                 MaterialTheme.colorScheme.primaryContainer.copy(alpha=0.3f)
 
-                            if (isSelectionMode) {
-                                Text(
+                            // Get colors outside remember block (Composable context)
+                            val mentionColor = MaterialTheme.colorScheme.primary
+                            val annotatedText = remember(message.content, mentionColor, pillColor) {
+                                MentionTextFormatter.buildMentionText(
                                     text = message.content,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = textColor
-                                )
-                            } else {
-                                // Get colors outside remember block (Composable context)
-                                val mentionColor = MaterialTheme.colorScheme.primary
-                                val annotatedText = remember(message.content, mentionColor, pillColor) {
-                                    MentionTextFormatter.buildMentionText(
-                                        text = message.content,
-                                        mentionColor = mentionColor,
-                                        pillColor = pillColor
-                                    )
-                                }
-                                ClickableText(
-                                    text = annotatedText,
-                                    style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
-                                    onClick = { offset ->
-                                        val annotations = annotatedText.getStringAnnotations(tag = "MENTION", start = offset, end = offset)
-                                        if (annotations.isNotEmpty()) {
-                                            showMentionDialogForUser = annotations.first().item
-                                        } else {
-                                            // Pass through click? combinedClickable on parent handles 'clicks' but ClickableText consumes event.
-                                            // Limitation: Tapping non-link text won't trigger message options (if that was bound to single click).
-                                            // Currently message options open on LongClick (implemented on container).
-                                            // So consuming single click here is fine, as long as LongClick still works on container.
-                                            // Warning: ClickableText consumes all touches, so parent LongClick might fail if user presses ON the text.
-                                            // To fix: We'd need pointerInput/Touch handling manually. 
-                                            // For this MVP, we accept that pressing text might not trigger long-press for selection.
-                                        }
-                                    }
+                                    mentionColor = mentionColor,
+                                    pillColor = pillColor
                                 )
                             }
+                            
+                            // Use BasicText with pointerInput to allow long-press to propagate
+                            // This fixes the issue where ClickableText consumes long-press events
+                            var textLayoutResult by remember { mutableStateOf<androidx.compose.ui.text.TextLayoutResult?>(null) }
+                            
+                            androidx.compose.foundation.text.BasicText(
+                                text = annotatedText,
+                                style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
+                                onTextLayout = { textLayoutResult = it },
+                                modifier = Modifier.pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onTap = { offset ->
+                                            // Only handle taps on mentions, don't consume long-press
+                                            textLayoutResult?.let { layoutResult ->
+                                                val position = layoutResult.getOffsetForPosition(offset)
+                                                val annotations = annotatedText.getStringAnnotations(
+                                                    tag = "MENTION", 
+                                                    start = position, 
+                                                    end = position
+                                                )
+                                                if (annotations.isNotEmpty()) {
+                                                    showMentionDialogForUser = annotations.first().item
+                                                } else if (isSelectionMode) {
+                                                    // Forward tap to parent for selection
+                                                    onSelect(message)
+                                                }
+                                            }
+                                        },
+                                        onLongPress = {
+                                            // Forward long-press to parent handler
+                                            if (!isSelectionMode) {
+                                                onLongClick(message)
+                                            } else {
+                                                onSelect(message)
+                                            }
+                                        }
+                                    )
+                                }
+                            )
                         }
 
                         // Link Preview

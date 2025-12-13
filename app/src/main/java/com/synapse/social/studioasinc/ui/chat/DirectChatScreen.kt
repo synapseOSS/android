@@ -6,6 +6,7 @@ package com.synapse.social.studioasinc.ui.chat
 // TODO: Implement Delete Chat - Handle soft delete and navigation after success
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.automirrored.filled.Forward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -217,6 +220,14 @@ fun DirectChatScreen(
                         }
                     )
                 }
+                ListItem(
+                    headlineContent = { Text("Select") },
+                    leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.CheckCircle, contentDescription = null) },
+                    modifier = Modifier.clickable {
+                        viewModel.handleIntent(ChatIntent.ToggleMessageSelection(msg.id))
+                        scope.launch { sheetState.hide() }.invokeOnCompletion { showMessageOptions = false }
+                    }
+                )
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
@@ -471,16 +482,41 @@ fun DirectChatScreen(
                     items = messages.reversed(), // Reverse list because LazyColumn is reversed
                     key = { it.id }
                 ) { message ->
-                    // Animate item placement
-                    Box(modifier = Modifier) {
+                    // Animate item placement with smooth entrance for new messages
+                    val isNewMessage = message.isAnimating
+                    
+                    // Entrance animation for new messages
+                    var visible by remember { mutableStateOf(!isNewMessage) }
+                    LaunchedEffect(message.id) {
+                        if (isNewMessage) {
+                            kotlinx.coroutines.delay(50) // Small delay for stagger effect
+                            visible = true
+                        }
+                    }
+                    
+                    AnimatedVisibility(
+                        visible = visible || !isNewMessage,
+                        enter = fadeIn(
+                            animationSpec = tween(150, easing = androidx.compose.animation.core.FastOutSlowInEasing)
+                        ) + scaleIn(
+                            initialScale = 0.92f,
+                            animationSpec = tween(150, easing = androidx.compose.animation.core.FastOutSlowInEasing)
+                        ),
+                        modifier = Modifier.animateItem(
+                            placementSpec = spring<IntOffset>(
+                                dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+                                stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+                            )
+                        )
+                    ) {
                         MessageItem(
                             message = message.copy(isSelected = uiState.selectedMessageIds.contains(message.id)),
                             isSelectionMode = uiState.isMultiSelectMode,
                             onSelect = { msg -> viewModel.handleIntent(ChatIntent.ToggleMessageSelection(msg.id)) },
                             onReply = { msg -> viewModel.handleIntent(ChatIntent.SetReplyTo(msg)) },
                             onLongClick = { msg -> 
-                                // Enter selection mode on long press
-                                viewModel.handleIntent(ChatIntent.ToggleMessageSelection(msg.id))
+                                selectedMessage = msg
+                                showMessageOptions = true
                             },
                             onAttachmentClick = { url, type -> /* Open Viewer */ }
                         )
