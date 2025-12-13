@@ -36,20 +36,22 @@ class ChatUIUpdater(
     private var updatesJob: Job? = null
     private var channel: io.github.jan.supabase.realtime.RealtimeChannel? = null
 
-    fun startUpdates(chatId: String) {
+    fun startUpdates() {
+        Log.d(TAG, "Starting chat UI updates for chat: $chatId")
         // Cancel any existing updates job
         updatesJob?.cancel()
 
         updatesJob = scope.launch {
             try {
                 // Subscribe to the chat channel directly using SupabaseClient
-                val channel = SupabaseClient.client.realtime.channel("chat:$chatId")
-                channel.subscribe()
+                val newChannel = SupabaseClient.client.realtime.channel("messages_$chatId")
+                channel = newChannel
+                newChannel.subscribe()
 
                 // Listen for new messages
-                channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                newChannel.postgresChangeFlow<PostgresAction>(schema = "public") {
                     table = "messages"
-                    // TODO: Add filter when API is available - filter = "chat_id=eq.$chatId"
+                    filter = "chat_id=eq.$chatId"
                 }.collect { action ->
                     when (action) {
                         is PostgresAction.Insert -> {
