@@ -419,13 +419,14 @@ class InboxViewModel(
     }
     
     /**
-     * Mutes a chat for specified duration
+     * Mutes a chat for specified duration.
+     * Persists the mute state and duration to the backend.
      */
     private fun muteChat(chatId: String, duration: MuteDuration) {
         val userId = currentUserId ?: return
 
         viewModelScope.launch {
-            // Optimistic update
+            // Optimistic update to UI immediately
             _uiState.update { currentState ->
                 if (currentState is InboxUiState.Success) {
                     val updatedChats = currentState.chats.map { chat ->

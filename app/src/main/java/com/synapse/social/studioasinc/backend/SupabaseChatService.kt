@@ -511,7 +511,7 @@ class SupabaseChatService {
                 
                 // Get participant records with preferences
                 val participantResult = client.from("chat_participants")
-                    .select(columns = Columns.raw("chat_id, is_archived, is_pinned, is_muted")) {
+                    .select(columns = Columns.raw("chat_id, is_archived, is_pinned, is_muted, muted_until")) {
                         filter { eq("user_id", userId) }
                     }
                     .decodeList<JsonObject>()
@@ -553,7 +553,27 @@ class SupabaseChatService {
                         if (participantData != null) {
                              chatMap["is_archived"] = participantData["is_archived"].toString()
                              chatMap["is_pinned"] = participantData["is_pinned"].toString()
-                             chatMap["is_muted"] = participantData["is_muted"].toString()
+
+                             // Handle mute expiration
+                             val isMuted = participantData["is_muted"].toString().toBoolean()
+                             val mutedUntilStr = participantData["muted_until"]?.toString()?.removeSurrounding("\"")
+
+                             if (isMuted && mutedUntilStr != null && mutedUntilStr != "null" && mutedUntilStr.isNotEmpty()) {
+                                 try {
+                                     val mutedUntil = java.time.Instant.parse(mutedUntilStr)
+                                     if (mutedUntil.isBefore(java.time.Instant.now())) {
+                                         // Mute expired
+                                         chatMap["is_muted"] = "false"
+                                     } else {
+                                         chatMap["is_muted"] = "true"
+                                     }
+                                 } catch (e: Exception) {
+                                     // If parsing fails, fallback to stored value
+                                     chatMap["is_muted"] = isMuted.toString()
+                                 }
+                             } else {
+                                 chatMap["is_muted"] = isMuted.toString()
+                             }
                         }
                     }
                     chatMap.toMap()
