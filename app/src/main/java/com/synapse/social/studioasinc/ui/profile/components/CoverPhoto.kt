@@ -62,9 +62,13 @@ fun CoverPhoto(
         animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
         label = "coverFadeIn"
     )
+
+    val density = LocalDensity.current
+    val heightPx = with(density) { height.toPx() }
     
-    // Calculate parallax offset
-    val parallaxOffset = scrollOffset * parallaxFactor * 100f
+    // Calculate parallax offset based on height
+    // If we scroll 100% of height, we want the image to translate down by 50% of height (if factor is 0.5)
+    val parallaxOffset = scrollOffset * heightPx * parallaxFactor
     
     Box(
         modifier = modifier
@@ -81,10 +85,14 @@ fun CoverPhoto(
                     .fillMaxSize()
                     .graphicsLayer {
                         translationY = parallaxOffset
-                        // Slight zoom for smoother parallax
+                        // Slight zoom to prevent edges showing during parallax
                         scaleX = 1.1f
                         scaleY = 1.1f
                     }
+                    .blur(
+                        radius = (scrollOffset * 10).dp,
+                        edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded
+                    )
                     .graphicsLayer { this.alpha = alpha },
                 contentScale = ContentScale.Crop,
                 onState = { state ->
@@ -97,7 +105,7 @@ fun CoverPhoto(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        translationY = parallaxOffset * 0.3f
+                        translationY = parallaxOffset * 0.5f
                     }
             )
         }

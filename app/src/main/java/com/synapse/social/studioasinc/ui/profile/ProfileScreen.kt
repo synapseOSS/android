@@ -73,13 +73,16 @@ fun ProfileScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     var showCustomizationDialog by remember { mutableStateOf(false) }
 
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val coverHeightPx = with(density) { 180.dp.toPx() }
+
     // Calculate scroll progress for parallax effect
     val scrollProgress = remember {
         derivedStateOf {
             if (listState.firstVisibleItemIndex > 0) {
                 1f
             } else {
-                (listState.firstVisibleItemScrollOffset / 300f).coerceIn(0f, 1f)
+                (listState.firstVisibleItemScrollOffset / coverHeightPx).coerceIn(0f, 1f)
             }
         }
     }
