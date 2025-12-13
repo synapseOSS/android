@@ -42,14 +42,17 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _modifiedPosts = MutableStateFlow<Map<String, Post>>(emptyMap())
 
-    // Using PagingData for infinite scroll
-    val posts: Flow<PagingData<Post>> = postRepository.getPostsPaged()
+    // Cache the raw PagingData FIRST to prevent "Attempt to collect twice from pageEventFlow"
+    private val cachedPosts = postRepository.getPostsPaged()
+        .cachedIn(viewModelScope)
+
+    // Using PagingData for infinite scroll with modifications overlay
+    val posts: Flow<PagingData<Post>> = cachedPosts
         .combine(_modifiedPosts) { pagingData, modifications ->
             pagingData.map { post ->
                 modifications[post.id] ?: post
             }
         }
-        .cachedIn(viewModelScope)
 
     private var savedScrollPosition: ScrollPositionState? = null
 
