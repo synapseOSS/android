@@ -63,6 +63,7 @@ data class PostSettings(
 class CreatePostViewModel(application: Application) : AndroidViewModel(application) {
 
     private val postRepository = PostRepository(AppDatabase.getDatabase(application).postDao())
+    private val userRepository = com.synapse.social.studioasinc.data.repository.UserRepository(AppDatabase.getDatabase(application).userDao())
     private val authService = SupabaseAuthenticationService()
     private val prefs = application.getSharedPreferences("create_post_draft", Context.MODE_PRIVATE)
 
@@ -300,6 +301,20 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun saveOrUpdatePost(post: Post) {
         viewModelScope.launch {
+            // Ensure author details are populated for immediate display in local feed
+            if (!_uiState.value.isEditMode && post.username.isNullOrEmpty()) {
+                try {
+                    userRepository.getUserById(post.authorUid).onSuccess { user ->
+                        post.username = user?.username
+                        post.avatarUrl = user?.avatar
+                        post.isVerified = user?.verify ?: false
+                    }
+                } catch (e: Exception) {
+                    // Fail silently, post will still be created and details fetched later via sync/network
+                    e.printStackTrace()
+                }
+            }
+
             // Using createPost because Supabase/Room UPSERT logic usually handles ID collisions, 
             // OR we need specific update method. Assuming createPost handles upsert or we add updatePost.
             // Checking PostRepository... assuming updatePost exists or createPost is upsert. 

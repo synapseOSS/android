@@ -134,7 +134,7 @@ fun DirectChatScreen(
                     key = { it.id }
                 ) { message ->
                     // Animate item placement
-                    Box(modifier = Modifier.animateItemPlacement()) {
+                    Box(modifier = Modifier) {
                         MessageItem(
                             message = message,
                             onReply = { msg -> viewModel.handleIntent(ChatIntent.SetReplyTo(msg)) },

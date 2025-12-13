@@ -20,7 +20,7 @@ class ReelsFragment : Fragment() {
 
     private lateinit var databaseService: SupabaseDatabaseService
     private lateinit var lineVideosRecyclerViewAdapter: LineVideosRecyclerViewAdapter
-    private val lineVideosListMap = mutableListOf<HashMap<String, Any>>()
+    private val lineVideosListMap = ArrayList<HashMap<String, Any>>()
     
     private lateinit var middleRelativeTopSwipe: SwipeRefreshLayout
     private lateinit var loadedBody: LinearLayout
@@ -59,6 +59,11 @@ class ReelsFragment : Fragment() {
         val lineVideoViewSnapHelper = PagerSnapHelper()
         lineVideoViewSnapHelper.attachToRecyclerView(videosRecyclerView)
         
+        if (context != null) {
+            lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap, requireContext())
+            videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
+        }
+
         loadReels()
     }
 
@@ -98,12 +103,17 @@ class ReelsFragment : Fragment() {
                     
                     lineVideosListMap.addAll(convertedPosts)
                     
-                    if (context != null) {
-                        lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap as ArrayList<HashMap<String, Any>>, requireContext())
-                        videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
+                    if (::lineVideosRecyclerViewAdapter.isInitialized) {
+                        lineVideosRecyclerViewAdapter.notifyDataSetChanged()
                         loadedBody.visibility = View.VISIBLE
                     } else {
-                        loadedBody.visibility = View.GONE
+                         if (context != null) {
+                             lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap, requireContext())
+                             videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
+                             loadedBody.visibility = View.VISIBLE
+                         } else {
+                             loadedBody.visibility = View.GONE
+                         }
                     }
                     
                 }.onFailure { error ->

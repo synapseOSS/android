@@ -25,6 +25,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.realtime
 import io.github.jan.supabase.realtime.postgresChangeFlow
@@ -39,6 +40,8 @@ import com.synapse.social.studioasinc.chat.ForwardMessageDialog
 import com.synapse.social.studioasinc.chat.SwipeToReplyCallback
 import com.synapse.social.studioasinc.chat.ImageGalleryActivity
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -1712,14 +1715,10 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
                 val channel = SupabaseClient.client.realtime.channel("messages_$currentChatId")
                 realtimeChannel = channel
 
-                val changes = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                channel.postgresChangeFlow<PostgresAction>(schema = "public") {
                     table = "messages"
-                    // TODO: Add filter when API is available - filter = "chat_id=eq.$currentChatId"
-                }
-
-                channel.subscribe()
-
-                changes.collect { action ->
+                    filter("chat_id", FilterOperator.EQ, currentChatId)
+                }.onEach { action ->
                     when (action) {
                         is PostgresAction.Insert -> handleMessageInsert(action.record)
                         is PostgresAction.Update -> handleMessageUpdate(action.record)
@@ -1733,7 +1732,9 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
                         }
                         else -> {}
                     }
-                }
+                }.launchIn(this)
+
+                channel.subscribe()
             } catch (e: Exception) {
                 android.util.Log.e("ChatActivity", "Error in Realtime subscription", e)
                 // Attempt reconnection after delay handled by handleRealtimeReconnection which calls this method

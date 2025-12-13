@@ -87,6 +87,8 @@ class PostsAdapter(
             }
             previousPostText = postContent
 
+            // Data is pre-fetched by the ViewModel/Repository layer.
+            // Fallback to UID is provided for safety but should not be needed if architecture is correct.
             val authorUsername = post.username ?: "@${post.authorUid}"
             authorText.text = authorUsername
 
