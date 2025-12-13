@@ -360,11 +360,12 @@ class InboxViewModel(
                 }
             }
 
-            // Implement delete in backend
+            // Backend delete call
             val result = chatService.deleteChat(chatId, userId)
 
-            // Reload chats if failed to ensure consistency
             if (result.isFailure) {
+                android.util.Log.e("InboxViewModel", "Failed to delete chat: ${result.exceptionOrNull()?.message}")
+                // Reload chats if failed to ensure consistency
                 loadChats()
             }
         }
