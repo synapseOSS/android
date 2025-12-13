@@ -109,11 +109,11 @@ data class Post(
     var reactions: Map<ReactionType, Int>? = null,
     @Transient
     var userReaction: ReactionType? = null,
-    @Transient
+    @SerialName("author_username")
     var username: String? = null,
-    @Transient
+    @SerialName("author_avatar_url")
     var avatarUrl: String? = null,
-    @Transient
+    @SerialName("author_is_verified")
     var isVerified: Boolean = false,
     @Transient
     var userPollVote: Int? = null
