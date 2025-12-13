@@ -105,6 +105,28 @@ object ChatAnimations {
     
     // Swipe to reply threshold
     val SwipeToReplyThreshold = 80.dp
+    
+    // =============================================
+    // MESSAGE SEND ANIMATION SPEC
+    // =============================================
+    
+    // Input clearing animation
+    val SendInputClearDuration = 100       // Input field text fade + height shrink
+    
+    // Message bubble entrance
+    val SendBubbleEnterDuration = 150      // Fade-in + scale-up
+    val SendBubbleTranslationY = 4.dp      // Vertical float distance from bottom
+    
+    // Scroll coordination
+    val SendScrollDelay = 50               // Delay before scroll starts (let bubble animate first)
+    val SendScrollDuration = 200           // Smooth scroll duration
+    
+    // Send button
+    val SendButtonClickDuration = 50       // Ripple/overlay flash
+    val SendIconCrossfadeDuration = 100    // Icon transition (was 300, now per spec)
+    
+    // Custom easing per spec: cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    // This is a smooth ease-out curve for premium feel
 }
 
 // =============================================

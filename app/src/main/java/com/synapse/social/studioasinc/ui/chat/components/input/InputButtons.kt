@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.ui.chat.animations.rememberSendButtonAnimationState
+import com.synapse.social.studioasinc.ui.chat.theme.ChatAnimations
 import com.synapse.social.studioasinc.ui.chat.theme.ChatColors
 
 /**
@@ -43,10 +44,11 @@ fun AnimatedSendButton(
     modifier: Modifier = Modifier
 ) {
     val animationState = rememberSendButtonAnimationState(showSend)
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     
     val backgroundColor by animateColorAsState(
         targetValue = if (showSend) ChatColors.SendButtonActive else ChatColors.InputBarBackground,
-        animationSpec = tween(300),
+        animationSpec = tween(ChatAnimations.SendIconCrossfadeDuration),
         label = "sendButtonColor"
     )
 
@@ -60,13 +62,22 @@ fun AnimatedSendButton(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = androidx.compose.material3.ripple(bounded = true, radius = 24.dp),
-                onClick = if (showSend) onSendClick else onVoiceClick
+                onClick = {
+                    if (showSend) {
+                        // Haptic feedback for premium feel
+                        haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onSendClick()
+                    } else {
+                        onVoiceClick()
+                    }
+                }
             ),
         contentAlignment = Alignment.Center
     ) {
+        // Faster cross-fade per spec (100ms instead of 300ms)
         Crossfade(
             targetState = showSend,
-            animationSpec = tween(300),
+            animationSpec = tween(ChatAnimations.SendIconCrossfadeDuration),
             label = "sendIconCrossfade"
         ) { isSend ->
             Icon(

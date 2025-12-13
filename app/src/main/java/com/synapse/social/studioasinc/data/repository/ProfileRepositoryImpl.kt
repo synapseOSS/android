@@ -157,7 +157,12 @@ class ProfileRepositoryImpl : ProfileRepository {
     }
 
     override suspend fun followUser(userId: String, targetUserId: String): Result<Unit> = try {
-        client.from("follows").insert(mapOf("follower_id" to userId, "following_id" to targetUserId))
+        client.from("follows").upsert(
+            mapOf("follower_id" to userId, "following_id" to targetUserId)
+        ) {
+            onConflict = "follower_id, following_id"
+            ignoreDuplicates = true
+        }
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(e)

@@ -1,6 +1,8 @@
 package com.synapse.social.studioasinc.ui.chat
 
+import androidx.compose.ui.text.input.TextFieldValue
 import com.synapse.social.studioasinc.data.model.UserProfile
+import com.synapse.social.studioasinc.model.SearchResult
 
 /**
  * UI State definitions for Direct Chat Compose screen
@@ -25,9 +27,19 @@ data class ChatUiState(
     val selectedMessageIds: Set<String> = emptySet(),
     val hasMoreMessages: Boolean = true,
     val scrollToMessageId: String? = null,
-    val inputText: String = "",
+    val inputText: TextFieldValue = TextFieldValue(""),
+    val mentionSuggestions: List<SearchResult.User> = emptyList(),
     val isRecordingVoice: Boolean = false,
-    val attachments: List<AttachmentUiModel> = emptyList()
+    val attachments: List<AttachmentUiModel> = emptyList(),
+    // Link preview state
+    val linkPreviewLoading: Boolean = false,
+    val detectedLinkPreview: LinkPreviewData? = null,
+    // Pending attachments for media picker
+    val pendingAttachments: List<PendingAttachment> = emptyList(),
+    val isUploadingMedia: Boolean = false,
+    val showMediaPicker: Boolean = false,
+    // Animation trigger for coordinated message send animation
+    val isSendingAnimation: Boolean = false
 )
 
 /**
@@ -204,6 +216,18 @@ data class VoiceMessageData(
     val playbackPosition: Long = 0
 )
 
+/**
+ * Pending attachment for media upload preview
+ */
+data class PendingAttachment(
+    val id: String,
+    val uri: android.net.Uri,
+    val type: AttachmentType,
+    val fileName: String? = null,
+    val uploadProgress: Float = 0f,
+    val isUploading: Boolean = false
+)
+
 // =============================================
 // CHAT EVENTS & EFFECTS
 // =============================================
@@ -233,6 +257,7 @@ sealed class ChatEffect {
 sealed class ChatIntent {
     // Message actions
     data class SendMessage(val content: String) : ChatIntent()
+    data class InsertMention(val user: SearchResult.User) : ChatIntent()
     data class SendMediaMessage(val attachments: List<AttachmentUiModel>, val caption: String?) : ChatIntent()
     data class SendVoiceMessage(val audioPath: String, val duration: Long) : ChatIntent()
     data class DeleteMessage(val messageId: String, val forEveryone: Boolean) : ChatIntent()
@@ -254,10 +279,18 @@ sealed class ChatIntent {
     data class CopyToClipboard(val content: String) : ChatIntent()
     
     // Input
-    data class UpdateInputText(val text: String) : ChatIntent()
+    data class UpdateInputText(val text: TextFieldValue) : ChatIntent()
     data class AddAttachment(val attachment: AttachmentUiModel) : ChatIntent()
     data class RemoveAttachment(val attachmentId: String) : ChatIntent()
     data object ClearAttachments : ChatIntent()
+    
+    // Media picker
+    data object ShowMediaPicker : ChatIntent()
+    data object HideMediaPicker : ChatIntent()
+    data class AddPendingAttachment(val uri: android.net.Uri, val type: AttachmentType) : ChatIntent()
+    data class RemovePendingAttachment(val id: String) : ChatIntent()
+    data object ClearPendingAttachments : ChatIntent()
+    data object SendWithAttachments : ChatIntent()
     
     // Voice
     data object StartVoiceRecording : ChatIntent()

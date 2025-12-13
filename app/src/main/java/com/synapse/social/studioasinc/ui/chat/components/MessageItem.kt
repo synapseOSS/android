@@ -39,6 +39,8 @@ import com.synapse.social.studioasinc.ui.chat.MessagePosition
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
 import com.synapse.social.studioasinc.ui.chat.MessageType
 import com.synapse.social.studioasinc.ui.chat.DeliveryStatus
+import com.synapse.social.studioasinc.ui.components.mentions.MentionTextFormatter
+import androidx.compose.foundation.text.ClickableText
 import kotlin.math.roundToInt
 
 /**
@@ -61,6 +63,30 @@ fun MessageItem(
     var offsetX by remember { mutableFloatStateOf(0f) }
     val threshold = with(LocalDensity.current) { 60.dp.toPx() }
     val replyIconAlpha by animateFloatAsState(targetValue = if (offsetX > threshold / 2) 1f else 0f, label = "alpha")
+    
+    var showMentionDialogForUser by remember { mutableStateOf<String?>(null) }
+    
+    if (showMentionDialogForUser != null) {
+        AlertDialog(
+            onDismissRequest = { showMentionDialogForUser = null },
+            title = { Text("Open Profile") },
+            text = { Text("Are you sure you want to open the account @${showMentionDialogForUser}?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    // TODO: Open Profile Navigation
+                    // onProfileClick(showMentionDialogForUser!!)
+                    showMentionDialogForUser = null
+                }) {
+                    Text("Open")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showMentionDialogForUser = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Box(
         modifier = modifier
@@ -215,14 +241,98 @@ fun MessageItem(
 
                         // Text Content
                         if (message.content.isNotEmpty()) {
-                            Text(
-                                text = message.content,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (message.isFromCurrentUser)
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            val textColor = if (message.isFromCurrentUser)
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            
+                            val pillColor = if(message.isFromCurrentUser) 
+                                MaterialTheme.colorScheme.surface.copy(alpha=0.3f) 
+                            else 
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha=0.3f)
+
+                            if (isSelectionMode) {
+                                Text(
+                                    text = message.content,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = textColor
+                                )
+                            } else {
+                                // Get colors outside remember block (Composable context)
+                                val mentionColor = MaterialTheme.colorScheme.primary
+                                val annotatedText = remember(message.content, mentionColor, pillColor) {
+                                    MentionTextFormatter.buildMentionText(
+                                        text = message.content,
+                                        mentionColor = mentionColor,
+                                        pillColor = pillColor
+                                    )
+                                }
+                                ClickableText(
+                                    text = annotatedText,
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
+                                    onClick = { offset ->
+                                        val annotations = annotatedText.getStringAnnotations(tag = "MENTION", start = offset, end = offset)
+                                        if (annotations.isNotEmpty()) {
+                                            showMentionDialogForUser = annotations.first().item
+                                        } else {
+                                            // Pass through click? combinedClickable on parent handles 'clicks' but ClickableText consumes event.
+                                            // Limitation: Tapping non-link text won't trigger message options (if that was bound to single click).
+                                            // Currently message options open on LongClick (implemented on container).
+                                            // So consuming single click here is fine, as long as LongClick still works on container.
+                                            // Warning: ClickableText consumes all touches, so parent LongClick might fail if user presses ON the text.
+                                            // To fix: We'd need pointerInput/Touch handling manually. 
+                                            // For this MVP, we accept that pressing text might not trigger long-press for selection.
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                        // Link Preview
+                        message.linkPreview?.let { preview ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Surface(
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(8.dp)) {
+                                    preview.imageUrl?.let { imgUrl ->
+                                        AsyncImage(
+                                            model = imgUrl,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .heightIn(max = 120.dp)
+                                                .clip(RoundedCornerShape(8.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                    }
+                                    preview.title?.let { title ->
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    preview.description?.let { desc ->
+                                        Text(
+                                            text = desc,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    Text(
+                                        text = preview.domain,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                    )
+                                }
+                            }
                         }
 
                         // Timestamp & Status

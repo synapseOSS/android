@@ -1,16 +1,20 @@
 package com.synapse.social.studioasinc.ui.chat
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
+import com.synapse.social.studioasinc.backend.LinkPreviewService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.model.Message
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.UserProfileManager
+import com.synapse.social.studioasinc.util.LinkDetectionService
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
@@ -19,6 +23,9 @@ import kotlinx.serialization.json.JsonObject
 import io.github.jan.supabase.realtime.broadcastFlow
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.decodeRecord
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
+import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
 
 /**
  * ViewModel for DirectChatScreen
@@ -29,6 +36,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     // Dependencies
     private val chatDao = AppDatabase.getDatabase(application).chatDao()
     private val chatRepository = ChatRepository(chatDao)
+    private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
     
     // UI State
@@ -40,6 +48,10 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     val availableChats: StateFlow<List<ChatForwardUiModel>> = _availableChats.asStateFlow()
 
     private var loadChatsJob: Job? = null
+    private var linkPreviewJob: Job? = null
+    
+    // Link Preview Service
+    private val linkPreviewService = LinkPreviewService()
     
     // Messages list (Source of Truth: Realtime/DB)
     private val _dbMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
@@ -313,6 +325,36 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             is ChatIntent.SendMessage -> sendMessage(intent.content)
             is ChatIntent.UpdateInputText -> {
                 _uiState.update { it.copy(inputText = intent.text) }
+                // Check for mention
+                val mentionQuery = MentionHelper.getMentionQuery(intent.text)
+                if (mentionQuery != null) {
+                    viewModelScope.launch {
+                        searchRepository.searchUsers(mentionQuery.query).onSuccess { users ->
+                             _uiState.update { it.copy(mentionSuggestions = users) }
+                        }.onFailure {
+                             _uiState.update { it.copy(mentionSuggestions = emptyList()) }
+                        }
+                    }
+                } else {
+                     _uiState.update { it.copy(mentionSuggestions = emptyList()) }
+                }
+                // Debounced link detection
+                detectLinksDebounced(intent.text.text)
+            }
+            is ChatIntent.InsertMention -> {
+                val currentInput = _uiState.value.inputText
+                val mentionQuery = MentionHelper.getMentionQuery(currentInput)
+                if (mentionQuery != null) {
+                    val range = mentionQuery.range
+                    val newText = currentInput.text.replaceRange(range.start, range.end, "@${intent.user.username} ")
+                    val newCursor = range.start + intent.user.username.length + 2 // @ + name + space
+                    _uiState.update { 
+                        it.copy(
+                            inputText = TextFieldValue(newText, selection = TextRange(newCursor)),
+                            mentionSuggestions = emptyList()
+                        ) 
+                    }
+                }
             }
             is ChatIntent.SetReplyTo -> {
                 _uiState.update { it.copy(replyTo = intent.message) }
@@ -373,7 +415,136 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                 // Load chats for forwarding, UI will handle showing the sheet
                 loadUserChats()
             }
+            // Media picker intents
+            is ChatIntent.ShowMediaPicker -> {
+                _uiState.update { it.copy(showMediaPicker = true) }
+            }
+            is ChatIntent.HideMediaPicker -> {
+                _uiState.update { it.copy(showMediaPicker = false) }
+            }
+            is ChatIntent.AddPendingAttachment -> {
+                val pending = PendingAttachment(
+                    id = "pending_${System.currentTimeMillis()}",
+                    uri = intent.uri,
+                    type = intent.type
+                )
+                _uiState.update { 
+                    it.copy(pendingAttachments = it.pendingAttachments + pending)
+                }
+            }
+            is ChatIntent.RemovePendingAttachment -> {
+                _uiState.update {
+                    it.copy(pendingAttachments = it.pendingAttachments.filter { p -> p.id != intent.id })
+                }
+            }
+            is ChatIntent.ClearPendingAttachments -> {
+                _uiState.update { it.copy(pendingAttachments = emptyList()) }
+            }
+            is ChatIntent.SendWithAttachments -> {
+                sendMediaMessage()
+            }
             else -> { /* TODO: Implement other intents */ }
+        }
+    }
+
+    /**
+     * Debounced link detection - triggers link preview fetch after user stops typing
+     */
+    private fun detectLinksDebounced(text: String) {
+        linkPreviewJob?.cancel()
+        
+        // Clear preview if text is empty or no links
+        if (text.isBlank() || !LinkDetectionService.containsUrl(text)) {
+            _uiState.update { it.copy(detectedLinkPreview = null, linkPreviewLoading = false) }
+            return
+        }
+        
+        linkPreviewJob = viewModelScope.launch {
+            delay(500) // 500ms debounce
+            
+            val url = LinkDetectionService.extractFirstUrl(text) ?: return@launch
+            
+            // Don't refetch if same URL
+            if (_uiState.value.detectedLinkPreview?.url == url) return@launch
+            
+            _uiState.update { it.copy(linkPreviewLoading = true) }
+            
+            linkPreviewService.fetchLinkPreview(url)
+                .onSuccess { preview ->
+                    _uiState.update { 
+                        it.copy(detectedLinkPreview = preview, linkPreviewLoading = false)
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(linkPreviewLoading = false) }
+                }
+        }
+    }
+
+    /**
+     * Send media message with pending attachments
+     */
+    private fun sendMediaMessage() {
+        val chatId = currentChatId ?: return
+        val senderId = currentUserId ?: return
+        val pending = _uiState.value.pendingAttachments
+        
+        if (pending.isEmpty()) return
+        
+        val caption = _uiState.value.inputText.text.takeIf { it.isNotBlank() }
+        val tempId = "temp_${System.currentTimeMillis()}"
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isUploadingMedia = true) }
+            
+            // Upload each attachment
+            val uploadedUrls = mutableListOf<String>()
+            pending.forEach { attachment ->
+                try {
+                    val bytes = getApplication<Application>().contentResolver
+                        .openInputStream(attachment.uri)?.use { it.readBytes() }
+                        ?: return@forEach
+                    
+                    val fileName = "upload_${System.currentTimeMillis()}"
+                    val path = storageService.generateStoragePath(chatId, fileName)
+                    
+                    storageService.uploadFileBytes(bytes, path)
+                        .onSuccess { url -> uploadedUrls.add(url) }
+                }  catch (e: Exception) {
+                    // Log error but continue
+                }
+            }
+            
+            if (uploadedUrls.isNotEmpty()) {
+                // Send message with first attachment URL (or all as content for now)
+                val type = when (pending.first().type) {
+                    AttachmentType.Image -> "image"
+                    AttachmentType.Video -> "video"
+                    AttachmentType.Audio -> "audio"
+                    else -> "file"
+                }
+                
+                val content = caption ?: uploadedUrls.first()
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    senderId = senderId,
+                    content = content,
+                    messageType = type
+                )
+                
+                _effects.send(ChatEffect.ShowSnackbar("Media sent"))
+            } else {
+                _effects.send(ChatEffect.ShowSnackbar("Failed to upload media"))
+            }
+            
+            _uiState.update { 
+                it.copy(
+                    pendingAttachments = emptyList(),
+                    isUploadingMedia = false,
+                    inputText = androidx.compose.ui.text.input.TextFieldValue(""),
+                    showMediaPicker = false
+                )
+            }
         }
     }
 
@@ -520,7 +691,10 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
         val tempId = "temp_${System.currentTimeMillis()}"
 
         viewModelScope.launch {
-            // Optimistic Update: Add to optimistic state
+            // 1. Trigger coordinated animation sequence
+            _uiState.update { it.copy(isSendingAnimation = true) }
+            
+            // 2. Optimistic Update: Add to optimistic state
             val optimisticMessage = MessageUiModel(
                 id = tempId,
                 content = content,
@@ -539,12 +713,18 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                         senderName = it.senderName ?: "User",
                         content = it.content
                     )
-                }
+                },
+                isAnimating = true // Mark as newly sent for animation
             )
             
             _optimisticMessages.update { it + optimisticMessage }
-            _uiState.update { it.copy(inputText = "", replyTo = null) }
+            _uiState.update { it.copy(inputText = TextFieldValue(""), replyTo = null) }
             
+            // 3. Reset animation flag after input clear animation completes
+            delay(100) // Match SendInputClearDuration
+            _uiState.update { it.copy(isSendingAnimation = false) }
+            
+            // 4. Network send
             val result = chatRepository.sendMessage(
                 chatId = chatId,
                 senderId = senderId,
@@ -557,14 +737,14 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                 // Success: Update the optimistic message with the Real ID.
                 _optimisticMessages.update { list -> 
                     list.map { 
-                        if (it.id == tempId) it.copy(id = realMessageId, deliveryStatus = DeliveryStatus.Sent) else it 
+                        if (it.id == tempId) it.copy(id = realMessageId, deliveryStatus = DeliveryStatus.Sent, isAnimating = false) else it 
                     } 
                 }
             }.onFailure { error ->
                 // Mark optimistic message as failed
                 _optimisticMessages.update { list ->
                     list.map {
-                        if (it.id == tempId) it.copy(deliveryStatus = DeliveryStatus.Failed) else it
+                        if (it.id == tempId) it.copy(deliveryStatus = DeliveryStatus.Failed, isAnimating = false) else it
                     }
                 }
                 _uiState.update { it.copy(error = "Failed to send: ${error.message}") }

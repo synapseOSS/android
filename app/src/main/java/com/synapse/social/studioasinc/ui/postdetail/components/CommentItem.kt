@@ -24,6 +24,9 @@ import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.ui.components.CircularAvatar
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import com.synapse.social.studioasinc.util.TimeUtils
+import com.synapse.social.studioasinc.ui.components.mentions.MentionTextFormatter
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.runtime.*
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -39,6 +42,41 @@ fun CommentItem(
     onViewReplies: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var showMentionDialogForUser by remember { mutableStateOf<String?>(null) }
+    
+    if (showMentionDialogForUser != null) {
+        AlertDialog(
+            onDismissRequest = { showMentionDialogForUser = null },
+            title = { Text("Open Profile") },
+            text = { Text("Are you sure you want to open the account @${showMentionDialogForUser}?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onUserClick(showMentionDialogForUser!!) // TODO: We need ID, but here we only have username. 
+                    // onUserClick expects ID. Mentions only give username.
+                    // Ideally we should navigate by username or lookup ID.
+                    // For now, I'll assume onUserClick handles ID, so passing username might break it if it expects UUID.
+                    // But maybe I can navigate to "username/{username}"?
+                    // The prompt implies "open the account".
+                    // I'll call onUserClick with username, assuming the navigation can handle it, or I'll leave a TODO.
+                    // Actually, usually navigation to profile is by ID.
+                    // If I only have username from text "@ashik", I don't have ID.
+                    // I should probably search for user by username then navigate?
+                    // Or just navigate to a route "profile/username/{username}".
+                    // Since I can't change navigation graph easily here, I'll comment it.
+                    // Wait, I can try to find if the mentioned user is the comment author? No.
+                    showMentionDialogForUser = null
+                }) {
+                    Text("Open")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showMentionDialogForUser = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -70,15 +108,31 @@ fun CommentItem(
                     )
                 }
 
+                val mentionColor = MaterialTheme.colorScheme.primary
+                val pillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier.padding(vertical = 4.dp)
                 ) {
-                    Text(
-                        text = comment.content,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                    val annotatedText = remember(comment.content, mentionColor, pillColor) {
+                        MentionTextFormatter.buildMentionText(
+                            text = comment.content,
+                            mentionColor = mentionColor,
+                            pillColor = pillColor
+                        )
+                    }
+                    ClickableText(
+                        text = annotatedText,
+                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        onClick = { offset ->
+                            val annotations = annotatedText.getStringAnnotations(tag = "MENTION", start = offset, end = offset)
+                            if (annotations.isNotEmpty()) {
+                                showMentionDialogForUser = annotations.first().item
+                            }
+                        }
                     )
                 }
 

@@ -114,6 +114,75 @@ fun messageExitTransition(isFromCurrentUser: Boolean): ExitTransition {
 }
 
 // =============================================
+// SEND MESSAGE ENTRANCE ANIMATION (Per Spec)
+// =============================================
+
+/**
+ * Premium send message entrance animation per spec:
+ * - Fade-in + scale-up (150ms)
+ * - Vertical translation from bottom (4dp float up)
+ * - Custom cubic-bezier(0.25, 0.46, 0.45, 0.94) easing
+ * 
+ * Use on newly sent messages to create a smooth "float up" effect
+ */
+@Composable
+fun Modifier.sendMessageEntranceAnimation(
+    isNewlySent: Boolean
+): Modifier {
+    var hasAnimated by remember { mutableStateOf(!isNewlySent) }
+    
+    // Get density at composable level
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val offsetDp = with(density) { 4.dp.toPx() }
+    
+    LaunchedEffect(isNewlySent) {
+        if (isNewlySent && !hasAnimated) {
+            // Small delay to ensure composition is ready
+            kotlinx.coroutines.delay(16)
+            hasAnimated = true
+        }
+    }
+    
+    // Custom easing per spec: cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    val sendEasing = CubicBezierEasing(0.25f, 0.46f, 0.45f, 0.94f)
+    
+    val alpha by animateFloatAsState(
+        targetValue = if (hasAnimated) 1f else 0f,
+        animationSpec = tween(
+            durationMillis = ChatAnimations.SendBubbleEnterDuration,
+            easing = sendEasing
+        ),
+        label = "sendMsgAlpha"
+    )
+    
+    val scale by animateFloatAsState(
+        targetValue = if (hasAnimated) 1f else 0.95f,
+        animationSpec = tween(
+            durationMillis = ChatAnimations.SendBubbleEnterDuration,
+            easing = sendEasing
+        ),
+        label = "sendMsgScale"
+    )
+    
+    val offsetY by animateFloatAsState(
+        targetValue = if (hasAnimated) 0f else offsetDp,
+        animationSpec = tween(
+            durationMillis = ChatAnimations.SendBubbleEnterDuration,
+            easing = sendEasing
+        ),
+        label = "sendMsgOffsetY"
+    )
+    
+    return this
+        .graphicsLayer {
+            this.alpha = alpha
+            this.scaleX = scale
+            this.scaleY = scale
+            this.translationY = offsetY
+        }
+}
+
+// =============================================
 // TYPING INDICATOR ANIMATION
 // =============================================
 

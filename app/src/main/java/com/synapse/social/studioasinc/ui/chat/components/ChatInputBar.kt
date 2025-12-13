@@ -30,16 +30,22 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
+import com.synapse.social.studioasinc.model.SearchResult
+import com.synapse.social.studioasinc.ui.components.mentions.MentionSuggestions
+import com.synapse.social.studioasinc.ui.chat.theme.ChatAnimations
 
 @Composable
 fun ChatInputBar(
-    value: String,
-    onValueChange: (String) -> Unit,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     onSendClick: () -> Unit,
     onAttachClick: () -> Unit,
     replyingTo: MessageUiModel? = null,
     onCancelReply: () -> Unit,
     typingUsers: List<String> = emptyList(),
+    suggestions: List<SearchResult.User> = emptyList(),
+    onInsertMention: (SearchResult.User) -> Unit = {},
+    isSending: Boolean = false,  // Animation trigger
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -54,6 +60,14 @@ fun ChatInputBar(
             exit = fadeOut() + shrinkVertically()
         ) {
             TypingIndicatorView(typingUsers)
+        }
+        
+        // Mention Suggestions
+        if (suggestions.isNotEmpty()) {
+             MentionSuggestions(
+                 suggestions = suggestions,
+                 onUserSelected = onInsertMention
+             )
         }
 
         // Reply Preview
@@ -94,19 +108,26 @@ fun ChatInputBar(
 
                 // Text Input
                 Box(modifier = Modifier.weight(1f)) {
-                    if (value.isEmpty()) {
+                    if (value.text.isEmpty()) {
                         Text(
                             text = "Message...",
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     }
+                    // Animate text fade on send
+                    val textAlpha by animateFloatAsState(
+                        targetValue = if (isSending) 0f else 1f,
+                        animationSpec = tween(ChatAnimations.SendInputClearDuration),
+                        label = "inputTextAlpha"
+                    )
+                    
                     BasicTextField(
                         value = value,
                         onValueChange = onValueChange,
                         textStyle = TextStyle(
                             fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = textAlpha)
                         ),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         modifier = Modifier
@@ -117,7 +138,7 @@ fun ChatInputBar(
                 }
 
                 // Send / Mic Button
-                if (value.isNotBlank()) {
+                if (value.text.isNotBlank()) {
                     IconButton(
                         onClick = onSendClick,
                         modifier = Modifier

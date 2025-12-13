@@ -45,6 +45,7 @@ import com.synapse.social.studioasinc.ui.chat.components.MessageItem
 import com.synapse.social.studioasinc.ui.chat.components.ForwardMessageSheet
 import com.synapse.social.studioasinc.ui.chat.components.topbar.ChatTopBar
 import com.synapse.social.studioasinc.ui.chat.components.topbar.SelectionModeTopBar
+import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
 import com.synapse.social.studioasinc.ui.chat.RealtimeConnectionState
 import kotlinx.coroutines.launch
 
@@ -91,10 +92,25 @@ fun DirectChatScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
 
-    // Media Picker
+    // Media Pickers
     val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
-             viewModel.sendAttachment(uri, "image")
+            viewModel.handleIntent(ChatIntent.AddPendingAttachment(uri, AttachmentType.Image))
+            viewModel.handleIntent(ChatIntent.HideMediaPicker)
+        }
+    }
+    
+    val pickVideo = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            viewModel.handleIntent(ChatIntent.AddPendingAttachment(uri, AttachmentType.Video))
+            viewModel.handleIntent(ChatIntent.HideMediaPicker)
+        }
+    }
+    
+    val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            viewModel.handleIntent(ChatIntent.AddPendingAttachment(uri, AttachmentType.Audio))
+            viewModel.handleIntent(ChatIntent.HideMediaPicker)
         }
     }
 
@@ -109,6 +125,8 @@ fun DirectChatScreen(
         if (messages.size > previousMessageCount) {
             // Scroll if we have new messages and the latest one is from current user
             if (messages.isNotEmpty() && messages.last().isFromCurrentUser) {
+                // Delay to let bubble entrance animation start (per spec)
+                kotlinx.coroutines.delay(50)
                 listState.animateScrollToItem(0)
             }
         }
@@ -348,6 +366,30 @@ fun DirectChatScreen(
         )
     }
 
+    // Media Picker Bottom Sheet
+    if (uiState.showMediaPicker) {
+        MediaPickerBottomSheet(
+            onDismiss = { viewModel.handleIntent(ChatIntent.HideMediaPicker) },
+            onSelectCamera = {
+                // TODO: Implement camera capture
+                viewModel.handleIntent(ChatIntent.HideMediaPicker)
+            },
+            onSelectGallery = {
+                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            },
+            onSelectVideo = {
+                pickVideo.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
+            },
+            onSelectAudio = {
+                pickAudio.launch("audio/*")
+            },
+            onVoiceRecord = {
+                // TODO: Implement voice recording UI
+                viewModel.handleIntent(ChatIntent.HideMediaPicker)
+            }
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
@@ -492,21 +534,25 @@ fun DirectChatScreen(
                         value = uiState.inputText,
                         onValueChange = { 
                             viewModel.handleIntent(ChatIntent.UpdateInputText(it)) 
-                            // TODO: Trigger Typing Indicator
                             // Backend: Update Realtime Presence 'is_typing: true'
-                            if (it.isNotEmpty()) viewModel.setTypingStatus(true)
+                            if (it.text.isNotEmpty()) viewModel.setTypingStatus(true)
                         },
                         onSendClick = { 
-                            viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText))
+                            viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText.text))
                             // Backend: Presence 'is_typing: false'
                             viewModel.setTypingStatus(false)
                         },
+                        suggestions = uiState.mentionSuggestions,
+                        onInsertMention = { user ->
+                            viewModel.handleIntent(ChatIntent.InsertMention(user))
+                        },
                         onAttachClick = { 
-                            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            viewModel.handleIntent(ChatIntent.ShowMediaPicker)
                         },
                         replyingTo = uiState.replyTo,
                         onCancelReply = { viewModel.handleIntent(ChatIntent.ClearReply) },
-                        typingUsers = uiState.typingUsers
+                        typingUsers = uiState.typingUsers,
+                        isSending = uiState.isSendingAnimation  // Animation trigger
                     )
                 }
             }
