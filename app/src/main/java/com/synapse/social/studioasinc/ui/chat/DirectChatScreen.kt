@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.automirrored.filled.Forward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
 import com.synapse.social.studioasinc.ui.chat.components.MessageItem
+import com.synapse.social.studioasinc.ui.chat.components.ForwardMessageSheet
 import com.synapse.social.studioasinc.ui.chat.components.topbar.ChatTopBar
 import com.synapse.social.studioasinc.ui.chat.RealtimeConnectionState
 import kotlinx.coroutines.launch
@@ -56,6 +58,7 @@ fun DirectChatScreen(
     // State
     val uiState by viewModel.uiState.collectAsState()
     val messages by viewModel.messages.collectAsState()
+    val availableChats by viewModel.availableChats.collectAsState()
     
     // Derived State
     val listState = rememberLazyListState()
@@ -72,6 +75,7 @@ fun DirectChatScreen(
 
     // Bottom Sheet State
     var showMessageOptions by remember { mutableStateOf(false) }
+    var showForwardSheet by remember { mutableStateOf(false) }
     var selectedMessage by remember { mutableStateOf<MessageUiModel?>(null) }
     val sheetState = rememberModalBottomSheetState()
     
@@ -139,6 +143,15 @@ fun DirectChatScreen(
                     }
                 )
                 ListItem(
+                    headlineContent = { Text("Forward") },
+                    leadingContent = { Icon(Icons.AutoMirrored.Filled.Forward, contentDescription = null) },
+                    modifier = Modifier.clickable {
+                        viewModel.loadUserChats()
+                        showForwardSheet = true
+                        scope.launch { sheetState.hide() }.invokeOnCompletion { showMessageOptions = false }
+                    }
+                )
+                ListItem(
                     headlineContent = { Text("Copy") },
                     leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.ContentCopy, contentDescription = null) },
                     modifier = Modifier.clickable {
@@ -176,6 +189,18 @@ fun DirectChatScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
+    }
+
+    if (showForwardSheet && selectedMessage != null) {
+        ForwardMessageSheet(
+            chats = availableChats,
+            onDismiss = { showForwardSheet = false },
+            onForward = { chatIds ->
+                viewModel.handleIntent(ChatIntent.ForwardMessage(selectedMessage!!.id, chatIds))
+                showForwardSheet = false
+                selectedMessage = null
+            }
+        )
     }
 
     // Block User Confirmation Dialog
