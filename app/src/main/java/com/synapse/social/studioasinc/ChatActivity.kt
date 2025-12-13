@@ -25,6 +25,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.realtime
 import io.github.jan.supabase.realtime.postgresChangeFlow
@@ -1716,7 +1717,7 @@ class ChatActivity : BaseActivity(), DefaultLifecycleObserver {
 
                 channel.postgresChangeFlow<PostgresAction>(schema = "public") {
                     table = "messages"
-                    filter = "chat_id=eq.$currentChatId"
+                    filter("chat_id", FilterOperator.EQ, currentChatId)
                 }.onEach { action ->
                     when (action) {
                         is PostgresAction.Insert -> handleMessageInsert(action.record)
