@@ -297,6 +297,11 @@ class AuthViewModel(
                                 .apply()
                              _uiState.value = AuthUiState.EmailVerification(email = email)
                              _navigationEvent.emit(AuthNavigationEvent.NavigateToEmailVerification)
+
+                             // Start polling for verification
+                             launch {
+                                 checkEmailVerification(email)
+                             }
                         } else {
                             _uiState.value = AuthUiState.Success("Sign up successful")
                             delay(500)
