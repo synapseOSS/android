@@ -222,7 +222,9 @@ fun SearchContent(
                         // Staggered entrance animation
                         val isVisible = remember { androidx.compose.runtime.mutableStateOf(false) }
                         LaunchedEffect(Unit) {
-                            kotlinx.coroutines.delay(index * 50L) // Stagger by 50ms
+                            // Stagger only the first few items to prevent long delays
+                            val delay = if (index < 10) index * 50L else 0L
+                            kotlinx.coroutines.delay(delay)
                             isVisible.value = true
                         }
 

@@ -129,6 +129,10 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             .launchIn(viewModelScope)
     }
     
+    // Effects Channel
+    private val _effects = kotlinx.coroutines.channels.Channel<ChatEffect>(kotlinx.coroutines.channels.Channel.BUFFERED)
+    val effects = _effects.receiveAsFlow()
+
     fun handleIntent(intent: ChatIntent) {
         when (intent) {
             is ChatIntent.SendMessage -> sendMessage(intent.content)
@@ -141,7 +145,14 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             is ChatIntent.ClearReply -> {
                 _uiState.update { it.copy(replyTo = null) }
             }
-            // Handle other intents as needed
+            is ChatIntent.DeleteMessage -> deleteMessage(intent.messageId)
+            is ChatIntent.EditMessage -> editMessage(intent.messageId, intent.newContent)
+            is ChatIntent.CopyToClipboard -> {
+                viewModelScope.launch {
+                    _effects.send(ChatEffect.CopyToClipboard(intent.content))
+                    _effects.send(ChatEffect.ShowSnackbar("Copied to clipboard"))
+                }
+            }
             else -> { /* TODO: Implement other intents */ }
         }
     }
@@ -204,15 +215,38 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
-    
+
+    private fun deleteMessage(messageId: String) {
+        viewModelScope.launch {
+             chatRepository.deleteMessage(messageId).onSuccess {
+                 // Optimistic update handled by Realtime if available, or force refresh
+                 // For now, let's wait for realtime. Or we can manually remove from _dbMessages if needed.
+                 _effects.send(ChatEffect.ShowSnackbar("Message deleted"))
+             }.onFailure { e ->
+                 _uiState.update { it.copy(error = "Failed to delete: ${e.message}") }
+             }
+        }
+    }
+
+    private fun editMessage(messageId: String, newContent: String) {
+        viewModelScope.launch {
+            chatRepository.editMessage(messageId, newContent).onSuccess {
+                _effects.send(ChatEffect.ShowSnackbar("Message edited"))
+            }.onFailure { e ->
+                 _uiState.update { it.copy(error = "Failed to edit: ${e.message}") }
+            }
+        }
+    }
+
     // Mapper function
     private fun Message.toUiModel(currentUserId: String?): MessageUiModel {
         val isMe = this.senderId == currentUserId
 
         // Map Reply Preview if exists
         val replyPreview = if (this.replyToId != null) {
-            // Placeholder
-            null
+            // In a real app, we'd need to fetch the original message or look it up in cache
+            // For now, simplistic approximation or null
+             null
         } else null
 
         return MessageUiModel(
@@ -240,7 +274,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             }
         )
     }
-    
+
     private fun mapMessageType(type: String): MessageType {
         return when (type) {
             "text" -> MessageType.Text

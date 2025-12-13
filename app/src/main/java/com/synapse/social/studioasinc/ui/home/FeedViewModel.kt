@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.map
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.PostRepository
 import com.synapse.social.studioasinc.data.local.AppDatabase
@@ -18,8 +19,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 
 data class FeedUiState(
     val isLoading: Boolean = false,
@@ -34,8 +37,15 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(FeedUiState())
     val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
 
+    private val _modifiedPosts = MutableStateFlow<Map<String, Post>>(emptyMap())
+
     // Using PagingData for infinite scroll
     val posts: Flow<PagingData<Post>> = postRepository.getPostsPaged()
+        .combine(_modifiedPosts) { pagingData, modifications ->
+            pagingData.map { post ->
+                modifications[post.id] ?: post
+            }
+        }
         .cachedIn(viewModelScope)
 
     private var savedScrollPosition: ScrollPositionState? = null
@@ -71,13 +81,58 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     
-    fun votePoll(postId: String, optionIndex: Int) {
+    fun votePoll(post: Post, optionIndex: Int) {
+        // Optimistic update
+        val currentOptions = post.pollOptions ?: return
+        if (post.userPollVote != null) return // Already voted
+
+        val updatedOptions = currentOptions.mapIndexed { index, option ->
+            if (index == optionIndex) option.copy(votes = option.votes + 1) else option
+        }
+
+        val updatedPost = post.copy(
+            pollOptions = updatedOptions,
+            userPollVote = optionIndex
+        )
+
+        _modifiedPosts.update { it + (post.id to updatedPost) }
+
         viewModelScope.launch {
             try {
                 val pollRepository = com.synapse.social.studioasinc.data.repository.PollRepository()
-                pollRepository.submitVote(postId, optionIndex)
+                pollRepository.submitVote(post.id, optionIndex)
             } catch (e: Exception) {
                 e.printStackTrace()
+                // Revert optimistic update
+                _modifiedPosts.update { it - post.id }
+            }
+        }
+    }
+
+    fun revokeVote(post: Post) {
+        val currentVoteIndex = post.userPollVote ?: return
+        val currentOptions = post.pollOptions ?: return
+
+        // Optimistic update
+        val updatedOptions = currentOptions.mapIndexed { index, option ->
+            if (index == currentVoteIndex) option.copy(votes = maxOf(0, option.votes - 1)) else option
+        }
+
+        val updatedPost = post.copy(
+            pollOptions = updatedOptions,
+            userPollVote = null
+        )
+
+        _modifiedPosts.update { it + (post.id to updatedPost) }
+
+        viewModelScope.launch {
+            try {
+                val pollRepository = com.synapse.social.studioasinc.data.repository.PollRepository()
+                pollRepository.revokeVote(post.id)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Revert
+                _modifiedPosts.update { it - post.id }
             }
         }
     }

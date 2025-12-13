@@ -2,9 +2,7 @@ package com.synapse.social.studioasinc
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -13,7 +11,7 @@ import com.synapse.social.studioasinc.ui.search.SearchScreen
 import com.synapse.social.studioasinc.ui.search.SearchViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 
-class SearchActivity : ComponentActivity() {
+class SearchActivity : BaseActivity() {
 
     private var chatMode = false
     private var origin = ""
@@ -25,8 +23,7 @@ class SearchActivity : ComponentActivity() {
         chatMode = intent.getBooleanExtra("mode", false) || intent.getStringExtra("mode") == "chat"
         origin = intent.getStringExtra("origin") ?: ""
 
-        // Enable edge-to-edge
-        enableEdgeToEdge()
+        // Edge-to-edge is handled in BaseActivity
 
         setContent {
             SynapseTheme {

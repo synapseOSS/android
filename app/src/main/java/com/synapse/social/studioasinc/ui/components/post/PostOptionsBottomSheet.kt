@@ -37,7 +37,8 @@ fun PostOptionsBottomSheet(
     onBookmark: () -> Unit,
     onToggleComments: () -> Unit,
     onReport: () -> Unit,
-    onBlock: () -> Unit
+    onBlock: () -> Unit,
+    onRevokeVote: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -96,7 +97,8 @@ fun PostOptionsBottomSheet(
                     onToggleComments = { onToggleComments(); onDismiss() },
                     onReport = { onReport(); onDismiss() },
                     onBlock = { onBlock(); onDismiss() },
-                    onShare = { onShare(); onDismiss() }
+                    onShare = { onShare(); onDismiss() },
+                    onRevokeVote = { onRevokeVote(); onDismiss() }
                 )) { option ->
                     OptionItem(option = option)
                 }
@@ -193,7 +195,8 @@ private fun buildOptions(
     onToggleComments: () -> Unit,
     onReport: () -> Unit,
     onBlock: () -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
+    onRevokeVote: () -> Unit
 ): List<PostOption> {
     val options = mutableListOf<PostOption>()
 
@@ -208,6 +211,10 @@ private fun buildOptions(
     } else {
         options.add(PostOption("Report", R.drawable.ic_report_48px, isDangerous = true, action = onReport))
         options.add(PostOption("Block", R.drawable.mobile_block_24px, isDangerous = true, action = onBlock))
+    }
+
+    if (post.userPollVote != null) {
+        options.add(PostOption("Revoke vote", R.drawable.ic_delete_48px, action = onRevokeVote))
     }
 
     options.add(PostOption("Share via...", R.drawable.ic_send, action = onShare))

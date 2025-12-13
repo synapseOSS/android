@@ -120,7 +120,8 @@ fun PostDetailScreen(
             onReport = { viewModel.reportPost("Spam") },
             onBlock = {
                 post.authorUid?.let { viewModel.blockUser(it) }
-            }
+            },
+            onRevokeVote = { viewModel.revokeVote() }
         )
     }
 

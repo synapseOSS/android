@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc.ui.chat
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Reply
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,12 +59,98 @@ fun DirectChatScreen(
     val localDensity = LocalDensity.current
     var inputBarHeightDp by remember { mutableStateOf(100.dp) }
 
+    // Bottom Sheet State
+    var showMessageOptions by remember { mutableStateOf(false) }
+    var selectedMessage by remember { mutableStateOf<MessageUiModel?>(null) }
+    val sheetState = rememberModalBottomSheetState()
+    
+    // Top Bar Menu State
+    var showTopBarMenu by remember { mutableStateOf(false) }
+
+    // Snackbar Host
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     // Effect: Load Chat
     LaunchedEffect(chatId) {
         viewModel.loadChat(chatId)
     }
 
+    // Effect: Handle One-time Effects
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is ChatEffect.ShowSnackbar -> {
+                    scope.launch { snackbarHostState.showSnackbar(effect.message) }
+                }
+                is ChatEffect.CopyToClipboard -> {
+                   val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                   val clip = android.content.ClipData.newPlainText("Message", effect.text)
+                   clipboard.setPrimaryClip(clip)
+                }
+                else -> {}
+            }
+        }
+    }
+
+    if (showMessageOptions && selectedMessage != null) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showMessageOptions = false
+                selectedMessage = null
+            },
+            sheetState = sheetState
+        ) {
+            val msg = selectedMessage!!
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                 ListItem(
+                    headlineContent = { Text("Reply") },
+                    leadingContent = { Icon(Icons.Default.Reply, contentDescription = null) },
+                    modifier = Modifier.clickable {
+                        viewModel.handleIntent(ChatIntent.SetReplyTo(msg))
+                        scope.launch { sheetState.hide() }.invokeOnCompletion { showMessageOptions = false }
+                    }
+                )
+                ListItem(
+                    headlineContent = { Text("Copy") },
+                    leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.ContentCopy, contentDescription = null) },
+                    modifier = Modifier.clickable {
+                        viewModel.handleIntent(ChatIntent.CopyToClipboard(msg.content))
+                        scope.launch { sheetState.hide() }.invokeOnCompletion { showMessageOptions = false }
+                    }
+                )
+                if (msg.isFromCurrentUser) {
+                    ListItem(
+                        headlineContent = { Text("Edit") },
+                        leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.Edit, contentDescription = null) },
+                        modifier = Modifier.clickable {
+                             // TODO: Implement Edit Dialog (simplification for now: trigger intent with current text)
+                             // Ideally show a dialog input
+                             // viewModel.handleIntent(ChatIntent.EditMessage(msg.id, "Edited Content"))
+                            scope.launch { sheetState.hide() }.invokeOnCompletion { showMessageOptions = false }
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text("Delete") },
+                        leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                        colors = ListItemDefaults.colors(headlineColor = MaterialTheme.colorScheme.error),
+                        modifier = Modifier.clickable {
+                            viewModel.handleIntent(ChatIntent.DeleteMessage(msg.id, false))
+                            scope.launch { sheetState.hide() }.invokeOnCompletion { showMessageOptions = false }
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             LargeTopAppBar(
                 title = {
@@ -98,8 +189,28 @@ fun DirectChatScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Menu */ }) {
+                    IconButton(onClick = { showTopBarMenu = true }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                    }
+                    DropdownMenu(
+                        expanded = showTopBarMenu,
+                        onDismissRequest = { showTopBarMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Block User") },
+                            onClick = { 
+                                showTopBarMenu = false
+                                // TODO: Implement Block
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete Chat") },
+                            onClick = {
+                                showTopBarMenu = false
+                                // TODO: Implement Delete Chat
+                            },
+                             colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
@@ -138,7 +249,10 @@ fun DirectChatScreen(
                         MessageItem(
                             message = message,
                             onReply = { msg -> viewModel.handleIntent(ChatIntent.SetReplyTo(msg)) },
-                            onLongClick = { /* Selection Mode */ },
+                            onLongClick = { msg -> 
+                                selectedMessage = msg
+                                showMessageOptions = true
+                            },
                             onAttachmentClick = { url, type -> /* Open Viewer */ }
                         )
                     }

@@ -60,17 +60,10 @@ class InboxComposeActivity : ComponentActivity() {
                     InboxScreen(
                         onNavigateBack = { finish() },
                         onNavigateToChat = { chatId, userId ->
-                            // Navigate to existing ChatActivity
-                            // ChatActivity expects "chatId" and "uid" as intent extras
+                            // Navigate to ChatActivity (now Compose)
                             Log.d("InboxComposeActivity", "Navigating to chat - chatId: $chatId, userId: $userId")
                             
-                            val intent = Intent(this, ChatActivity::class.java).apply {
-                                // Use correct intent extra keys that ChatActivity expects
-                                putExtra("chatId", chatId)  // ChatActivity reads from "chatId" (line 132)
-                                putExtra("uid", userId)      // ChatActivity reads from "uid" (line 133)
-                            }
-                            
-                            Log.d("InboxComposeActivity", "Starting ChatActivity with extras - chatId: $chatId, uid: $userId")
+                            val intent = ChatActivity.createIntent(this, chatId, userId)
                             startActivity(intent)
                         }
                     )

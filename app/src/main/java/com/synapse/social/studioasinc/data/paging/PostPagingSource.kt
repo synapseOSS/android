@@ -44,8 +44,12 @@ class PostPagingSource(
                 val post = json.decodeFromJsonElement<Post>(jsonElement)
                 val userData = jsonElement["users"]?.jsonObject
                 post.username = userData?.get("username")?.jsonPrimitive?.contentOrNull
-                post.avatarUrl = userData?.get("avatar")?.jsonPrimitive?.contentOrNull?.let {
-                    ImageLoader.constructStorageUrl(it, "user-avatars")
+                post.avatarUrl = userData?.get("avatar")?.jsonPrimitive?.contentOrNull?.let { avatarPath ->
+                    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
+                        avatarPath
+                    } else {
+                        ImageLoader.constructStorageUrl(avatarPath, "user-avatars")
+                    }
                 }
                 post.isVerified = userData?.get("verify")?.jsonPrimitive?.booleanOrNull ?: false
                 post
