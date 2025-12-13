@@ -356,7 +356,8 @@ class InboxViewModel(
         val userId = currentUserId ?: return
 
         viewModelScope.launch {
-            // Optimistic update
+            // 1. Optimistic Update: Immediately remove the chat from the UI
+            // This provides immediate feedback to the user while the backend operation processes
             _uiState.update { currentState ->
                 if (currentState is InboxUiState.Success) {
                     val updatedChats = currentState.chats.filter { it.id != chatId }
@@ -370,14 +371,19 @@ class InboxViewModel(
                 }
             }
 
-            // Backend delete call
-            val result = chatService.deleteChat(chatId, userId)
-
-            if (result.isFailure) {
-                android.util.Log.e("InboxViewModel", "Failed to delete chat: ${result.exceptionOrNull()?.message}")
-                // Reload chats if failed to ensure consistency
-                loadChats()
-            }
+            // 2. Backend Call: Perform the actual deletion on the server
+            // We use the Result API to handle success/failure gracefully
+            chatService.deleteChat(chatId, userId)
+                .onFailure { error ->
+                    // 3. Error Handling: Rollback or Refresh
+                    // If the backend call fails, we log the error and reload the chats
+                    // to restore the correct state (re-adding the chat that failed to delete)
+                    android.util.Log.e("InboxViewModel", "Failed to delete chat: ${error.message}", error)
+                    loadChats()
+                }
+                .onSuccess {
+                    android.util.Log.d("InboxViewModel", "Successfully deleted chat: $chatId")
+                }
         }
     }
 
