@@ -488,14 +488,18 @@ class AuthViewModel(
                 return@launch
             }
 
-            // For now, just start cooldown
             startResendCooldown()
 
             val result = authRepository.resendVerificationEmail(state.email)
-            result.onFailure { e ->
-                // Log error but don't disrupt the cooldown flow
-                android.util.Log.e("AuthViewModel", "Failed to resend verification email", e)
-            }
+            result.fold(
+                onSuccess = {
+                    android.util.Log.d("AuthViewModel", "Verification email resent successfully to ${state.email}")
+                },
+                onFailure = { e ->
+                    // Log error but don't disrupt the cooldown flow
+                    android.util.Log.e("AuthViewModel", "Failed to resend verification email", e)
+                }
+            )
         }
     }
 
