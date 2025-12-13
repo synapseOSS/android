@@ -1,6 +1,7 @@
 package com.synapse.social.studioasinc.chat.models
 
 import com.synapse.social.studioasinc.chat.interfaces.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -95,8 +96,11 @@ object AttachmentType {
  */
 @Serializable
 data class TypingStatus(
+    @SerialName("user_id")
     val userId: String,
+    @SerialName("chat_id")
     val chatId: String,
+    @SerialName("is_typing")
     val isTyping: Boolean,
     val timestamp: Long = System.currentTimeMillis()
 )
@@ -106,8 +110,11 @@ data class TypingStatus(
  */
 @Serializable
 data class ReadReceiptEvent(
+    @SerialName("chat_id")
     val chatId: String,
+    @SerialName("user_id")
     val userId: String,
+    @SerialName("message_ids")
     val messageIds: List<String>,
     val timestamp: Long = System.currentTimeMillis()
 )
