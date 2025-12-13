@@ -141,7 +141,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             // 1. Subscribe to channel (used for both)
             val channel = realtimeService.subscribeToChat(chatId)
             
-            // 2. Observe DB/Messages Flow from UseCase
+            // 2. Observe DB/Messages Flow from UseCase (Maintains Source of Truth / Initial History)
             launch {
                 observeMessagesUseCase(chatId)
                     .onEach { messageList ->
@@ -149,9 +149,42 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                         _dbMessages.value = uiMessages
                     }
                     .catch { e ->
-                        _uiState.update { it.copy(error = "Realtime error: ${e.message}") }
+                        // Log error but don't show to UI to avoid flickering if realtime is working
+                        android.util.Log.e("DirectChatViewModel", "Error observing messages use case", e)
                     }
                     .collect()
+            }
+
+            // 3. Observe Messages (Insert/Update/Delete) via Postgres Changes (Latency Compensation / Direct Updates)
+            // This runs in parallel to observeMessagesUseCase to provide immediate UI updates
+            launch {
+                try {
+                    channel.postgresChangeFlow<io.github.jan.supabase.realtime.PostgresAction>(schema = "public") {
+                        table = "messages"
+                        filter = "chat_id=eq.$chatId"
+                    }.collect { action ->
+                        when (action) {
+                            is io.github.jan.supabase.realtime.PostgresAction.Insert -> {
+                                val message = action.decodeRecord<Message>()
+                                handleMessageInsert(message)
+                            }
+                            is io.github.jan.supabase.realtime.PostgresAction.Update -> {
+                                val message = action.decodeRecord<Message>()
+                                handleMessageUpdate(message)
+                            }
+                            is io.github.jan.supabase.realtime.PostgresAction.Delete -> {
+                                val oldRecord = action.oldRecord
+                                val id = oldRecord["id"]?.toString()?.replace("\"", "")
+                                if (id != null) {
+                                    handleMessageDelete(id)
+                                }
+                            }
+                            else -> {}
+                        }
+                    }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(error = "Realtime message error: ${e.message}") }
+                }
             }
             
             // 3. Observe Typing Events
@@ -192,6 +225,35 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
+    /**
+     * Handle incoming new message
+     */
+    private fun handleMessageInsert(message: Message) {
+        val uiMessage = message.toUiModel(currentUserId)
+        _dbMessages.update { current ->
+            if (current.any { it.id == uiMessage.id }) current else current + uiMessage
+        }
+    }
+
+    /**
+     * Handle incoming message update
+     */
+    private fun handleMessageUpdate(message: Message) {
+        val uiMessage = message.toUiModel(currentUserId)
+        _dbMessages.update { current ->
+            current.map { if (it.id == uiMessage.id) uiMessage else it }
+        }
+    }
+
+    /**
+     * Handle incoming message deletion
+     */
+    private fun handleMessageDelete(messageId: String) {
+        _dbMessages.update { current ->
+            current.filter { it.id != messageId }
+        }
+    }
+
     // Effects Channel
     private val _effects = kotlinx.coroutines.channels.Channel<ChatEffect>(kotlinx.coroutines.channels.Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
