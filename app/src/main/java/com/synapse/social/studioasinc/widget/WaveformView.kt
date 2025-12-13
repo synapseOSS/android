@@ -133,6 +133,7 @@ class WaveformView @JvmOverloads constructor(
         val manager = mediaDownloadManager
         if (manager == null) {
             // If manager is not set, we cannot download
+            android.util.Log.w("WaveformView", "MediaDownloadManager not set, cannot download audio: $url")
             return null
         }
 
@@ -141,6 +142,7 @@ class WaveformView @JvmOverloads constructor(
             val result = manager.downloadMedia(url, "audio")
             result.getOrNull()
         } catch (e: Exception) {
+            android.util.Log.e("WaveformView", "Failed to download audio file", e)
             null
         }
     }
@@ -150,6 +152,9 @@ class WaveformView @JvmOverloads constructor(
      * Samples the audio and calculates amplitude for each bar.
      */
     private fun generateWaveformData(audioFile: File): FloatArray {
+        // TODO: This implementation assumes raw PCM data or WAV.
+        // For MP3/AAC files, this will visualize the compressed bitstream as noise.
+        // To support compressed audio, we need to decode it first (e.g. using MediaCodec).
         val waveform = FloatArray(barCount)
         
         try {
