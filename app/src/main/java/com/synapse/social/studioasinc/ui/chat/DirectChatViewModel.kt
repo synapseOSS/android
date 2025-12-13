@@ -331,6 +331,48 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             is ChatIntent.ForwardMessage -> {
                 forwardMessage(intent.messageId, intent.toChatIds)
             }
+            // Multi-select intents
+            is ChatIntent.ToggleMessageSelection -> {
+                val currentIds = _uiState.value.selectedMessageIds
+                val newIds = if (currentIds.contains(intent.messageId)) {
+                    currentIds - intent.messageId
+                } else {
+                    currentIds + intent.messageId
+                }
+                _uiState.update { 
+                    it.copy(
+                        selectedMessageIds = newIds,
+                        isMultiSelectMode = newIds.isNotEmpty()
+                    )
+                }
+            }
+            is ChatIntent.EnterMultiSelectMode -> {
+                _uiState.update { it.copy(isMultiSelectMode = true) }
+            }
+            is ChatIntent.ExitMultiSelectMode -> {
+                _uiState.update { it.copy(isMultiSelectMode = false, selectedMessageIds = emptySet()) }
+            }
+            is ChatIntent.DeleteSelectedMessages -> {
+                viewModelScope.launch {
+                    _uiState.value.selectedMessageIds.forEach { deleteMessage(it) }
+                    _uiState.update { it.copy(isMultiSelectMode = false, selectedMessageIds = emptySet()) }
+                }
+            }
+            is ChatIntent.CopySelectedMessages -> {
+                val selectedMsgs = messages.value.filter { _uiState.value.selectedMessageIds.contains(it.id) }
+                val content = selectedMsgs
+                    .sortedBy { it.timestamp }
+                    .joinToString("\n") { it.content }
+                viewModelScope.launch { 
+                    _effects.send(ChatEffect.CopyToClipboard(content))
+                    _effects.send(ChatEffect.ShowSnackbar("Copied ${selectedMsgs.size} message(s)"))
+                    _uiState.update { it.copy(isMultiSelectMode = false, selectedMessageIds = emptySet()) }
+                }
+            }
+            is ChatIntent.ForwardSelectedMessages -> {
+                // Load chats for forwarding, UI will handle showing the sheet
+                loadUserChats()
+            }
             else -> { /* TODO: Implement other intents */ }
         }
     }

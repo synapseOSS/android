@@ -44,6 +44,7 @@ import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
 import com.synapse.social.studioasinc.ui.chat.components.MessageItem
 import com.synapse.social.studioasinc.ui.chat.components.ForwardMessageSheet
 import com.synapse.social.studioasinc.ui.chat.components.topbar.ChatTopBar
+import com.synapse.social.studioasinc.ui.chat.components.topbar.SelectionModeTopBar
 import com.synapse.social.studioasinc.ui.chat.RealtimeConnectionState
 import kotlinx.coroutines.launch
 
@@ -287,46 +288,120 @@ fun DirectChatScreen(
         )
     }
 
+    // Derived: Check if all selected messages are text (for copy action)
+    val canCopySelected = remember(uiState.selectedMessageIds, messages) {
+        val selectedMsgs = messages.filter { uiState.selectedMessageIds.contains(it.id) }
+        selectedMsgs.isNotEmpty() && selectedMsgs.all { it.messageType == MessageType.Text }
+    }
+
+    // Multi-select delete confirmation dialog
+    var showDeleteSelectedDialog by remember { mutableStateOf(false) }
+    
+    if (showDeleteSelectedDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteSelectedDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = { Text("Delete ${uiState.selectedMessageIds.size} message(s)?") },
+            text = { Text("This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteSelectedDialog = false
+                        viewModel.handleIntent(ChatIntent.DeleteSelectedMessages)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteSelectedDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Multi-select forward sheet
+    var showForwardSelectedSheet by remember { mutableStateOf(false) }
+    
+    if (showForwardSelectedSheet && uiState.selectedMessageIds.isNotEmpty()) {
+        ForwardMessageSheet(
+            chats = availableChats,
+            onDismiss = { showForwardSelectedSheet = false },
+            onForward = { chatIds ->
+                // Forward each selected message to selected chats
+                uiState.selectedMessageIds.forEach { messageId ->
+                    viewModel.handleIntent(ChatIntent.ForwardMessage(messageId, chatIds))
+                }
+                showForwardSelectedSheet = false
+                viewModel.handleIntent(ChatIntent.ExitMultiSelectMode)
+            }
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            ChatTopBar(
-                userInfo = uiState.otherUser,
-                connectionState = RealtimeConnectionState.Connected, // TODO: observe real connection state
-                onBackClick = onBackClick,
-                onProfileClick = { /* TODO: Open Profile */ },
-                onCallClick = { /* TODO: Call */ },
-                onVideoCallClick = { /* TODO: Video Call */ },
-                onMenuClick = { showTopBarMenu = true },
-                isMenuExpanded = showTopBarMenu,
-                onDismissMenu = { showTopBarMenu = false },
-                menuContent = {
-                    DropdownMenuItem(
-                        text = { Text("Block User") },
-                        onClick = { 
-                            showTopBarMenu = false
-                            showBlockDialog = true
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Report User") },
-                        onClick = {
-                            showTopBarMenu = false
-                             // TODO: Report User
-                            // Backend: Insert into 'reports' table.
-                            viewModel.reportUser(uiState.otherUser?.id ?: "")
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Delete Chat") },
-                        onClick = {
-                            showTopBarMenu = false
-                            showDeleteChatDialog = true
-                        },
-                         colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error)
-                    )
-                }
-            )
+            if (uiState.isMultiSelectMode) {
+                SelectionModeTopBar(
+                    selectedCount = uiState.selectedMessageIds.size,
+                    canCopy = canCopySelected,
+                    onBackClick = { viewModel.handleIntent(ChatIntent.ExitMultiSelectMode) },
+                    onDeleteClick = { showDeleteSelectedDialog = true },
+                    onCopyClick = { viewModel.handleIntent(ChatIntent.CopySelectedMessages) },
+                    onForwardClick = { 
+                        viewModel.loadUserChats()
+                        showForwardSelectedSheet = true 
+                    }
+                )
+            } else {
+                ChatTopBar(
+                    userInfo = uiState.otherUser,
+                    connectionState = RealtimeConnectionState.Connected, // TODO: observe real connection state
+                    onBackClick = onBackClick,
+                    onProfileClick = { /* TODO: Open Profile */ },
+                    onCallClick = { /* TODO: Call */ },
+                    onVideoCallClick = { /* TODO: Video Call */ },
+                    onMenuClick = { showTopBarMenu = true },
+                    isMenuExpanded = showTopBarMenu,
+                    onDismissMenu = { showTopBarMenu = false },
+                    menuContent = {
+                        DropdownMenuItem(
+                            text = { Text("Block User") },
+                            onClick = { 
+                                showTopBarMenu = false
+                                showBlockDialog = true
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Report User") },
+                            onClick = {
+                                showTopBarMenu = false
+                                 // TODO: Report User
+                                // Backend: Insert into 'reports' table.
+                                viewModel.reportUser(uiState.otherUser?.id ?: "")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete Chat") },
+                            onClick = {
+                                showTopBarMenu = false
+                                showDeleteChatDialog = true
+                            },
+                             colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error)
+                        )
+                    }
+                )
+            }
         }
     ) { paddingValues ->
         Box(
@@ -357,11 +432,13 @@ fun DirectChatScreen(
                     // Animate item placement
                     Box(modifier = Modifier) {
                         MessageItem(
-                            message = message,
+                            message = message.copy(isSelected = uiState.selectedMessageIds.contains(message.id)),
+                            isSelectionMode = uiState.isMultiSelectMode,
+                            onSelect = { msg -> viewModel.handleIntent(ChatIntent.ToggleMessageSelection(msg.id)) },
                             onReply = { msg -> viewModel.handleIntent(ChatIntent.SetReplyTo(msg)) },
                             onLongClick = { msg -> 
-                                selectedMessage = msg
-                                showMessageOptions = true
+                                // Enter selection mode on long press
+                                viewModel.handleIntent(ChatIntent.ToggleMessageSelection(msg.id))
                             },
                             onAttachmentClick = { url, type -> /* Open Viewer */ }
                         )
@@ -402,34 +479,36 @@ fun DirectChatScreen(
                 }
             }
 
-            // Floating Input Bar
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .onGloballyPositioned { coordinates ->
-                        inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
-                    }
-            ) {
-                ChatInputBar(
-                    value = uiState.inputText,
-                    onValueChange = { 
-                        viewModel.handleIntent(ChatIntent.UpdateInputText(it)) 
-                        // TODO: Trigger Typing Indicator
-                        // Backend: Update Realtime Presence 'is_typing: true'
-                        if (it.isNotEmpty()) viewModel.setTypingStatus(true)
-                    },
-                    onSendClick = { 
-                        viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText))
-                        // Backend: Presence 'is_typing: false'
-                        viewModel.setTypingStatus(false)
-                    },
-                    onAttachClick = { 
-                        pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    },
-                    replyingTo = uiState.replyTo,
-                    onCancelReply = { viewModel.handleIntent(ChatIntent.ClearReply) },
-                    typingUsers = uiState.typingUsers
-                )
+            // Floating Input Bar (hidden during selection mode)
+            if (!uiState.isMultiSelectMode) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .onGloballyPositioned { coordinates ->
+                            inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
+                        }
+                ) {
+                    ChatInputBar(
+                        value = uiState.inputText,
+                        onValueChange = { 
+                            viewModel.handleIntent(ChatIntent.UpdateInputText(it)) 
+                            // TODO: Trigger Typing Indicator
+                            // Backend: Update Realtime Presence 'is_typing: true'
+                            if (it.isNotEmpty()) viewModel.setTypingStatus(true)
+                        },
+                        onSendClick = { 
+                            viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText))
+                            // Backend: Presence 'is_typing: false'
+                            viewModel.setTypingStatus(false)
+                        },
+                        onAttachClick = { 
+                            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        },
+                        replyingTo = uiState.replyTo,
+                        onCancelReply = { viewModel.handleIntent(ChatIntent.ClearReply) },
+                        typingUsers = uiState.typingUsers
+                    )
+                }
             }
         }
     }

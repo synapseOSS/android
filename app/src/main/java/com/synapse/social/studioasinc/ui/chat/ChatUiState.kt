@@ -250,6 +250,7 @@ sealed class ChatIntent {
     data object ExitMultiSelectMode : ChatIntent()
     data object DeleteSelectedMessages : ChatIntent()
     data object ForwardSelectedMessages : ChatIntent()
+    data object CopySelectedMessages : ChatIntent()  // Copies all selected text messages
     data class CopyToClipboard(val content: String) : ChatIntent()
     
     // Input

@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.PlayArrow
@@ -40,10 +41,17 @@ import com.synapse.social.studioasinc.ui.chat.MessageType
 import com.synapse.social.studioasinc.ui.chat.DeliveryStatus
 import kotlin.math.roundToInt
 
+/**
+ * Color for selected message overlay (#E0F7FA)
+ */
+private val SelectionOverlayColor = Color(0xFFE0F7FA)
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageItem(
     message: MessageUiModel,
+    isSelectionMode: Boolean,
+    onSelect: (MessageUiModel) -> Unit,
     onReply: (MessageUiModel) -> Unit,
     onLongClick: (MessageUiModel) -> Unit,
     onAttachmentClick: (String, AttachmentType) -> Unit,
@@ -143,8 +151,44 @@ fun MessageItem(
                     }
                 }
 
+                // Selection indicator row wrapper
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Checkmark for selection mode
+                    if (isSelectionMode) {
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (message.isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else {
+                                // Empty circle placeholder
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Color.Transparent,
+                                    border = androidx.compose.foundation.BorderStroke(
+                                        2.dp,
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                    ),
+                                    modifier = Modifier.size(24.dp)
+                                ) {}
+                            }
+                        }
+                    }
+
                 Surface(
                     color = when {
+                        message.isSelected -> SelectionOverlayColor
                         message.isFromCurrentUser -> MaterialTheme.colorScheme.primaryContainer
                         else -> MaterialTheme.colorScheme.surfaceVariant
                     },
@@ -152,8 +196,14 @@ fun MessageItem(
                     modifier = Modifier
                         .widthIn(max = 280.dp)
                         .combinedClickable(
-                            onClick = { /* Handle click */ },
-                            onLongClick = { onLongClick(message) }
+                            onClick = { 
+                                if (isSelectionMode) onSelect(message) 
+                                // else normal click handler if needed
+                            },
+                            onLongClick = { 
+                                if (!isSelectionMode) onLongClick(message)
+                                else onSelect(message)
+                            }
                         )
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -209,6 +259,7 @@ fun MessageItem(
                         }
                     }
                 }
+                } // Close Row wrapper for selection indicator
             }
         }
     }
