@@ -23,6 +23,8 @@ import kotlinx.serialization.json.JsonObject
 import io.github.jan.supabase.realtime.broadcastFlow
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.decodeRecord
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
+import io.github.jan.supabase.realtime.PostgresAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.TextRange
 import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
@@ -198,51 +200,42 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private fun observeRealtimeMessages(chatId: String) {
         realtimeJob?.cancel()
         realtimeJob = viewModelScope.launch {
-            // 1. Subscribe to channel (used for both)
-            val channel = realtimeService.subscribeToChat(chatId)
+            // Variable to capture the flow
+            var changesFlow: Flow<PostgresAction>? = null
             
-            // 2. Observe DB/Messages Flow from UseCase (Maintains Source of Truth / Initial History)
-            // REMOVED: observeMessagesUseCase caused issues by potentially emitting empty lists on error
-            // and conflicting with the manual postgresChangeFlow below.
-            // We rely on loadChat() for the initial fetch and the postgresChangeFlow below for updates.
+            // 1. Subscribe to channel with configuration block
+            val channel = realtimeService.subscribeToChat(chatId) { ch ->
+                // Configure Postgres changes listener BEFORE subscription
+                changesFlow = ch.postgresChangeFlow<PostgresAction>(schema = "public") {
+                    table = "messages"
+                    filter("chat_id", FilterOperator.EQ, chatId)
+                }
+            }
 
-            // 3. Observe Messages (Insert/Update/Delete) via Postgres Changes (Latency Compensation / Direct Updates)
-            // This runs in parallel to observeMessagesUseCase to provide immediate UI updates
+            // 2. Observe Messages (Insert/Update/Delete)
             launch {
                 try {
-                    channel.postgresChangeFlow<io.github.jan.supabase.realtime.PostgresAction>(schema = "public") {
+                    // Use the flow captured during configuration, or set up a new one if channel was reused
+                    val flowToCollect = changesFlow ?: channel.postgresChangeFlow<PostgresAction>(schema = "public") {
                         table = "messages"
-                        // filter removed due to API access issues. Client-side filtering in place.
-                    }.collect { action ->
-                        // Manual filtering for safety
-                        // Note: If server-side filter is missing, we might get too many events.
-                        // But RLS should protect us.
-                        // Let's check record chat_id?
-                        // action.decodeRecord<Message>() will have chat_id.
-                        
-                        // Wait, I should not comment out filter if I can't filter.
-                        // Let's try client-side filtering logic inside collect.
-                        
+                        filter("chat_id", FilterOperator.EQ, chatId)
+                    }
+
+                    flowToCollect.collect { action ->
                         when (action) {
-                            is io.github.jan.supabase.realtime.PostgresAction.Insert -> {
+                            is PostgresAction.Insert -> {
                                 val message = action.decodeRecord<Message>()
+                                // Double check chat_id just in case
                                 if (message.chatId == chatId) handleMessageInsert(message)
                             }
-                            is io.github.jan.supabase.realtime.PostgresAction.Update -> {
+                            is PostgresAction.Update -> {
                                 val message = action.decodeRecord<Message>()
                                 if (message.chatId == chatId) handleMessageUpdate(message)
                             }
-                            is io.github.jan.supabase.realtime.PostgresAction.Delete -> {
-                                // Delete event might not have full record, just ID.
-                                // But normally it sends old record.
+                            is PostgresAction.Delete -> {
                                 val oldRecord = action.oldRecord
-                                // Check chat_id in oldRecord?
-                                // oldRecord is Map<String, Any>
                                 val recChatId = oldRecord["chat_id"]?.toString()?.replace("\"", "")
                                 if (recChatId == chatId || (recChatId == null)) { 
-                                     // If null, we might process it anyway or skip?
-                                     // Safe to process if ID matches known message?
-                                     // handleMessageDelete checks ID.
                                      val id = oldRecord["id"]?.toString()?.replace("\"", "")
                                      if (id != null) handleMessageDelete(id)
                                 }
