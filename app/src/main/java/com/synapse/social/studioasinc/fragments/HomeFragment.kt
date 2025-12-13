@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -204,7 +205,7 @@ class HomeFragment : Fragment() {
 
     private fun observePosts() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.posts.collect {
+            viewModel.posts.collectLatest {
                 postAdapter.submitData(it)
             }
         }
