@@ -87,11 +87,17 @@ class TutorialMissionsFragment : Fragment() {
      */
     private fun handleMissionClick(mission: TutorialMission) {
         // Navigate to mission detail screen
-        val fragment = MissionDetailFragment.newInstance(mission.id)
-        parentFragmentManager.beginTransaction()
-            .replace(android.R.id.content, fragment)
-            .addToBackStack(null)
-            .commit()
+        val activity = activity
+        if (activity is com.synapse.social.studioasinc.TutorialActivity) {
+            activity.showMissionDetail(mission.id)
+        } else {
+            // Fallback for standalone usage or testing
+            val fragment = MissionDetailFragment.newInstance(mission.id)
+            parentFragmentManager.beginTransaction()
+                .replace(android.R.id.content, fragment)
+                .addToBackStack(null)
+                .commit()
+        }
     }
     
     /**
