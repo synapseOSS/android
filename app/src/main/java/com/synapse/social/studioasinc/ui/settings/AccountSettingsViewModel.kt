@@ -59,6 +59,8 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                // Refresh the session to get the latest linked accounts from the backend
+                com.synapse.social.studioasinc.SupabaseClient.client.auth.refreshCurrentSession()
                 val currentUser = com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()
 
                 if (currentUser != null) {
