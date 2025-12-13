@@ -214,6 +214,7 @@ sealed class ChatEffect {
     data object PauseVoiceMessage : ChatEffect()
     data class ShowMessageActions(val message: MessageUiModel) : ChatEffect()
     data class CopyToClipboard(val text: String) : ChatEffect()
+    data object NavigateBack : ChatEffect()
 }
 
 /**

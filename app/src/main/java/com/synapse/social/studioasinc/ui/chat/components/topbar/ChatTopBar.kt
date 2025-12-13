@@ -56,6 +56,9 @@ fun ChatTopBar(
     onCallClick: () -> Unit,
     onVideoCallClick: () -> Unit,
     onMenuClick: () -> Unit,
+    isMenuExpanded: Boolean = false,
+    onDismissMenu: () -> Unit = {},
+    menuContent: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -91,10 +94,17 @@ fun ChatTopBar(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                IconButton(onClick = onMenuClick) {
-                    Icon(
-                        imageVector = Icons.Filled.MoreVert,
-                        contentDescription = "More options"
+                Box {
+                    IconButton(onClick = onMenuClick) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = "More options"
+                        )
+                    }
+                    androidx.compose.material3.DropdownMenu(
+                        expanded = isMenuExpanded,
+                        onDismissRequest = onDismissMenu,
+                        content = menuContent
                     )
                 }
             },

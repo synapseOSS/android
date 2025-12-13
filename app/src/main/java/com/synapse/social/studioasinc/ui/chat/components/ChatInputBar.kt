@@ -200,8 +200,16 @@ fun TypingIndicatorView(typingUsers: List<String>) {
         modifier = Modifier.padding(bottom = 4.dp, start = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val names = typingUsers.take(3).joinToString(separator = ", ")
+        val text = when {
+            typingUsers.isEmpty() -> ""
+            typingUsers.size == 1 -> "${typingUsers.first()} is typing..."
+            typingUsers.size <= 3 -> "$names are typing..."
+            else -> "${typingUsers.size} people are typing..."
+        }
+        
         Text(
-            text = if (typingUsers.size == 1) "User is typing..." else "People are typing...",
+            text = text,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

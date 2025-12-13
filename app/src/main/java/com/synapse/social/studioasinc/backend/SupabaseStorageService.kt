@@ -119,11 +119,31 @@ class SupabaseStorageService {
         onProgress: (Float) -> Unit = {}
     ): Result<String> {
         return withContext(Dispatchers.IO) {
+            if (!file.exists()) {
+                return@withContext Result.failure(StorageException.FileNotFound("File not found: ${file.path}"))
+            }
+            if (file.length() == 0L) {
+                return@withContext Result.failure(StorageException.InvalidFile("File is empty: ${file.path}"))
+            }
+            val bytes = file.readBytes()
+            uploadFileBytes(bytes, path, onProgress)
+        }
+    }
+
+    /**
+     * Upload byte array to chat media bucket
+     */
+    suspend fun uploadFileBytes(
+        bytes: ByteArray,
+        path: String,
+        onProgress: (Float) -> Unit = {}
+    ): Result<String> {
+        return withContext(Dispatchers.IO) {
             retryWithExponentialBackoff(
                 maxAttempts = MAX_RETRY_ATTEMPTS,
-                operation = "uploadFile",
+                operation = "uploadFileBytes",
                 block = {
-                    uploadFileInternal(file, path, onProgress)
+                    uploadFileBytesInternal(bytes, path, onProgress)
                 }
             )
         }
@@ -132,28 +152,19 @@ class SupabaseStorageService {
     /**
      * Internal upload implementation with progress tracking
      */
-    private suspend fun uploadFileInternal(
-        file: File,
+    private suspend fun uploadFileBytesInternal(
+        fileBytes: ByteArray,
         path: String,
         onProgress: (Float) -> Unit
     ): Result<String> {
         try {
-            android.util.Log.d(TAG, "Uploading file to chat-media: $path (${file.length()} bytes)")
+            android.util.Log.d(TAG, "Uploading bytes to chat-media: $path (${fileBytes.size} bytes)")
             
-            if (!file.exists()) {
-                return Result.failure(StorageException.FileNotFound("File not found: ${file.path}"))
+            if (fileBytes.isEmpty()) {
+                return Result.failure(StorageException.InvalidFile("File bytes are empty"))
             }
-            
-            if (file.length() == 0L) {
-                return Result.failure(StorageException.InvalidFile("File is empty: ${file.path}"))
-            }
-            
-            val fileBytes = file.readBytes()
-            val totalBytes = fileBytes.size.toLong()
             
             // Simulate progress updates during upload
-            // Note: Supabase Storage doesn't provide native progress callbacks,
-            // so we simulate progress based on file size and time
             onProgress(0.1f) // Start progress
             
             // Upload to chat-media bucket
