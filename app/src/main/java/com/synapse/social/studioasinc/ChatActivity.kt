@@ -16,7 +16,9 @@ import com.synapse.social.studioasinc.ui.chat.DirectChatScreen
 import com.synapse.social.studioasinc.ui.chat.DirectChatViewModel
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.util.ActivityTransitions
 import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
+import com.synapse.social.studioasinc.util.finishWithPremiumTransition
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.runBlocking
 
@@ -91,7 +93,7 @@ class ChatActivity : ComponentActivity() {
                 DirectChatScreen(
                     chatId = chatId,
                     otherUserId = otherUserId,
-                    onBackClick = { finish() },
+                    onBackClick = { finishWithPremiumTransition() },
                     viewModel = viewModel
                 )
             }

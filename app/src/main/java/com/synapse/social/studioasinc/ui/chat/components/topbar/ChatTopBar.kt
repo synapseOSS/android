@@ -110,7 +110,7 @@ fun ChatTopBar(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = ChatTheme.colors.inputBarBackground,
+                containerColor = MaterialTheme.colorScheme.surface,
                 titleContentColor = MaterialTheme.colorScheme.onSurface
             )
         )

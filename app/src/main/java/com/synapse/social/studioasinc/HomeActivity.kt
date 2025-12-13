@@ -9,6 +9,7 @@ import com.synapse.social.studioasinc.ui.auth.components.ProfileCompletionDialog
 import com.synapse.social.studioasinc.ui.home.HomeScreen
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import com.synapse.social.studioasinc.ui.theme.ThemeManager
+import com.synapse.social.studioasinc.util.ActivityTransitions
 import kotlinx.coroutines.launch
 
 class HomeActivity : BaseActivity() {
@@ -22,7 +23,10 @@ class HomeActivity : BaseActivity() {
             SynapseTheme {
                 HomeScreen(
                     onNavigateToSearch = {
-                        startActivity(Intent(this, SearchActivity::class.java))
+                        ActivityTransitions.startActivityWithTransition(
+                            this,
+                            Intent(this, SearchActivity::class.java)
+                        )
                     },
                     onNavigateToProfile = { userId ->
                         val targetUid = if (userId == "me") SupabaseClient.client.auth.currentUserOrNull()?.id else userId
@@ -30,14 +34,20 @@ class HomeActivity : BaseActivity() {
                             val intent = Intent(this, ProfileComposeActivity::class.java).apply {
                                 putExtra("uid", targetUid)
                             }
-                            startActivity(intent)
+                            ActivityTransitions.startActivityWithTransition(this, intent)
                         }
                     },
                     onNavigateToInbox = {
-                        startActivity(Intent(this, InboxComposeActivity::class.java))
+                        ActivityTransitions.startActivityWithTransition(
+                            this,
+                            Intent(this, InboxComposeActivity::class.java)
+                        )
                     },
                     onNavigateToCreatePost = {
-                        startActivity(Intent(this, CreatePostActivity::class.java))
+                        ActivityTransitions.startActivityWithTransition(
+                            this,
+                            Intent(this, CreatePostActivity::class.java)
+                        )
                     }
                 )
             }

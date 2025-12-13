@@ -69,6 +69,7 @@ fun ProfileScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToActivityLog: () -> Unit = {},
     onNavigateToUserProfile: (String) -> Unit = {},
+    onNavigateToChat: (String) -> Unit = {},
     viewModel: ProfileViewModel = viewModel<ProfileViewModel>()
 ) {
     val state by viewModel.state.collectAsState()
@@ -133,6 +134,7 @@ fun ProfileScreen(
                         onNavigateToFollowers = onNavigateToFollowers,
                         onNavigateToFollowing = onNavigateToFollowing,
                         onNavigateToUserProfile = onNavigateToUserProfile,
+                        onNavigateToChat = onNavigateToChat,
                         onCustomizeClick = { showCustomizationDialog = true }
                     )
                 }
@@ -253,6 +255,7 @@ private fun ProfileContent(
     onNavigateToFollowers: () -> Unit,
     onNavigateToFollowing: () -> Unit,
     onNavigateToUserProfile: (String) -> Unit,
+    onNavigateToChat: (String) -> Unit,
     onCustomizeClick: () -> Unit = {}
 ) {
     // Entry animation for content
@@ -312,7 +315,7 @@ private fun ProfileContent(
                         viewModel.followUser(profile.id)
                     }
                 },
-                onMessageClick = { /* TODO: Open chat */ },
+                onMessageClick = { onNavigateToChat(profile.id) },
                 onAddStoryClick = { /* TODO: Open story creation */ },
                 onMoreClick = { viewModel.toggleMoreMenu() },
                 onStatsClick = { stat ->

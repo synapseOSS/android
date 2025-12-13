@@ -85,7 +85,8 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun loadChat(chatId: String) {
-        if (currentChatId == chatId) return
+        // Only skip full reload if already observing this chat with active realtime
+        if (currentChatId == chatId && realtimeJob?.isActive == true) return
         currentChatId = chatId
         
         viewModelScope.launch {

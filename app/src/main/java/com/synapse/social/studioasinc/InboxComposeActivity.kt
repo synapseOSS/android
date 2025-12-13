@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.synapse.social.studioasinc.ui.inbox.InboxScreen
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.util.ActivityTransitions
 import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 
 /**
@@ -60,11 +61,11 @@ class InboxComposeActivity : ComponentActivity() {
                     InboxScreen(
                         onNavigateBack = { finish() },
                         onNavigateToChat = { chatId, userId ->
-                            // Navigate to ChatActivity (now Compose)
+                            // Navigate to ChatActivity with premium transition
                             Log.d("InboxComposeActivity", "Navigating to chat - chatId: $chatId, userId: $userId")
                             
                             val intent = ChatActivity.createIntent(this, chatId, userId)
-                            startActivity(intent)
+                            ActivityTransitions.startActivityWithTransition(this, intent)
                         }
                     )
                 }

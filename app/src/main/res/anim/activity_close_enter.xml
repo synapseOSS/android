@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium activity close enter animation: scale up and fade in for returning activity -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/accelerate_decelerate_interpolator">
+    
+    <!-- Subtle slide from left -->
+    <translate
+        android:fromXDelta="-10%p"
+        android:toXDelta="0"
+        android:duration="300" />
+    
+    <!-- Fade in -->
+    <alpha
+        android:fromAlpha="0.7"
+        android:toAlpha="1.0"
+        android:duration="250" />
+    
+    <!-- Scale up to normal -->
+    <scale
+        android:fromXScale="0.95"
+        android:toXScale="1.0"
+        android:fromYScale="0.95"
+        android:toYScale="1.0"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:duration="300" />
+</set>
