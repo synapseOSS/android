@@ -25,6 +25,8 @@ import com.synapse.social.studioasinc.ui.components.EmptyState
 import com.synapse.social.studioasinc.ui.components.ErrorState
 import com.synapse.social.studioasinc.ui.components.post.PostCard
 import com.synapse.social.studioasinc.ui.components.post.PostCardState
+import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
+import com.synapse.social.studioasinc.ui.components.post.PostActions
 import com.synapse.social.studioasinc.ui.profile.animations.crossfadeContent
 import com.synapse.social.studioasinc.ui.profile.components.*
 import kotlinx.coroutines.delay
@@ -423,16 +425,22 @@ private fun ProfileContent(
         if (state.contentFilter == ProfileContentFilter.POSTS && state.posts.isNotEmpty()) {
             val posts = state.posts.filterIsInstance<com.synapse.social.studioasinc.model.Post>()
             items(posts, key = { it.id }) { post ->
+                // Context for profile actions
+                val currentProfile = (state.profileState as? ProfileUiState.Success)?.profile
+                
                 AnimatedPostCard(
-                    state = viewModel.mapPostToState(post),
-                    onUserClick = { onNavigateToUserProfile(post.authorUid) },
-                    onLikeClick = { viewModel.toggleLike(post.id) },
-                    onCommentClick = { /* TODO: Navigate to comments */ },
-                    onShareClick = { /* TODO: Share post */ },
-                    onBookmarkClick = { viewModel.toggleSave(post.id) },
-                    onOptionsClick = { /* TODO: Show menu */ },
-                    onMediaClick = { /* TODO: Open media */ },
-                    onPollVote = { postId, optionIndex -> viewModel.votePoll(postId, optionIndex) }
+                    post = post,
+                    currentProfile = currentProfile,
+                    actions = PostActions(
+                        onUserClick = { onNavigateToUserProfile(post.authorUid) },
+                        onLike = { viewModel.toggleLike(post.id) },
+                        onComment = { /* TODO: Navigate to comments */ },
+                        onShare = { /* TODO: Share post */ },
+                        onBookmark = { viewModel.toggleSave(post.id) },
+                        onOptionClick = { /* TODO: Show menu */ },
+                        onMediaClick = { /* TODO: Open media */ },
+                        onPollVote = { p, idx -> viewModel.votePoll(p.id, idx) }
+                    )
                 )
             }
         }
@@ -449,15 +457,9 @@ private fun ProfileContent(
  */
 @Composable
 private fun AnimatedPostCard(
-    state: PostCardState,
-    onUserClick: () -> Unit,
-    onLikeClick: () -> Unit,
-    onCommentClick: () -> Unit,
-    onShareClick: () -> Unit,
-    onBookmarkClick: () -> Unit,
-    onOptionsClick: () -> Unit,
-    onMediaClick: (Int) -> Unit,
-    onPollVote: (String, Int) -> Unit
+    post: com.synapse.social.studioasinc.model.Post,
+    currentProfile: com.synapse.social.studioasinc.data.model.UserProfile?,
+    actions: PostActions
 ) {
     var visible by remember { mutableStateOf(false) }
     
@@ -488,17 +490,10 @@ private fun AnimatedPostCard(
                 translationY = offsetY
             }
     ) {
-        PostCard(
-            state = state,
-            onLikeClick = onLikeClick,
-            onCommentClick = onCommentClick,
-            onShareClick = onShareClick,
-            onBookmarkClick = onBookmarkClick,
-            onUserClick = onUserClick,
-            onPostClick = onCommentClick, // Navigate to detail on general click
-            onMediaClick = onMediaClick,
-            onOptionsClick = onOptionsClick,
-            onPollVote = { optionId -> onPollVote(state.post.id, optionId.toIntOrNull() ?: 0) }
+        SharedPostItem(
+            post = post,
+            currentProfile = currentProfile,
+            actions = actions
         )
     }
 }

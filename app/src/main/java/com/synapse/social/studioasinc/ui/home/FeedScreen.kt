@@ -31,7 +31,8 @@ import androidx.paging.compose.itemKey
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.ui.components.post.PostCard
+import com.synapse.social.studioasinc.ui.components.post.PostActions
+import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
 import com.synapse.social.studioasinc.ui.components.post.PostOptionsBottomSheet
 import kotlinx.coroutines.launch
 
@@ -79,19 +80,21 @@ fun FeedScreen(
                 ) { index ->
                     val post = posts[index]
                     if (post != null) {
-                        PostCard(
-                            state = viewModel.mapPostToState(post),
-                            onLikeClick = { viewModel.likePost(post) },
-                            onCommentClick = { onCommentClick(post.id) },
-                            onShareClick = { viewModel.sharePost(post) },
-                            onBookmarkClick = { viewModel.bookmarkPost(post) },
-                            onUserClick = { onUserClick(post.authorUid) },
-                            onPostClick = { onPostClick(post.id) },
-                            onMediaClick = onMediaClick,
-                            onOptionsClick = { selectedPost = post },
-                            onPollVote = { optionId -> viewModel.votePoll(post, optionId.toIntOrNull() ?: 0) },
-                            onReactionSelected = { reaction -> viewModel.reactToPost(post, reaction) }
+                    if (post != null) {
+                        SharedPostItem(
+                            post = post,
+                            actions = PostActions(
+                                onLike = { viewModel.likePost(post) },
+                                onComment = { onCommentClick(post.id) },
+                                onShare = { viewModel.sharePost(post) },
+                                onBookmark = { viewModel.bookmarkPost(post) },
+                                onOptionClick = { selectedPost = post },
+                                onPollVote = { p, idx -> viewModel.votePoll(p, idx) },
+                                onUserClick = { onUserClick(post.authorUid) },
+                                onMediaClick = onMediaClick
+                            )
                         )
+                    }
                     }
                 }
 

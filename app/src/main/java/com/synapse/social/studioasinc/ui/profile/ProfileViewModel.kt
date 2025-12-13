@@ -17,6 +17,9 @@ import com.synapse.social.studioasinc.model.Post
 import com.synapse.social.studioasinc.home.User
 import com.synapse.social.studioasinc.ui.components.post.PostCardState
 import com.synapse.social.studioasinc.ui.components.post.PollOption
+import com.synapse.social.studioasinc.ui.components.post.PostEventBus
+import com.synapse.social.studioasinc.ui.components.post.PostEvent
+import com.synapse.social.studioasinc.ui.components.post.PostMapper
 
 data class ProfileScreenState(
     val profileState: ProfileUiState = ProfileUiState.Loading,
@@ -73,6 +76,24 @@ class ProfileViewModel(
 
     private val _state = MutableStateFlow(ProfileScreenState())
     val state: StateFlow<ProfileScreenState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            PostEventBus.events.collect { event ->
+                when (event) {
+                    is PostEvent.Updated -> {
+                        _state.update { currentState ->
+                            val updatedPosts = currentState.posts.map { item ->
+                                if (item is Post && item.id == event.post.id) event.post else item
+                            }
+                            currentState.copy(posts = updatedPosts)
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
 
     fun loadProfile(userId: String, currentUserId: String) {
         _state.update { it.copy(profileState = ProfileUiState.Loading, currentUserId = currentUserId) }
@@ -183,18 +204,26 @@ class ProfileViewModel(
     }
 
     fun toggleLike(postId: String) {
-        val isLiked = postId in _state.value.likedPostIds
+        // Find the post to toggle
+        val post = _state.value.posts.filterIsInstance<Post>().find { it.id == postId } ?: return
+        val isLiked = post.hasUserReacted() // Use Post state, not local Set which might be desynced
         
         // Optimistic update
-        _state.update { state ->
-            val likedPostIds = state.likedPostIds.toMutableSet()
-            if (isLiked) {
-                likedPostIds.remove(postId)
-            } else {
-                likedPostIds.add(postId)
-            }
-            state.copy(likedPostIds = likedPostIds)
+        val newReaction = if (isLiked) null else com.synapse.social.studioasinc.model.ReactionType.LIKE
+        val newCount = if (isLiked) post.likesCount - 1 else post.likesCount + 1
+        
+        val updatedPost = post.copy(likesCount = newCount).apply {
+            userReaction = newReaction
         }
+        
+        // Update Local
+        _state.update { state ->
+            val updatedPosts = state.posts.map { if (it is Post && it.id == postId) updatedPost else it }
+            state.copy(posts = updatedPosts)
+        }
+        
+        // Emit Global
+        PostEventBus.emit(PostEvent.Updated(updatedPost))
         
         // Backend call
         viewModelScope.launch {
@@ -284,6 +313,25 @@ class ProfileViewModel(
     }
     
     fun votePoll(postId: String, optionIndex: Int) {
+        val post = _state.value.posts.filterIsInstance<Post>().find { it.id == postId } ?: return
+        val currentOptions = post.pollOptions ?: return
+        if (post.userPollVote != null) return
+
+        val updatedOptions = currentOptions.mapIndexed { index, option ->
+            if (index == optionIndex) option.copy(votes = option.votes + 1) else option
+        }
+
+        val updatedPost = post.copy(
+            pollOptions = updatedOptions,
+            userPollVote = optionIndex
+        )
+        
+        _state.update { state ->
+            val updatedPosts = state.posts.map { if (it is Post && it.id == postId) updatedPost else it }
+            state.copy(posts = updatedPosts)
+        }
+        PostEventBus.emit(PostEvent.Updated(updatedPost))
+
         viewModelScope.launch {
             try {
                 val pollRepository = com.synapse.social.studioasinc.data.repository.PollRepository()
@@ -388,51 +436,13 @@ class ProfileViewModel(
     /**
      * Helper to convert Post model to PostCardState for Shared UI
      */
+    /**
+     * Helper to convert Post model to PostCardState for Shared UI
+     */
     fun mapPostToState(post: Post): PostCardState {
         // Use loaded profile data if available and matches author (fallback for missing post user data)
         val currentProfile = (_state.value.profileState as? ProfileUiState.Success)?.profile
-        
-        val username = if (!post.username.isNullOrBlank()) post.username 
-                       else if (currentProfile?.id == post.authorUid) currentProfile?.username ?: "Unknown"
-                       else "Unknown"
-                       
-        val avatarUrl = if (!post.avatarUrl.isNullOrBlank()) post.avatarUrl
-                        else if (currentProfile?.id == post.authorUid) currentProfile?.profileImageUrl
-                        else null
-
-        val isVerified = if (post.isVerified) true 
-                         else if (currentProfile?.id == post.authorUid) currentProfile?.isVerified == true
-                         else false
-
-        val user = User(
-            uid = post.authorUid,
-            username = username,
-            avatar = avatarUrl,
-            verify = if(isVerified) "1" else "0"
-        )
-
-        val mediaUrls = post.mediaItems?.mapNotNull { it.url } ?: listOfNotNull(post.postImage)
-
-        return PostCardState(
-            post = post,
-            user = user,
-            isLiked = post.hasUserReacted(),
-            likeCount = post.likesCount,
-            commentCount = post.commentsCount,
-            isBookmarked = false, // Add logic if available in Post model or separate list
-            mediaUrls = mediaUrls,
-            isVideo = post.postType == "VIDEO",
-            pollQuestion = post.pollQuestion,
-            pollOptions = post.pollOptions?.mapIndexed { index, option ->
-                PollOption(
-                    id = index.toString(),
-                    text = option.text,
-                    voteCount = option.votes,
-                    isSelected = post.userPollVote == index
-                )
-            },
-            userPollVote = post.userPollVote
-        )
+        return PostMapper.mapToState(post, currentProfile)
     }
 
     private fun loadContent(userId: String, filter: ProfileContentFilter) {
