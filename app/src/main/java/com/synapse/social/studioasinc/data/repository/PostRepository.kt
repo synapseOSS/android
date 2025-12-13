@@ -69,19 +69,12 @@ class PostRepository(private val postDao: PostDao) {
         android.util.Log.d(TAG, "Cache invalidated")
     }
 
-    // TODO: Refactor (Hardcoding) - URL construction should be centralized in SupabaseClient or a config file, not hardcoded strings.
+    // URL construction moved to PostMapper for reuse
     fun constructMediaUrl(storagePath: String): String {
         if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
             return storagePath
         }
         return ImageLoader.constructStorageUrl(storagePath, "post-media")
-    }
-
-    private fun constructAvatarUrl(storagePath: String): String {
-        if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
-            return storagePath
-        }
-        return ImageLoader.constructStorageUrl(storagePath, "user-avatars")
     }
 
     private fun mapSupabaseError(exception: Exception): String {
@@ -212,7 +205,14 @@ class PostRepository(private val postDao: PostDao) {
 
             val posts = response.mapNotNull { postData ->
                 try {
-                    parsePostWithUserData(postData)
+                    val post = PostMapper.fromSupabaseJson(postData)
+                    // Update cache for profiles found in posts
+                    if (post.authorUid.isNotEmpty()) {
+                        profileCache[post.authorUid] = CacheEntry(
+                            ProfileData(post.username, post.avatarUrl, post.isVerified)
+                        )
+                    }
+                    post
                 } catch (e: Exception) {
                     android.util.Log.e(TAG, "Failed to parse post: ${e.message}", e)
                     null
@@ -256,73 +256,6 @@ class PostRepository(private val postDao: PostDao) {
         }
     }
 
-    // TODO: Refactor (Serialization) - Manual JSON parsing is fragile. Suggest using kotlinx.serialization and @Serializable DTOs.
-    private fun parsePostWithUserData(data: JsonObject): Post {
-        val post = Post(
-            id = data["id"]?.jsonPrimitive?.contentOrNull ?: "",
-            key = data["key"]?.jsonPrimitive?.contentOrNull,
-            authorUid = data["author_uid"]?.jsonPrimitive?.contentOrNull ?: "",
-            postText = data["post_text"]?.jsonPrimitive?.contentOrNull,
-            postImage = data["post_image"]?.jsonPrimitive?.contentOrNull?.let { constructMediaUrl(it) },
-            postType = data["post_type"]?.jsonPrimitive?.contentOrNull,
-            postHideViewsCount = data["post_hide_views_count"]?.jsonPrimitive?.contentOrNull,
-            postHideLikeCount = data["post_hide_like_count"]?.jsonPrimitive?.contentOrNull,
-            postHideCommentsCount = data["post_hide_comments_count"]?.jsonPrimitive?.contentOrNull,
-            postDisableComments = data["post_disable_comments"]?.jsonPrimitive?.contentOrNull,
-            postVisibility = data["post_visibility"]?.jsonPrimitive?.contentOrNull,
-            publishDate = data["publish_date"]?.jsonPrimitive?.contentOrNull,
-            timestamp = data["timestamp"]?.jsonPrimitive?.longOrNull ?: System.currentTimeMillis(),
-            likesCount = data["likes_count"]?.jsonPrimitive?.intOrNull ?: 0,
-            commentsCount = data["comments_count"]?.jsonPrimitive?.intOrNull ?: 0,
-            viewsCount = data["views_count"]?.jsonPrimitive?.intOrNull ?: 0,
-            resharesCount = data["reshares_count"]?.jsonPrimitive?.intOrNull ?: 0,
-            hasPoll = data["has_poll"]?.jsonPrimitive?.booleanOrNull,
-            pollQuestion = data["poll_question"]?.jsonPrimitive?.contentOrNull,
-            pollOptions = data["poll_options"]?.jsonArray?.mapNotNull {
-                val obj = it.jsonObject
-                val text = obj["text"]?.jsonPrimitive?.contentOrNull
-                val votes = obj["votes"]?.jsonPrimitive?.intOrNull ?: 0
-                if (text != null) PollOption(text, votes) else null
-            },
-            pollEndTime = data["poll_end_time"]?.jsonPrimitive?.contentOrNull,
-            hasLocation = data["has_location"]?.jsonPrimitive?.booleanOrNull,
-            locationName = data["location_name"]?.jsonPrimitive?.contentOrNull,
-            locationAddress = data["location_address"]?.jsonPrimitive?.contentOrNull,
-            locationLatitude = data["location_latitude"]?.jsonPrimitive?.doubleOrNull,
-            locationLongitude = data["location_longitude"]?.jsonPrimitive?.doubleOrNull,
-            youtubeUrl = data["youtube_url"]?.jsonPrimitive?.contentOrNull
-        )
-        val userData = data["users"]?.jsonObject
-        if (userData != null) {
-            post.username = userData["username"]?.jsonPrimitive?.contentOrNull
-            post.avatarUrl = userData["avatar"]?.jsonPrimitive?.contentOrNull?.let { constructAvatarUrl(it) }
-            post.isVerified = userData["verify"]?.jsonPrimitive?.booleanOrNull ?: false
-            val authorUid = post.authorUid
-            if (authorUid.isNotEmpty()) {
-                profileCache[authorUid] = CacheEntry(
-                    ProfileData(post.username, post.avatarUrl, post.isVerified)
-                )
-            }
-        }
-        val mediaData = data["media_items"]?.takeIf { it !is JsonNull }?.jsonArray
-        if (mediaData != null && mediaData.isNotEmpty()) {
-            post.mediaItems = mediaData.mapNotNull { item ->
-                val mediaMap = item.jsonObject
-                val url = mediaMap["url"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-                val typeStr = mediaMap["type"]?.jsonPrimitive?.contentOrNull ?: "IMAGE"
-                MediaItem(
-                    id = mediaMap["id"]?.jsonPrimitive?.contentOrNull ?: "",
-                    url = constructMediaUrl(url),
-                    type = if (typeStr.equals("VIDEO", ignoreCase = true)) MediaType.VIDEO else MediaType.IMAGE,
-                    thumbnailUrl = mediaMap["thumbnailUrl"]?.jsonPrimitive?.contentOrNull?.let { constructMediaUrl(it) },
-                    duration = mediaMap["duration"]?.jsonPrimitive?.longOrNull,
-                    size = mediaMap["size"]?.jsonPrimitive?.longOrNull,
-                    mimeType = mediaMap["mimeType"]?.jsonPrimitive?.contentOrNull
-                )
-            }.toMutableList()
-        }
-        return post
-    }
 
     suspend fun updatePost(postId: String, updates: Map<String, Any?>): Result<Post> = withContext(Dispatchers.IO) {
         try {

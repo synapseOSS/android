@@ -87,7 +87,13 @@ class PostsAdapter(
             }
             previousPostText = postContent
 
-            val authorUsername = post.username ?: "@${post.authorUid}"
+            // Author details (username, avatar) are pre-fetched by the ViewModel/Repository
+            // and included in the Post model to avoid database queries in the adapter.
+            val authorUsername = if (!post.username.isNullOrEmpty()) {
+                post.username
+            } else {
+                "@${post.authorUid}"
+            }
             authorText.text = authorUsername
 
             // Load author avatar

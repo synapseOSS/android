@@ -41,18 +41,8 @@ class PostPagingSource(
             Log.d("PostPagingSource", "Loaded ${response.size} posts")
 
             val posts = response.map { jsonElement ->
-                val post = json.decodeFromJsonElement<Post>(jsonElement)
-                val userData = jsonElement["users"]?.jsonObject
-                post.username = userData?.get("username")?.jsonPrimitive?.contentOrNull
-                post.avatarUrl = userData?.get("avatar")?.jsonPrimitive?.contentOrNull?.let { avatarPath ->
-                    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
-                        avatarPath
-                    } else {
-                        ImageLoader.constructStorageUrl(avatarPath, "user-avatars")
-                    }
-                }
-                post.isVerified = userData?.get("verify")?.jsonPrimitive?.booleanOrNull ?: false
-                post
+                // Use centralized parsing logic from PostMapper to ensure author details are consistently fetched/parsed
+                com.synapse.social.studioasinc.data.repository.PostMapper.fromSupabaseJson(jsonElement.jsonObject)
             }
 
             LoadResult.Page(
