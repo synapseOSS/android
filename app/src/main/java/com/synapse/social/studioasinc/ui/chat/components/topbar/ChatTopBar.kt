@@ -41,6 +41,7 @@ import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.ui.chat.ChatUserInfo
 import com.synapse.social.studioasinc.ui.chat.RealtimeConnectionState
 import com.synapse.social.studioasinc.ui.chat.theme.ChatColors
+import com.synapse.social.studioasinc.ui.chat.theme.ChatTheme
 
 /**
  * Main Chat Top Bar
@@ -109,7 +110,7 @@ fun ChatTopBar(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = ChatColors.InputBarBackground,
+                containerColor = ChatTheme.colors.inputBarBackground,
                 titleContentColor = MaterialTheme.colorScheme.onSurface
             )
         )

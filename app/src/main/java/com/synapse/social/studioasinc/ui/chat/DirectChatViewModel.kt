@@ -109,13 +109,14 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                  chatRepository.getChatParticipants(chatId).onSuccess { userIds ->
                      val otherId = userIds.firstOrNull { it != currentUserId }
                      if (otherId != null) {
-                         // TODO: Fetch profile
+                         // Fetch actual user profile from UserProfileManager
+                         val userProfile = com.synapse.social.studioasinc.UserProfileManager.getUserProfile(otherId)
                          _uiState.update {
                              it.copy(otherUser = ChatUserInfo(
                                  id = otherId,
-                                 username = "User", // Placeholder
-                                 displayName = null,
-                                 avatarUrl = null
+                                 username = userProfile?.username ?: "User",
+                                 displayName = userProfile?.displayName,
+                                 avatarUrl = userProfile?.profileImageUrl
                              ))
                          }
                      }

@@ -1,6 +1,7 @@
 package com.synapse.social.studioasinc.ui.chat.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -196,22 +197,72 @@ fun ReplyPreviewBar(
 
 @Composable
 fun TypingIndicatorView(typingUsers: List<String>) {
+    val infiniteTransition = rememberInfiniteTransition(label = "typingDots")
+    
+    // Create staggered animations for each dot
+    val dot1Offset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "dot1"
+    )
+    val dot2Offset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 400, delayMillis = 100, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "dot2"
+    )
+    val dot3Offset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 400, delayMillis = 200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "dot3"
+    )
+    
     Row(
         modifier = Modifier.padding(bottom = 4.dp, start = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val names = typingUsers.take(3).joinToString(separator = ", ")
-        val text = when {
+        val name = when {
             typingUsers.isEmpty() -> ""
-            typingUsers.size == 1 -> "${typingUsers.first()} is typing..."
-            typingUsers.size <= 3 -> "$names are typing..."
-            else -> "${typingUsers.size} people are typing..."
+            typingUsers.size == 1 -> typingUsers.first()
+            else -> "${typingUsers.size} people"
         }
         
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (name.isNotEmpty()) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+        }
+        
+        // Animated bouncing dots
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            listOf(dot1Offset, dot2Offset, dot3Offset).forEach { offset ->
+                Box(
+                    modifier = Modifier
+                        .offset(y = offset.dp)
+                        .size(6.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        )
+                )
+            }
+        }
     }
 }
