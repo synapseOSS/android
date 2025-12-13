@@ -76,12 +76,15 @@ class ChatUIUpdater(
         updatesJob?.cancel()
         updatesJob = null
 
-        scope.launch {
-            try {
-                channel?.unsubscribe()
-                channel = null
-            } catch (e: Exception) {
-                Log.e(TAG, "Error stopping updates", e)
+        val currentChannel = channel
+        if (currentChannel != null) {
+            channel = null // Prevent double unsubscribe
+            scope.launch {
+                try {
+                    currentChannel.unsubscribe()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error stopping updates", e)
+                }
             }
         }
     }
