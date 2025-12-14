@@ -55,4 +55,9 @@
     <string name="empty_chat_subtitle">Start the conversation</string>
     <string name="empty_search">No messages found</string>
     <string name="empty_search_subtitle">Try different keywords</string>
+
+    <!-- Chat Input Actions -->
+    <string name="action_send_message">Send message</string>
+    <string name="action_record_audio">Record audio</string>
+    <string name="action_attach">Attach file</string>
 </resources>
