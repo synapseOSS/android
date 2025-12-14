@@ -189,7 +189,8 @@ data class MessageActionHistoryDto(
     val action_type: String,
     val message_ids: List<String>,
     val chat_id: String?,
-    val action_data: Map<String, @Contextual Any>
+    val action_data: Map<String, @Contextual Any>,
+    val created_at: String? = null
 ) {
     fun toDomain() = MessageActionHistory(
         id = id ?: "",
@@ -198,6 +199,6 @@ data class MessageActionHistoryDto(
         messageIds = message_ids,
         chatId = chat_id,
         actionData = action_data,
-        createdAt = ""
+        createdAt = created_at ?: ""
     )
 }

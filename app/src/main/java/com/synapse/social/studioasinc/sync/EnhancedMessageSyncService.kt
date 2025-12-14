@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import java.util.concurrent.ConcurrentHashMap
 
@@ -300,7 +301,8 @@ data class MessageDto(
     val message_type: String = "text",
     val media_url: String? = null,
     val reply_to_id: String? = null,
-    val message_state: String = "sent"
+    val message_state: String = "sent",
+    val created_at: String? = null
 ) {
     fun toDomain() = SyncedMessage(
         id = id,
@@ -308,7 +310,13 @@ data class MessageDto(
         senderId = sender_id,
         content = content,
         messageType = message_type,
-        createdAt = System.currentTimeMillis(),
+        createdAt = created_at?.let { 
+            try {
+                Instant.parse(it).toEpochMilliseconds()
+            } catch (e: Exception) {
+                System.currentTimeMillis()
+            }
+        } ?: System.currentTimeMillis(),
         messageState = message_state
     )
 }

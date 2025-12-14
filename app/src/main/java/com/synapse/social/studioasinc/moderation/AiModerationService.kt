@@ -58,6 +58,7 @@ class AiModerationService {
                 } ?: ModerationScores()
             )
         } catch (e: Exception) {
+            android.util.Log.e("AiModerationService", "Failed to analyze content", e)
             null
         } finally {
             _isAnalyzing.value = false
@@ -110,6 +111,7 @@ class AiModerationService {
             
             true
         } catch (e: Exception) {
+            android.util.Log.e("AiModerationService", "Failed to report content", e)
             false
         }
     }
@@ -132,6 +134,7 @@ class AiModerationService {
                 autoActioned = jsonResponse["auto_actioned"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0
             )
         } catch (e: Exception) {
+            android.util.Log.e("AiModerationService", "Failed to get moderation stats", e)
             null
         }
     }

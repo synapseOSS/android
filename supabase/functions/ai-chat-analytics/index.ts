@@ -17,11 +17,13 @@ Deno.serve(async (req: Request) => {
         const [
           { count: totalSessions },
           { count: totalResponses },
+          { count: activeSessions },
           { data: avgResponseTime },
           { data: avgRating }
         ] = await Promise.all([
           supabase.from('ai_chat_sessions').select('*', { count: 'exact', head: true }),
           supabase.from('ai_chat_responses').select('*', { count: 'exact', head: true }),
+          supabase.from('ai_chat_sessions').select('*', { count: 'exact', head: true }).eq('is_active', true),
           supabase.from('ai_chat_responses').select('response_time_ms').not('response_time_ms', 'is', null),
           supabase.from('ai_chat_responses').select('user_feedback').not('user_feedback', 'is', null)
         ]);
@@ -34,7 +36,7 @@ Deno.serve(async (req: Request) => {
           total_responses: totalResponses,
           avg_response_time_ms: Math.round(avgTime || 0),
           avg_user_rating: Math.round((avgScore || 0) * 10) / 10,
-          active_sessions: totalSessions // Simplified
+          active_sessions: activeSessions
         }), {
           headers: { 'Content-Type': 'application/json' }
         });

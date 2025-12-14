@@ -6,18 +6,55 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
-// Simple encryption (use proper encryption in production)
-const ENCRYPTION_KEY = Deno.env.get('API_ENCRYPTION_KEY') ?? 'default-key-change-in-prod';
+// AES-256-GCM encryption using Web Crypto API
+const ENCRYPTION_KEY_BASE64 = Deno.env.get('API_ENCRYPTION_KEY') ?? 'YourBase64EncodedKeyHere==';
 
-function encryptKey(key: string): string {
-  // In production, use proper encryption like AES-256
-  return btoa(key + ENCRYPTION_KEY);
+async function getEncryptionKey(): Promise<CryptoKey> {
+  const keyData = new Uint8Array(atob(ENCRYPTION_KEY_BASE64).split('').map(c => c.charCodeAt(0)));
+  return await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'AES-GCM' },
+    false,
+    ['encrypt', 'decrypt']
+  );
 }
 
-function decryptKey(encryptedKey: string): string {
+async function encryptKey(key: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(key);
+  const cryptoKey = await getEncryptionKey();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    cryptoKey,
+    data
+  );
+  
+  // Combine IV and encrypted data
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+  
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptKey(encryptedKey: string): Promise<string> {
   try {
-    const decoded = atob(encryptedKey);
-    return decoded.replace(ENCRYPTION_KEY, '');
+    const combined = new Uint8Array(atob(encryptedKey).split('').map(c => c.charCodeAt(0)));
+    const iv = combined.slice(0, 12);
+    const encrypted = combined.slice(12);
+    
+    const cryptoKey = await getEncryptionKey();
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      cryptoKey,
+      encrypted
+    );
+    
+    const decoder = new TextDecoder();
+    return decoder.decode(decrypted);
   } catch {
     throw new Error('Invalid encrypted key');
   }
@@ -71,7 +108,7 @@ async function storeApiKey(req: Request, userId: string) {
     return new Response('Invalid API key format', { status: 400 });
   }
 
-  const encryptedKey = encryptKey(api_key);
+  const encryptedKey = await encryptKey(api_key);
   
   const { data, error } = await supabase
     .from('user_api_keys')
@@ -175,7 +212,7 @@ async function getDecryptedKey(req: Request, userId: string) {
     });
   }
 
-  const decryptedKey = decryptKey(data.encrypted_key);
+  const decryptedKey = await decryptKey(data.encrypted_key);
   
   return new Response(JSON.stringify({
     has_key: true,

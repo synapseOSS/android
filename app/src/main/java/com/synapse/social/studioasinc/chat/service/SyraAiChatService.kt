@@ -128,7 +128,7 @@ class SyraAiChatService {
                 body = request
             )
         } catch (e: Exception) {
-            // Handle error silently for feedback
+            android.util.Log.e("SyraAiChatService", "Failed to submit feedback", e)
         }
     }
     

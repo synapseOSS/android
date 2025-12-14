@@ -68,10 +68,10 @@ class SyraAiChatServiceUpdated @Inject constructor(
             
             if (result["success"] == true) {
                 val aiResponse = AiChatResponse(
-                    response = result["response"].toString(),
-                    conversationId = result["conversation_id"].toString(),
+                    response = result["response"]?.toString() ?: "",
+                    conversationId = result["conversation_id"]?.toString() ?: "",
                     usedUserKey = result["used_user_key"] as? Boolean ?: false,
-                    provider = result["provider"].toString(),
+                    provider = result["provider"]?.toString() ?: "platform",
                     tokensUsed = result["tokens_used"] as? Int
                 )
                 
@@ -82,7 +82,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
                 
                 Result.success(aiResponse)
             } else {
-                Result.failure(Exception(result["error"].toString()))
+                Result.failure(Exception(result["error"]?.toString() ?: "Unknown error"))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -119,7 +119,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
             val keyResult = Json.decodeFromString<Map<String, @Contextual Any>>(keyResponse)
             
             if (keyResult["has_key"] == true && keyResult["use_platform_key"] == false) {
-                keyResult["api_key"]?.toString() to preferredProvider
+                keyResult["api_key"]?.toString() ?: "" to preferredProvider
             } else {
                 null to "platform"
             }
@@ -142,7 +142,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
                     }
                 }
         } catch (e: Exception) {
-            // Log error but don't fail the main operation
+            android.util.Log.e("SyraAiChatServiceUpdated", "Failed to update usage count for provider: $provider", e)
         }
     }
 
@@ -174,7 +174,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
                 val suggestions = result["suggestions"] as? List<*> ?: emptyList<String>()
                 Result.success(suggestions.map { it.toString() })
             } else {
-                Result.failure(Exception(result["error"].toString()))
+                Result.failure(Exception(result["error"]?.toString() ?: "Unknown error"))
             }
         } catch (e: Exception) {
             Result.failure(e)
