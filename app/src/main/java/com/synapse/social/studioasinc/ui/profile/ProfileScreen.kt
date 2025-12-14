@@ -419,10 +419,13 @@ private fun ProfileContent(
                                 message = "Reels you create will appear here."
                             )
                         } else {
-                            // TODO: Implement ReelsGrid component
-                            Text(
-                                text = "Reels coming soon",
-                                modifier = Modifier.padding(32.dp)
+                            val reels = remember(state.reels) {
+                                state.reels.filterIsInstance<MediaItem>()
+                            }
+                            ReelsGrid(
+                                items = reels,
+                                onItemClick = { /* TODO: Open reels viewer */ },
+                                isLoading = state.isLoadingMore
                             )
                         }
                     }
