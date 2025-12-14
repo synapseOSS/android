@@ -953,12 +953,11 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * Report User
      */
-    fun reportUser(userId: String) {
+    fun reportUser(userId: String, reason: String) {
         val currentUserId = currentUserId ?: return
         viewModelScope.launch {
              _effects.send(ChatEffect.ShowSnackbar("Reporting user..."))
-             // Hardcoded reason for now, could be passed from UI dialog
-             val result = chatRepository.reportUser(reporterId = currentUserId, reportedId = userId, reason = "Spam/Abuse")
+             val result = chatRepository.reportUser(reporterId = currentUserId, reportedId = userId, reason = reason)
              result.onSuccess {
                  _effects.send(ChatEffect.ShowSnackbar("User reported"))
              }.onFailure {

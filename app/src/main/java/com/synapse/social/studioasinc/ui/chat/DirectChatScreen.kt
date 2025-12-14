@@ -2,7 +2,6 @@ package com.synapse.social.studioasinc.ui.chat
 
 // TODO: Implement Typing Indicators - Show when other user is typing (Realtime Presence)
 // TODO: Implement File Attachments - Support images, videos, documents with upload progress
-// TODO: Implement Block & Report - Add confirmation dialogs and backend RPC calls
 // TODO: Implement Delete Chat - Handle soft delete and navigation after success
 
 import androidx.compose.animation.*
@@ -27,6 +26,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.automirrored.filled.Forward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
@@ -91,6 +91,7 @@ fun DirectChatScreen(
     
     // Confirmation Dialog States
     var showBlockDialog by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
     var showDeleteChatDialog by remember { mutableStateOf(false) }
 
     // Snackbar Host
@@ -292,6 +293,64 @@ fun DirectChatScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showBlockDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Report User Confirmation Dialog
+    if (showReportDialog) {
+        var reportReason by remember { mutableStateOf("Spam") }
+        val reportReasons = listOf("Spam", "Harassment", "Inappropriate Content", "Other")
+
+        AlertDialog(
+            onDismissRequest = { showReportDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = { Text("Report User") },
+            text = {
+                Column {
+                    Text("Select a reason for reporting this user:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    reportReasons.forEach { reason ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { reportReason = reason }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            RadioButton(
+                                selected = (reportReason == reason),
+                                onClick = { reportReason = reason }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = reason)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showReportDialog = false
+                        viewModel.reportUser(uiState.otherUser?.id ?: "", reportReason)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Report")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReportDialog = false }) {
                     Text("Cancel")
                 }
             }
@@ -535,9 +594,7 @@ fun DirectChatScreen(
                             text = { Text("Report User") },
                             onClick = {
                                 showTopBarMenu = false
-                                 // TODO: Report User
-                                // Backend: Insert into 'reports' table.
-                                viewModel.reportUser(uiState.otherUser?.id ?: "")
+                                showReportDialog = true
                             }
                         )
                         DropdownMenuItem(
