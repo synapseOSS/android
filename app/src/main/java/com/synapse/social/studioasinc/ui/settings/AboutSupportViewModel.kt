@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.data.model.AppUpdateInfo
 import com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl
+import com.synapse.social.studioasinc.data.repository.FeedbackRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,6 +50,8 @@ class AboutSupportViewModel(
 
     private val _updateInfo = MutableStateFlow<AppUpdateInfo?>(null)
     val updateInfo: StateFlow<AppUpdateInfo?> = _updateInfo.asStateFlow()
+
+    private val feedbackRepository = FeedbackRepository()
 
     init {
         loadAppInfo()
@@ -226,19 +229,24 @@ class AboutSupportViewModel(
                     "Submitting feedback - Category: $category, Description length: ${description.length}"
                 )
 
-                // TODO: Implement actual feedback submission
-                // This would typically involve:
-                // 1. Sending feedback to backend API
-                // 2. Including app version, device info, user ID
-                // 3. Optionally attaching logs or screenshots
+                val deviceInfo = "Manufacturer: ${Build.MANUFACTURER}, Model: ${Build.MODEL}, OS: ${Build.VERSION.RELEASE}, SDK: ${Build.VERSION.SDK_INT}"
                 
-                // For now, just simulate submission
-                kotlinx.coroutines.delay(1500)
-                
-                _feedbackSubmitted.value = true
-                
-                android.util.Log.d("AboutSupportViewModel", "Feedback submitted successfully")
-                
+                val result = feedbackRepository.submitFeedback(
+                    category = category,
+                    description = description,
+                    appVersion = _appVersion.value,
+                    buildNumber = _buildNumber.value,
+                    deviceInfo = deviceInfo
+                )
+
+                if (result.isSuccess) {
+                    _feedbackSubmitted.value = true
+                    android.util.Log.d("AboutSupportViewModel", "Feedback submitted successfully")
+                } else {
+                    val exception = result.exceptionOrNull()
+                    android.util.Log.e("AboutSupportViewModel", "Failed to submit feedback", exception)
+                    _error.value = "Failed to submit feedback. Please try again."
+                }
             } catch (e: Exception) {
                 android.util.Log.e("AboutSupportViewModel", "Failed to submit feedback", e)
                 _error.value = "Failed to submit feedback. Please try again."
