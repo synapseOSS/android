@@ -16,6 +16,7 @@ object NotificationConfig {
     // ===== ONESIGNAL CONFIGURATION =====
     // OneSignal credentials
     // Access them via BuildConfig to avoid hardcoding credentials in the source code.
+    // Credentials are now securely loaded from local.properties or environment variables via BuildConfig
     const val ONESIGNAL_APP_ID = BuildConfig.ONESIGNAL_APP_ID
     const val ONESIGNAL_REST_API_KEY = BuildConfig.ONESIGNAL_REST_API_KEY
 

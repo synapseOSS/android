@@ -114,6 +114,17 @@ class PostRepository(private val postDao: PostDao) {
             if (!SupabaseClient.isConfigured()) {
                 return@withContext Result.failure(Exception("Supabase not configured."))
             }
+
+            // Ensure author details are populated (optimistic update for local DB)
+            if (post.username == null) {
+                val profile = fetchUserProfile(post.authorUid)
+                if (profile != null) {
+                    post.username = profile.username
+                    post.avatarUrl = profile.avatarUrl
+                    post.isVerified = profile.isVerified
+                }
+            }
+
             val insertData = buildJsonObject {
                 put("id", post.id)
                 post.key?.let { put("key", it) }
@@ -180,7 +191,18 @@ class PostRepository(private val postDao: PostDao) {
 
     suspend fun getPost(postId: String): Result<Post?> = withContext(Dispatchers.IO) {
         try {
-            val post = postDao.getPostById(postId)?.let { PostMapper.toModel(it) }
+            val post = postDao.getPostById(postId)?.let { entity ->
+                val model = PostMapper.toModel(entity)
+                // If username is missing, try to fetch it
+                if (model.username == null) {
+                    fetchUserProfile(model.authorUid)?.let { profile ->
+                        model.username = profile.username
+                        model.avatarUrl = profile.avatarUrl
+                        model.isVerified = profile.isVerified
+                    }
+                }
+                model
+            }
             Result.success(post)
         } catch (e: Exception) {
             Result.failure(Exception("Error getting post from database: ${e.message}"))
@@ -188,8 +210,35 @@ class PostRepository(private val postDao: PostDao) {
     }
 
     fun getPosts(): Flow<Result<List<Post>>> {
-        return postDao.getAllPosts().map<List<PostEntity>, Result<List<Post>>> { entities ->
-            Result.success(entities.map { PostMapper.toModel(it) })
+        return postDao.getAllPosts().map { entities ->
+            val posts = entities.map { PostMapper.toModel(it) }
+
+            // Identify posts with missing usernames
+            val missingUserIds = posts.filter { it.username == null }
+                .map { it.authorUid }
+                .distinct()
+                .filter { userId ->
+                    // Check if already in cache
+                    profileCache[userId]?.let { !it.isExpired() } != true
+                }
+
+            // Batch fetch missing profiles
+            if (missingUserIds.isNotEmpty()) {
+                fetchUserProfilesBatch(missingUserIds)
+            }
+
+            // Enrich posts from cache
+            posts.forEach { post ->
+                if (post.username == null) {
+                    profileCache[post.authorUid]?.data?.let { profile ->
+                        post.username = profile.username
+                        post.avatarUrl = profile.avatarUrl
+                        post.isVerified = profile.isVerified
+                    }
+                }
+            }
+
+            Result.success(posts)
         }.catch { e ->
             emit(Result.failure(Exception("Error getting posts from database: ${e.message}")))
         }
@@ -511,5 +560,53 @@ class PostRepository(private val postDao: PostDao) {
     // Use unified batch fetch logic
     private suspend fun populatePostReactions(posts: List<Post>): List<Post> {
         return reactionRepository.populatePostReactions(posts)
+    }
+
+    private suspend fun fetchUserProfilesBatch(userIds: List<String>) {
+        try {
+            val users = client.from("users").select {
+                filter { isIn("uid", userIds) }
+            }.decodeList<JsonObject>()
+
+            users.forEach { user ->
+                val uid = user["uid"]?.jsonPrimitive?.contentOrNull ?: return@forEach
+                val profile = ProfileData(
+                    username = user["username"]?.jsonPrimitive?.contentOrNull,
+                    avatarUrl = user["avatar"]?.jsonPrimitive?.contentOrNull?.let { constructAvatarUrl(it) },
+                    isVerified = user["verify"]?.jsonPrimitive?.booleanOrNull ?: false
+                )
+                profileCache[uid] = CacheEntry(profile)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to batch fetch user profiles", e)
+        }
+    }
+
+    private suspend fun fetchUserProfile(userId: String): ProfileData? {
+        // Check cache first
+        profileCache[userId]?.let { entry ->
+            if (!entry.isExpired()) return entry.data
+        }
+
+        return try {
+            val user = client.from("users").select {
+                filter { eq("uid", userId) }
+            }.decodeSingleOrNull<JsonObject>()
+
+            if (user != null) {
+                val profile = ProfileData(
+                    username = user["username"]?.jsonPrimitive?.contentOrNull,
+                    avatarUrl = user["avatar"]?.jsonPrimitive?.contentOrNull?.let { constructAvatarUrl(it) },
+                    isVerified = user["verify"]?.jsonPrimitive?.booleanOrNull ?: false
+                )
+                profileCache[userId] = CacheEntry(profile)
+                profile
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to fetch user profile for $userId", e)
+            null
+        }
     }
 }

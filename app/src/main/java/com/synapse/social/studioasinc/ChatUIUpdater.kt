@@ -84,7 +84,7 @@ class ChatUIUpdater(
         val currentChannel = channel
         if (currentChannel != null) {
             channel = null // Prevent double unsubscribe
-            scope.launch {
+            CoroutineScope(Dispatchers.IO).launch {
                 try {
                     currentChannel.unsubscribe()
                 } catch (e: Exception) {

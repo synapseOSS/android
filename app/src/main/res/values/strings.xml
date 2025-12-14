@@ -430,6 +430,7 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="media_picker_option_audio">Audio</string>
     <string name="media_picker_option_documents">Documents</string>
     <string name="media_picker_option_icon">Media option icon</string>
+    <string name="label_attachment">Attachment</string>
 
     <!-- Media Preview -->
     <string name="media_preview_title">Preview</string>
