@@ -97,7 +97,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
             
             // Get user's preferred provider
             val settingsResponse = supabaseClient.from("ai_provider_settings")
-                .select(columns = "preferred_provider") {
+                .select("preferred_provider") {
                     filter {
                         eq("user_id", supabaseClient.auth.currentUserOrNull()?.id ?: "")
                     }

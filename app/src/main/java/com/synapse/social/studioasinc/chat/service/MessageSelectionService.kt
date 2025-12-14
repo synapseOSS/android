@@ -140,7 +140,7 @@ class MessageSelectionService {
                 filter {
                     eq("user_id", userId)
                 }
-                order("created_at", order = false)
+                order("created_at", ascending = false)
                 limit(limit)
             }
             .decodeList<MessageActionHistoryDto>()

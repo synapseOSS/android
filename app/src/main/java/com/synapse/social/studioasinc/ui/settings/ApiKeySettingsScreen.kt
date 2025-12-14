@@ -136,7 +136,7 @@ fun ApiKeySettingsScreen(
                         items(apiKeys) { apiKey ->
                             ApiKeyItem(
                                 apiKey = apiKey,
-                                onDelete = { viewModel.deleteApiKey(apiKey) }
+                                onDelete = { viewModel.deleteApiKey(apiKey.id) }
                             )
                         }
                     }
