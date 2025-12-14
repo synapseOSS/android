@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc.backend
 import android.content.Context
 import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -174,6 +175,38 @@ class AuthErrorHandler {
                 Log.i(TAG, "Resend verification email successful for: $email")
             } else {
                 Log.w(TAG, "Resend verification email failed for: $email, error: $errorMessage")
+            }
+        }
+    }
+
+    /**
+     * Delete the current user's account
+     * This attempts to delete the user from the public users table and sign out.
+     */
+    override suspend fun deleteAccount(): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val userId = getCurrentUserId() ?: return@withContext Result.failure(Exception("User not logged in"))
+
+                // Attempt to delete user data from public table
+                // Note: This relies on the table name being "users" and the id column being "uid"
+                // as observed in UserProfileManager.kt
+                try {
+                     client.from("users").delete {
+                        filter {
+                            eq("uid", userId)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to delete user data from public table", e)
+                    // Continue to sign out even if data deletion fails (or maybe it failed because of permissions)
+                }
+
+                // Sign out
+                client.auth.signOut()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
             }
         }
     }

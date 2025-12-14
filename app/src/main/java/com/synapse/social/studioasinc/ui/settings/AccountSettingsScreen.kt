@@ -42,6 +42,14 @@ fun AccountSettingsScreen(
     val showChangeEmailDialog by viewModel.showChangeEmailDialog.collectAsState()
     val showChangePasswordDialog by viewModel.showChangePasswordDialog.collectAsState()
     val showDeleteAccountDialog by viewModel.showDeleteAccountDialog.collectAsState()
+    val navigateToLogin by viewModel.navigateToLogin.collectAsState()
+
+    LaunchedEffect(navigateToLogin) {
+        if (navigateToLogin) {
+            onLogout() // Reusing the logout callback to navigate to login screen as it should clear session and go to AuthActivity or similar
+            viewModel.resetNavigation()
+        }
+    }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 

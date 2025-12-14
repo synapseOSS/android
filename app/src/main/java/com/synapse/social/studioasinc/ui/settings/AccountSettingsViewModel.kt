@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc.ui.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,6 +42,9 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
 
     private val _showDeleteAccountDialog = MutableStateFlow(false)
     val showDeleteAccountDialog: StateFlow<Boolean> = _showDeleteAccountDialog.asStateFlow()
+
+    private val _navigateToLogin = MutableStateFlow(false)
+    val navigateToLogin: StateFlow<Boolean> = _navigateToLogin.asStateFlow()
 
     init {
         loadLinkedAccounts()
@@ -323,12 +327,19 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
                     return@launch
                 }
 
-                // TODO: Implement actual account deletion with backend
+                // Call backend service to delete account
                 android.util.Log.d("AccountSettingsViewModel", "Deleting account")
-                
-                // Simulate success
-                _showDeleteAccountDialog.value = false
-                // TODO: Navigate to login screen and clear all user data
+                val authService = SupabaseAuthenticationService.getInstance(getApplication())
+                val result = authService.deleteAccount()
+
+                if (result.isSuccess) {
+                    _showDeleteAccountDialog.value = false
+                    _navigateToLogin.value = true
+                } else {
+                    val exception = result.exceptionOrNull()
+                    android.util.Log.e("AccountSettingsViewModel", "Failed to delete account", exception)
+                    _error.value = "Failed to delete account: ${exception?.message}"
+                }
             } catch (e: Exception) {
                 android.util.Log.e("AccountSettingsViewModel", "Failed to delete account", e)
                 _error.value = "Failed to delete account: ${e.message}"
@@ -336,6 +347,13 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
                 _isLoading.value = false
             }
         }
+    }
+
+    /**
+     * Resets navigation state
+     */
+    fun resetNavigation() {
+        _navigateToLogin.value = false
     }
 
     // ========================================================================
