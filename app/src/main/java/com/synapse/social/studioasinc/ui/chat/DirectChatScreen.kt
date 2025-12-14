@@ -93,6 +93,10 @@ fun DirectChatScreen(
     var showBlockDialog by remember { mutableStateOf(false) }
     var showReportDialog by remember { mutableStateOf(false) }
     var showDeleteChatDialog by remember { mutableStateOf(false) }
+    
+    // Edit Message Dialog State
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editMessageText by remember { mutableStateOf("") }
 
     // Snackbar Host
     val snackbarHostState = remember { SnackbarHostState() }
@@ -401,10 +405,6 @@ fun DirectChatScreen(
 
     // Multi-select delete confirmation dialog
     var showDeleteSelectedDialog by remember { mutableStateOf(false) }
-
-    // Edit Message Dialog State
-    var showEditDialog by remember { mutableStateOf(false) }
-    var editMessageText by remember { mutableStateOf("") }
     
     if (showDeleteSelectedDialog) {
         AlertDialog(

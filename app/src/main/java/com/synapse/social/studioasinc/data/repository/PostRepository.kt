@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import java.util.concurrent.ConcurrentHashMap
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -51,9 +52,9 @@ class PostRepository(
             System.currentTimeMillis() - timestamp > expirationMs
     }
 
-    // FIXME: Bug (Concurrency) - These MutableMaps are accessed via Coroutines and are not thread-safe. Suggest ConcurrentHashMap or Mutex.
-    private val postsCache = mutableMapOf<String, CacheEntry<List<Post>>>()
-    private val profileCache = mutableMapOf<String, CacheEntry<ProfileData>>()
+    // Fixed: Thread-safe cache using ConcurrentHashMap
+    private val postsCache = ConcurrentHashMap<String, CacheEntry<List<Post>>>()
+    private val profileCache = ConcurrentHashMap<String, CacheEntry<ProfileData>>()
 
     companion object {
         private const val CACHE_EXPIRATION_MS = 5 * 60 * 1000L
@@ -72,13 +73,12 @@ class PostRepository(
         android.util.Log.d(TAG, "Cache invalidated")
     }
 
-    // TODO: Refactor (Hardcoding) - URL construction should be centralized in SupabaseClient or a config file, not hardcoded strings.
     fun constructMediaUrl(storagePath: String): String {
-        return SupabaseClient.constructStorageUrl(SupabaseClient.BUCKET_POST_MEDIA, storagePath)
+        return SupabaseClient.constructMediaUrl(storagePath)
     }
 
     private fun constructAvatarUrl(storagePath: String): String {
-        return SupabaseClient.constructStorageUrl(SupabaseClient.BUCKET_USER_AVATARS, storagePath)
+        return SupabaseClient.constructAvatarUrl(storagePath)
     }
 
     private fun mapSupabaseError(exception: Exception): String {
@@ -105,7 +105,6 @@ class PostRepository(
         }
     }
 
-    // TODO: Refactor (Serialization) - Manual JSON construction is fragile. Suggest using kotlinx.serialization and @Serializable DTOs to map Supabase responses directly to objects.
     suspend fun createPost(post: Post): Result<Post> = withContext(Dispatchers.IO) {
         try {
             if (!SupabaseClient.isConfigured()) {
@@ -400,14 +399,14 @@ class PostRepository(
              }
         }
 
-    // TODO: Optimization (N+1 Query) - Fetches reactions first, then users. Suggest refactoring to a single query using Supabase resource embedding (joins).
     suspend fun getUsersWhoReacted(
         postId: String,
         reactionType: ReactionType? = null
     ): Result<List<UserReaction>> = withContext(Dispatchers.IO) {
         try {
+            // Optimized: Single query with join using Supabase resource embedding
             val reactions = client.from("reactions")
-                .select {
+                .select(Columns.raw("*, users!inner(uid, username, avatar, verify)")) {
                     filter {
                         eq("post_id", postId)
                         if (reactionType != null) eq("reaction_type", reactionType.name)
@@ -415,19 +414,9 @@ class PostRepository(
                 }
                 .decodeList<JsonObject>()
 
-            if (reactions.isEmpty()) return@withContext Result.success(emptyList())
-
-            val userIds = reactions.mapNotNull { it["user_id"]?.jsonPrimitive?.contentOrNull }
-            if (userIds.isEmpty()) return@withContext Result.success(emptyList())
-
-            val users = client.from("users")
-                .select { filter { isIn("uid", userIds) } }
-                .decodeList<JsonObject>()
-                .associateBy { it["uid"]?.jsonPrimitive?.contentOrNull }
-
             val userReactions = reactions.mapNotNull { reaction ->
                 val userId = reaction["user_id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-                val user = users[userId]
+                val user = reaction["users"]?.jsonObject
                 UserReaction(
                     userId = userId,
                     username = user?.get("username")?.jsonPrimitive?.contentOrNull ?: "Unknown",

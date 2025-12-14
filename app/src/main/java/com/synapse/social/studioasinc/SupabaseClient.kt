@@ -99,4 +99,18 @@ object SupabaseClient {
         val supabaseUrl = BuildConfig.SUPABASE_URL
         return "$supabaseUrl/storage/v1/object/public/$bucket/$path"
     }
+
+    /**
+     * Constructs URL for post media storage
+     */
+    fun constructMediaUrl(storagePath: String): String {
+        return constructStorageUrl(BUCKET_POST_MEDIA, storagePath)
+    }
+
+    /**
+     * Constructs URL for user avatar storage
+     */
+    fun constructAvatarUrl(storagePath: String): String {
+        return constructStorageUrl(BUCKET_USER_AVATARS, storagePath)
+    }
 }
