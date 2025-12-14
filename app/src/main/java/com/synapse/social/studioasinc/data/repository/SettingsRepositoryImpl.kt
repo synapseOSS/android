@@ -12,7 +12,11 @@ import com.synapse.social.studioasinc.ui.settings.NotificationCategory
 import com.synapse.social.studioasinc.ui.settings.NotificationPreferences
 import com.synapse.social.studioasinc.ui.settings.PrivacySettings
 import com.synapse.social.studioasinc.ui.settings.ProfileVisibility
+import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.data.model.AppUpdateInfo
 import com.synapse.social.studioasinc.ui.settings.ThemeMode
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -307,5 +311,22 @@ class SettingsRepositoryImpl private constructor(
      */
     override suspend fun restoreDefaults() {
         settingsDataStore.restoreDefaults()
+    }
+
+    override suspend fun checkForUpdates(): Result<AppUpdateInfo?> {
+        return try {
+            val latestVersion = SupabaseClient.client
+                .from("app_versions")
+                .select() {
+                    order("version_code", Order.DESCENDING)
+                    limit(1)
+                }
+                .decodeSingleOrNull<AppUpdateInfo>()
+
+            Result.success(latestVersion)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check for updates", e)
+            Result.failure(e)
+        }
     }
 }

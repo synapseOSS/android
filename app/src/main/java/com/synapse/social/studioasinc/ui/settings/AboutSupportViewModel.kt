@@ -5,6 +5,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.synapse.social.studioasinc.R
+import com.synapse.social.studioasinc.data.model.AppUpdateInfo
+import com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,8 +41,14 @@ class AboutSupportViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _message = MutableStateFlow<String?>(null)
+    val message: StateFlow<String?> = _message.asStateFlow()
+
     private val _feedbackSubmitted = MutableStateFlow(false)
     val feedbackSubmitted: StateFlow<Boolean> = _feedbackSubmitted.asStateFlow()
+
+    private val _updateInfo = MutableStateFlow<AppUpdateInfo?>(null)
+    val updateInfo: StateFlow<AppUpdateInfo?> = _updateInfo.asStateFlow()
 
     init {
         loadAppInfo()
@@ -133,20 +142,43 @@ class AboutSupportViewModel(
     fun checkForUpdates() {
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
+            _message.value = null
             try {
-                android.util.Log.d("AboutSupportViewModel", "Checking for updates (placeholder)")
-                // TODO: Implement actual update check logic
-                // This would typically involve:
-                // 1. Querying a backend API for latest version
-                // 2. Comparing with current version
-                // 3. Showing update dialog if available
+                android.util.Log.d("AboutSupportViewModel", "Checking for updates...")
                 
-                // For now, just simulate a check
-                kotlinx.coroutines.delay(1000)
+                val repository = SettingsRepositoryImpl.getInstance(getApplication())
+                val result = repository.checkForUpdates()
+
+                val context = getApplication<Application>()
+
+                result.fold(
+                    onSuccess = { updateInfo ->
+                        if (updateInfo != null) {
+                            val currentVersionCode = _buildNumber.value.toLongOrNull() ?: 0L
+
+                            if (updateInfo.versionCode > currentVersionCode) {
+                                _updateInfo.value = updateInfo
+                                android.util.Log.d("AboutSupportViewModel", "Update available: ${updateInfo.versionName}")
+                            } else {
+                                android.util.Log.d("AboutSupportViewModel", "App is up to date")
+                                _message.value = context.getString(R.string.app_is_up_to_date)
+                            }
+                        } else {
+                            android.util.Log.d("AboutSupportViewModel", "No version info found on server")
+                            _message.value = context.getString(R.string.app_is_up_to_date)
+                        }
+                    },
+                    onFailure = { e ->
+                        android.util.Log.e("AboutSupportViewModel", "Failed to check for updates", e)
+                        _error.value = context.getString(R.string.update_check_failed)
+                    }
+                )
                 
             } catch (e: Exception) {
+                val context = getApplication<Application>()
                 android.util.Log.e("AboutSupportViewModel", "Failed to check for updates", e)
-                _error.value = "Failed to check for updates"
+                _error.value = context.getString(R.string.update_check_failed_short)
             } finally {
                 _isLoading.value = false
             }
@@ -233,6 +265,20 @@ class AboutSupportViewModel(
      */
     fun clearError() {
         _error.value = null
+    }
+
+    /**
+     * Clears any success messages.
+     */
+    fun clearMessage() {
+        _message.value = null
+    }
+
+    /**
+     * Dismisses the update dialog.
+     */
+    fun dismissUpdateDialog() {
+        _updateInfo.value = null
     }
 
     /**
