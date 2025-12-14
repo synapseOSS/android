@@ -121,10 +121,19 @@ fun DirectChatScreen(
 
     // Camera Logic
     var tempCameraUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
+    var tempVideoUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
+    var showCameraSourceDialog by remember { mutableStateOf(false) }
 
     val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success && tempCameraUri != null) {
             viewModel.handleIntent(ChatIntent.AddPendingAttachment(tempCameraUri!!, AttachmentType.Image))
+            viewModel.handleIntent(ChatIntent.HideMediaPicker)
+        }
+    }
+
+    val captureVideo = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
+        if (success && tempVideoUri != null) {
+            viewModel.handleIntent(ChatIntent.AddPendingAttachment(tempVideoUri!!, AttachmentType.Video))
             viewModel.handleIntent(ChatIntent.HideMediaPicker)
         }
     }
@@ -389,14 +398,45 @@ fun DirectChatScreen(
         )
     }
 
+    // Camera Source Dialog
+    if (showCameraSourceDialog) {
+        AlertDialog(
+            onDismissRequest = { showCameraSourceDialog = false },
+            title = { Text("Camera") },
+            text = { Text("Choose capture mode") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showCameraSourceDialog = false
+                        val uri = FileUtils.getTmpFileUri(context, ".png")
+                        tempCameraUri = uri
+                        takePicture.launch(uri)
+                    }
+                ) {
+                    Text("Take Photo")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showCameraSourceDialog = false
+                        val uri = FileUtils.getTmpFileUri(context, ".mp4")
+                        tempVideoUri = uri
+                        captureVideo.launch(uri)
+                    }
+                ) {
+                    Text("Record Video")
+                }
+            }
+        )
+    }
+
     // Media Picker Bottom Sheet
     if (uiState.showMediaPicker) {
         MediaPickerBottomSheet(
             onDismiss = { viewModel.handleIntent(ChatIntent.HideMediaPicker) },
             onSelectCamera = {
-                val uri = FileUtils.getTmpFileUri(context)
-                tempCameraUri = uri
-                takePicture.launch(uri)
+                showCameraSourceDialog = true
             },
             onSelectGallery = {
                 pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
