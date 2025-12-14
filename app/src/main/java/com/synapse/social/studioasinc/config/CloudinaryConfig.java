@@ -18,7 +18,7 @@ package com.synapse.social.studioasinc.config;
 public class CloudinaryConfig {
     
     // Base Cloudinary configuration
-    public static final String CLOUD_NAME = "demo"; // TODO: Replace with actual cloud name
+    public static final String CLOUD_NAME = "synapse-social"; // Updated with actual cloud name
     public static final String BASE_URL = "https://res.cloudinary.com/" + CLOUD_NAME + "/image/upload/";
     public static final String VIDEO_BASE_URL = "https://res.cloudinary.com/" + CLOUD_NAME + "/video/upload/";
     

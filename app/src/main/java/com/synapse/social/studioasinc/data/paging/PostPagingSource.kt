@@ -3,8 +3,8 @@ package com.synapse.social.studioasinc.data.paging
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.synapse.social.studioasinc.SupabaseClient
 import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.util.ImageLoader
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.postgrest.query.PostgrestQueryBuilder
@@ -45,11 +45,7 @@ class PostPagingSource(
                 val userData = jsonElement["users"]?.jsonObject
                 post.username = userData?.get("username")?.jsonPrimitive?.contentOrNull
                 post.avatarUrl = userData?.get("avatar")?.jsonPrimitive?.contentOrNull?.let { avatarPath ->
-                    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
-                        avatarPath
-                    } else {
-                        ImageLoader.constructStorageUrl(avatarPath, "user-avatars")
-                    }
+                    SupabaseClient.constructStorageUrl(SupabaseClient.BUCKET_USER_AVATARS, avatarPath)
                 }
                 post.isVerified = userData?.get("verify")?.jsonPrimitive?.booleanOrNull ?: false
                 post

@@ -859,7 +859,16 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="about_check_updates_subtitle">See if a new version is available</string>
     <string name="about_licenses">Open Source Licenses</string>
     <string name="about_licenses_subtitle">Third-party library attributions</string>
-    
+    <string name="update_available_title">Update Available</string>
+    <string name="update_available_message_version">Version %1$s is available.</string>
+    <string name="update_action">Update</string>
+    <string name="update_later">Later</string>
+    <string name="app_is_up_to_date">App is up to date</string>
+    <string name="update_check_failed">Failed to check for updates. Please try again later.</string>
+    <string name="update_check_failed_short">Failed to check for updates</string>
+    <string name="no_version_info">No version info found on server</string>
+    <string name="checking_updates">Checking for updates…</string>
+
     <!-- Feedback Dialog -->
     <string name="feedback_dialog_title">Report a Problem</string>
     <string name="feedback_dialog_message">Help us improve by describing the issue you\'re experiencing.</string>

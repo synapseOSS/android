@@ -269,7 +269,10 @@ class PostMoreBottomSheetDialog : DialogFragment() {
     }
 
     private fun viewInsights() {
-        SketchwareUtil.showMessage(requireActivity(), "View insights feature coming soon")
+        post?.let { post ->
+            val statisticsSheet = PostStatisticsBottomSheet.newInstance(post)
+            statisticsSheet.show(parentFragmentManager, "PostStatistics")
+        }
         dialog.dismiss()
     }
 

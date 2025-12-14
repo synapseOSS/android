@@ -97,18 +97,26 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
             _isLoading.value = true
             _error.value = null
             try {
-                // TODO: Implement actual social account linking
-                android.util.Log.d("AccountSettingsViewModel", "Connecting $provider account")
+                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
                 
-                // Update state based on provider
-                _linkedAccounts.value = when (provider) {
-                    SocialProvider.GOOGLE -> _linkedAccounts.value.copy(googleLinked = true)
-                    SocialProvider.FACEBOOK -> _linkedAccounts.value.copy(facebookLinked = true)
-                    SocialProvider.APPLE -> _linkedAccounts.value.copy(appleLinked = true)
+                when (provider) {
+                    SocialProvider.GOOGLE -> {
+                        supabaseClient.auth.linkIdentity(io.github.jan.supabase.auth.providers.Google)
+                    }
+                    SocialProvider.FACEBOOK -> {
+                        supabaseClient.auth.linkIdentity(io.github.jan.supabase.auth.providers.Facebook)
+                    }
+                    SocialProvider.APPLE -> {
+                        // Apple linking would require platform-specific implementation
+                        throw UnsupportedOperationException("Apple linking not yet supported")
+                    }
                 }
+                
+                // Reload linked accounts to reflect changes
+                loadLinkedAccounts()
             } catch (e: Exception) {
                 android.util.Log.e("AccountSettingsViewModel", "Failed to connect $provider", e)
-                _error.value = "Failed to connect ${provider.displayName}"
+                _error.value = "Failed to connect ${provider.displayName}: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
@@ -126,18 +134,28 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
             _isLoading.value = true
             _error.value = null
             try {
-                // TODO: Implement actual social account unlinking
-                android.util.Log.d("AccountSettingsViewModel", "Disconnecting $provider account")
+                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val currentUser = supabaseClient.auth.currentUserOrNull()
                 
-                // Update state based on provider
-                _linkedAccounts.value = when (provider) {
-                    SocialProvider.GOOGLE -> _linkedAccounts.value.copy(googleLinked = false)
-                    SocialProvider.FACEBOOK -> _linkedAccounts.value.copy(facebookLinked = false)
-                    SocialProvider.APPLE -> _linkedAccounts.value.copy(appleLinked = false)
+                if (currentUser != null) {
+                    val identities = currentUser.identities ?: emptyList()
+                    val targetIdentity = identities.find { 
+                        it.provider == provider.name.lowercase() 
+                    }
+                    
+                    if (targetIdentity != null) {
+                        supabaseClient.auth.unlinkIdentity(targetIdentity.id)
+                        // Reload linked accounts to reflect changes
+                        loadLinkedAccounts()
+                    } else {
+                        _error.value = "${provider.displayName} account is not linked"
+                    }
+                } else {
+                    _error.value = "User not authenticated"
                 }
             } catch (e: Exception) {
                 android.util.Log.e("AccountSettingsViewModel", "Failed to disconnect $provider", e)
-                _error.value = "Failed to disconnect ${provider.displayName}"
+                _error.value = "Failed to disconnect ${provider.displayName}: ${e.message}"
             } finally {
                 _isLoading.value = false
             }

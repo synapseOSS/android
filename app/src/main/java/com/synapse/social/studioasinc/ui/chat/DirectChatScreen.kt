@@ -1,10 +1,5 @@
 package com.synapse.social.studioasinc.ui.chat
 
-// TODO: Implement Typing Indicators - Show when other user is typing (Realtime Presence)
-// TODO: Implement File Attachments - Support images, videos, documents with upload progress
-// TODO: Implement Block & Report - Add confirmation dialogs and backend RPC calls
-// TODO: Implement Delete Chat - Handle soft delete and navigation after success
-
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -15,9 +10,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -27,8 +24,10 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.automirrored.filled.Forward
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,6 +47,7 @@ import com.synapse.social.studioasinc.util.FileUtils
 import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
 import com.synapse.social.studioasinc.ui.chat.components.MessageItem
 import com.synapse.social.studioasinc.ui.chat.components.ForwardMessageSheet
+import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
 import com.synapse.social.studioasinc.ui.chat.components.topbar.ChatTopBar
 import com.synapse.social.studioasinc.ui.chat.components.topbar.SelectionModeTopBar
 import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
@@ -91,7 +91,12 @@ fun DirectChatScreen(
     
     // Confirmation Dialog States
     var showBlockDialog by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
     var showDeleteChatDialog by remember { mutableStateOf(false) }
+    
+    // Edit Message Dialog State
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editMessageText by remember { mutableStateOf("") }
 
     // Snackbar Host
     val snackbarHostState = remember { SnackbarHostState() }
@@ -121,10 +126,19 @@ fun DirectChatScreen(
 
     // Camera Logic
     var tempCameraUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
+    var tempVideoUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
+    var showCameraSourceDialog by remember { mutableStateOf(false) }
 
     val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success && tempCameraUri != null) {
             viewModel.handleIntent(ChatIntent.AddPendingAttachment(tempCameraUri!!, AttachmentType.Image))
+            viewModel.handleIntent(ChatIntent.HideMediaPicker)
+        }
+    }
+
+    val captureVideo = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
+        if (success && tempVideoUri != null) {
+            viewModel.handleIntent(ChatIntent.AddPendingAttachment(tempVideoUri!!, AttachmentType.Video))
             viewModel.handleIntent(ChatIntent.HideMediaPicker)
         }
     }
@@ -210,12 +224,8 @@ fun DirectChatScreen(
                         headlineContent = { Text("Edit") },
                         leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.Edit, contentDescription = null) },
                         modifier = Modifier.clickable {
-                             // TODO: Implement Edit Dialog (simplification for now: trigger intent with current text)
-                             // Ideally show a dialog input with 'msg.content' pre-filled.
-                             // Backend Context:
-                             // 1. Update 'messages' table: content = newText, is_edited = true, updated_at = now
-                             // 2. Realtime: Broadcast 'UPDATE' event to listeners.
-                             // viewModel.handleIntent(ChatIntent.EditMessage(msg.id, "Edited Content"))
+                            editMessageText = msg.content
+                            showEditDialog = true
                             scope.launch { sheetState.hide() }.invokeOnCompletion { showMessageOptions = false }
                         }
                     )
@@ -287,6 +297,64 @@ fun DirectChatScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showBlockDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Report User Confirmation Dialog
+    if (showReportDialog) {
+        var reportReason by remember { mutableStateOf("Spam") }
+        val reportReasons = listOf("Spam", "Harassment", "Inappropriate Content", "Other")
+
+        AlertDialog(
+            onDismissRequest = { showReportDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = { Text("Report User") },
+            text = {
+                Column {
+                    Text("Select a reason for reporting this user:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    reportReasons.forEach { reason ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { reportReason = reason }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            RadioButton(
+                                selected = (reportReason == reason),
+                                onClick = { reportReason = reason }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = reason)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showReportDialog = false
+                        viewModel.reportUser(uiState.otherUser?.id ?: "", reportReason)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Report")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReportDialog = false }) {
                     Text("Cancel")
                 }
             }
@@ -371,6 +439,49 @@ fun DirectChatScreen(
         )
     }
 
+    // Edit Message Dialog
+    if (showEditDialog && selectedMessage != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showEditDialog = false
+                selectedMessage = null
+            },
+            title = { Text("Edit Message") },
+            text = {
+                OutlinedTextField(
+                    value = editMessageText,
+                    onValueChange = { editMessageText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Message") },
+                    singleLine = false,
+                    maxLines = 5
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (editMessageText.isNotBlank() && editMessageText != selectedMessage?.content) {
+                            viewModel.handleIntent(ChatIntent.EditMessage(selectedMessage!!.id, editMessageText))
+                        }
+                        showEditDialog = false
+                        selectedMessage = null
+                    },
+                    enabled = editMessageText.isNotBlank()
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showEditDialog = false
+                    selectedMessage = null
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     // Multi-select forward sheet
     var showForwardSelectedSheet by remember { mutableStateOf(false) }
     
@@ -389,14 +500,45 @@ fun DirectChatScreen(
         )
     }
 
+    // Camera Source Dialog
+    if (showCameraSourceDialog) {
+        AlertDialog(
+            onDismissRequest = { showCameraSourceDialog = false },
+            title = { Text("Camera") },
+            text = { Text("Choose capture mode") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showCameraSourceDialog = false
+                        val uri = FileUtils.getTmpFileUri(context, ".png")
+                        tempCameraUri = uri
+                        takePicture.launch(uri)
+                    }
+                ) {
+                    Text("Take Photo")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showCameraSourceDialog = false
+                        val uri = FileUtils.getTmpFileUri(context, ".mp4")
+                        tempVideoUri = uri
+                        captureVideo.launch(uri)
+                    }
+                ) {
+                    Text("Record Video")
+                }
+            }
+        )
+    }
+
     // Media Picker Bottom Sheet
     if (uiState.showMediaPicker) {
         MediaPickerBottomSheet(
             onDismiss = { viewModel.handleIntent(ChatIntent.HideMediaPicker) },
             onSelectCamera = {
-                val uri = FileUtils.getTmpFileUri(context)
-                tempCameraUri = uri
-                takePicture.launch(uri)
+                showCameraSourceDialog = true
             },
             onSelectGallery = {
                 pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -408,7 +550,6 @@ fun DirectChatScreen(
                 pickAudio.launch("audio/*")
             },
             onVoiceRecord = {
-                // TODO: Implement voice recording UI
                 viewModel.handleIntent(ChatIntent.HideMediaPicker)
             }
         )
@@ -432,7 +573,7 @@ fun DirectChatScreen(
             } else {
                 ChatTopBar(
                     userInfo = uiState.otherUser,
-                    connectionState = RealtimeConnectionState.Connected, // TODO: observe real connection state
+                    connectionState = uiState.connectionState,
                     onBackClick = onBackClick,
                     onProfileClick = { /* TODO: Open Profile */ },
                     onCallClick = { /* TODO: Call */ },
@@ -452,9 +593,7 @@ fun DirectChatScreen(
                             text = { Text("Report User") },
                             onClick = {
                                 showTopBarMenu = false
-                                 // TODO: Report User
-                                // Backend: Insert into 'reports' table.
-                                viewModel.reportUser(uiState.otherUser?.id ?: "")
+                                showReportDialog = true
                             }
                         )
                         DropdownMenuItem(
@@ -572,13 +711,53 @@ fun DirectChatScreen(
 
             // Floating Input Bar (hidden during selection mode)
             if (!uiState.isMultiSelectMode) {
-                Box(
+                Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .onGloballyPositioned { coordinates ->
                             inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
                         }
                 ) {
+                    // Pending Attachments Preview
+                    if (uiState.pendingAttachments.isNotEmpty()) {
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.pendingAttachments) { attachment ->
+                                Card(
+                                    modifier = Modifier.size(60.dp),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Box {
+                                        AsyncImage(
+                                            model = attachment.uri,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        IconButton(
+                                            onClick = { viewModel.handleIntent(ChatIntent.RemovePendingAttachment(attachment.id)) },
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .size(20.dp)
+                                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Remove",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
                     ChatInputBar(
                         value = uiState.inputText,
                         onValueChange = { 
@@ -587,7 +766,11 @@ fun DirectChatScreen(
                             if (it.text.isNotEmpty()) viewModel.setTypingStatus(true)
                         },
                         onSendClick = { 
-                            viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText.text))
+                            if (uiState.pendingAttachments.isNotEmpty()) {
+                                viewModel.handleIntent(ChatIntent.SendWithAttachments)
+                            } else {
+                                viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText.text))
+                            }
                             // Backend: Presence 'is_typing: false'
                             viewModel.setTypingStatus(false)
                         },
@@ -597,6 +780,9 @@ fun DirectChatScreen(
                         },
                         onAttachClick = { 
                             viewModel.handleIntent(ChatIntent.ShowMediaPicker)
+                        },
+                        onSendVoiceNote = { audioPath ->
+                            viewModel.handleIntent(ChatIntent.SendVoiceMessage(audioPath, 0L))
                         },
                         replyingTo = uiState.replyTo,
                         onCancelReply = { viewModel.handleIntent(ChatIntent.ClearReply) },

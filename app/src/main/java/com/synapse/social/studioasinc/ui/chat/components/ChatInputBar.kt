@@ -42,6 +42,7 @@ fun ChatInputBar(
     onValueChange: (TextFieldValue) -> Unit,
     onSendClick: () -> Unit,
     onAttachClick: () -> Unit,
+    onSendVoiceNote: (String) -> Unit = {},
     replyingTo: MessageUiModel? = null,
     onCancelReply: () -> Unit,
     typingUsers: List<String> = emptyList(),
@@ -50,6 +51,8 @@ fun ChatInputBar(
     isSending: Boolean = false,  // Animation trigger
     modifier: Modifier = Modifier
 ) {
+    var showVoiceDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -155,7 +158,7 @@ fun ChatInputBar(
                         )
                     }
                 } else {
-                    IconButton(onClick = { /* TODO: Voice note */ }) {
+                    IconButton(onClick = { showVoiceDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Mic,
                             contentDescription = stringResource(R.string.action_record_audio),
@@ -164,6 +167,17 @@ fun ChatInputBar(
                     }
                 }
             }
+        }
+
+        // Voice Recording Dialog
+        if (showVoiceDialog) {
+            VoiceRecordingDialog(
+                onDismiss = { showVoiceDialog = false },
+                onSendVoiceNote = { audioPath ->
+                    onSendVoiceNote(audioPath)
+                    showVoiceDialog = false
+                }
+            )
         }
     }
 }

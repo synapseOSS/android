@@ -15,9 +15,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.window.DialogProperties
 import com.synapse.social.studioasinc.R
+import com.synapse.social.studioasinc.data.model.AppUpdateInfo
 
 /**
  * About and Support Settings screen.
@@ -41,10 +43,12 @@ fun AboutSupportScreen(
     val buildNumber by viewModel.buildNumber.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val message by viewModel.message.collectAsState()
+    val updateInfo by viewModel.updateInfo.collectAsState()
     
     var showFeedbackDialog by remember { mutableStateOf(false) }
     
-    // Show error snackbar if present
+    // Show error/message snackbar if present
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(error) {
         error?.let {
@@ -53,6 +57,16 @@ fun AboutSupportScreen(
                 duration = SnackbarDuration.Short
             )
             viewModel.clearError()
+        }
+    }
+
+    LaunchedEffect(message) {
+        message?.let {
+            snackbarHostState.showSnackbar(
+                message = it,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.clearMessage()
         }
     }
 
@@ -207,6 +221,21 @@ fun AboutSupportScreen(
             viewModel = viewModel
         )
     }
+
+    // Update Available Dialog
+    if (updateInfo != null) {
+        UpdateAvailableDialog(
+            updateInfo = updateInfo!!,
+            onDismiss = { viewModel.dismissUpdateDialog() },
+            onDownload = {
+                updateInfo?.downloadUrl?.let { url ->
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    context.startActivity(intent)
+                }
+                viewModel.dismissUpdateDialog()
+            }
+        )
+    }
 }
 
 /**
@@ -270,6 +299,50 @@ private fun AppInfoHeaderCard(
             }
         }
     }
+}
+
+/**
+ * Dialog to show when an app update is available.
+ */
+@Composable
+fun UpdateAvailableDialog(
+    updateInfo: AppUpdateInfo,
+    onDismiss: () -> Unit,
+    onDownload: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = {
+            if (!updateInfo.isMandatory) {
+                onDismiss()
+            }
+        },
+        properties = DialogProperties(
+            dismissOnBackPress = !updateInfo.isMandatory,
+            dismissOnClickOutside = !updateInfo.isMandatory
+        ),
+        title = { Text(stringResource(R.string.update_available_title)) },
+        text = {
+            Column {
+                Text(stringResource(R.string.update_available_message_version, updateInfo.versionName))
+                if (!updateInfo.releaseNotes.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(updateInfo.releaseNotes, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDownload) {
+                Text(stringResource(R.string.update_action))
+            }
+        },
+        dismissButton = {
+            if (!updateInfo.isMandatory) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.update_later))
+                }
+            }
+        }
+    )
 }
 
 /**

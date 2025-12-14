@@ -131,7 +131,7 @@ class ProfileComposeActivity : ComponentActivity() {
     }
     
     private fun navigateToActivityLog() {
-        // TODO: Implement activity log navigation
+        startActivity(Intent(this, ActivityLogActivity::class.java))
     }
     
     private fun navigateToUserProfile(userId: String) {

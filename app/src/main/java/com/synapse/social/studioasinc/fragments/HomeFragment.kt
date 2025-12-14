@@ -28,6 +28,7 @@ import com.synapse.social.studioasinc.ReactedUsersBottomSheet
 import com.synapse.social.studioasinc.data.repository.PostRepository
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.PostDetailActivity
+import com.synapse.social.studioasinc.PostStatisticsBottomSheet
 import com.synapse.social.studioasinc.SupabaseClient
 import android.content.Intent
 import androidx.paging.LoadState
@@ -315,8 +316,8 @@ class HomeFragment : Fragment() {
     }
     
     private fun showPostStatistics(post: Post) {
-        // TODO: Implement post statistics dialog
-        Toast.makeText(requireContext(), "Statistics feature coming soon", Toast.LENGTH_SHORT).show()
+        val statisticsSheet = PostStatisticsBottomSheet.newInstance(post)
+        statisticsSheet.show(parentFragmentManager, "PostStatistics")
     }
     
     private fun reportPost(post: Post) {

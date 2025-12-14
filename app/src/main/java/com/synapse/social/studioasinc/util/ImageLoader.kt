@@ -156,18 +156,6 @@ object ImageLoader {
     }
     
     /**
-     * Construct a full Supabase Storage URL from a storage path.
-     * 
-     * @param storagePath The path within the storage bucket (e.g., "user-avatars/123.jpg")
-     * @param bucketName The storage bucket name (default: "post-media")
-     * @return Full public URL for the storage object
-     */
-    fun constructStorageUrl(storagePath: String, bucketName: String = "post-media"): String {
-        val supabaseUrl = BuildConfig.SUPABASE_URL
-        return "$supabaseUrl/storage/v1/object/public/$bucketName/$storagePath"
-    }
-    
-    /**
      * Preload an image into Glide's cache without displaying it.
      * Useful for preloading images that will be displayed soon.
      * 

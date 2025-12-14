@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.backend.LinkPreviewService
+import com.synapse.social.studioasinc.backend.SupabaseStorageService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
@@ -135,6 +136,21 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     
     init {
         loadCurrentUser()
+        observeConnectionState()
+    }
+
+    private fun observeConnectionState() {
+        viewModelScope.launch {
+            realtimeService.connectionState.collect { state ->
+                val connectionState = when (state) {
+                    is com.synapse.social.studioasinc.chat.service.RealtimeState.Connected -> RealtimeConnectionState.Connected
+                    is com.synapse.social.studioasinc.chat.service.RealtimeState.Connecting -> RealtimeConnectionState.Connecting
+                    is com.synapse.social.studioasinc.chat.service.RealtimeState.Disconnected -> RealtimeConnectionState.Disconnected
+                    is com.synapse.social.studioasinc.chat.service.RealtimeState.Error -> RealtimeConnectionState.Disconnected
+                }
+                _uiState.update { it.copy(connectionState = connectionState) }
+            }
+        }
     }
     
     private fun loadCurrentUser() {
@@ -200,28 +216,18 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private fun observeRealtimeMessages(chatId: String) {
         realtimeJob?.cancel()
         realtimeJob = viewModelScope.launch {
-            // Variable to capture the flow
-            var changesFlow: Flow<PostgresAction>? = null
-            
-            // 1. Subscribe to channel with configuration block
-            val channel = realtimeService.subscribeToChat(chatId) { ch ->
-                // Configure Postgres changes listener BEFORE subscription
-                changesFlow = ch.postgresChangeFlow<PostgresAction>(schema = "public") {
-                    table = "messages"
-                    filter("chat_id", FilterOperator.EQ, chatId)
-                }
+            // 1. Subscribe to channel and get postgres changes flow
+            val channel = realtimeService.subscribeToChat(chatId)
+            val changesFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                table = "messages"
+                filter("chat_id", FilterOperator.EQ, chatId)
             }
 
             // 2. Observe Messages (Insert/Update/Delete)
             launch {
                 try {
-                    // Use the flow captured during configuration, or set up a new one if channel was reused
-                    val flowToCollect = changesFlow ?: channel.postgresChangeFlow<PostgresAction>(schema = "public") {
-                        table = "messages"
-                        filter("chat_id", FilterOperator.EQ, chatId)
-                    }
 
-                    flowToCollect.collect { action ->
+                    changesFlow.collect { action ->
                         when (action) {
                             is PostgresAction.Insert -> {
                                 val message = action.decodeRecord<Message>()
@@ -550,7 +556,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                     val path = storageService.generateStoragePath(chatId, fileName)
                     
                     storageService.uploadFileBytes(bytes, path)
-                        .onSuccess { url -> uploadedUrls.add(url) }
+                        .onSuccess { url: String -> uploadedUrls.add(url) }
                 }  catch (e: Exception) {
                     // Log error but continue
                 }
@@ -607,7 +613,24 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                      result.onSuccess { chats ->
                          val currentUid = currentUserId ?: return@collect
 
+                         // Optimize: Bulk fetch participants for all direct chats
+                         val directChats = chats.filter { !it.isGroup }
+                         val directChatIds = directChats.map { it.id }
+
+                         val participantsMap = if (directChatIds.isNotEmpty()) {
+                             chatRepository.getParticipantsForChats(directChatIds).getOrDefault(emptyMap())
+                         } else {
+                             emptyMap()
+                         }
+
+                         // Optimize: Bulk fetch profiles for all other users
+                         val otherUserIds = participantsMap.values.flatten().filter { it != currentUid }.distinct()
+                         if (otherUserIds.isNotEmpty()) {
+                             UserProfileManager.getUserProfiles(otherUserIds)
+                         }
+
                          // Enrich with display names and avatars using parallel fetching
+                         // Now that profiles are likely cached, this should be fast
                          val deferredChats = chats.map { chat ->
                              async {
                                  if (chat.isGroup) {
@@ -619,19 +642,17 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                                      )
                                  } else {
                                      // Direct Chat: We need to find the OTHER user.
-                                     // We don't have participants list readily available in Chat model unless we join.
-                                     // ChatRepository needs a way to get participants for these chats.
-                                     // HACK: For now, we fetch participants for each chat. This is N+1 but necessary without better backend support.
-                                     // Optimization: Chat model should probably include participant IDs or we use a bulk fetch.
 
                                      var displayName = "Unknown User"
                                      var avatarUrl: String? = null
 
                                      try {
-                                         val participantsResult = chatRepository.getChatParticipants(chat.id)
-                                         val otherUserId = participantsResult.getOrNull()?.firstOrNull { it != currentUid }
+                                         // Use pre-fetched participants map
+                                         val chatParticipants = participantsMap[chat.id] ?: emptyList()
+                                         val otherUserId = chatParticipants.firstOrNull { it != currentUid }
 
                                          if (otherUserId != null) {
+                                             // Should hit cache now
                                              val profile = UserProfileManager.getUserProfile(otherUserId)
                                              displayName = profile?.displayName ?: profile?.username ?: "User"
                                              avatarUrl = profile?.profileImageUrl
@@ -923,12 +944,11 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * Report User
      */
-    fun reportUser(userId: String) {
+    fun reportUser(userId: String, reason: String) {
         val currentUserId = currentUserId ?: return
         viewModelScope.launch {
              _effects.send(ChatEffect.ShowSnackbar("Reporting user..."))
-             // Hardcoded reason for now, could be passed from UI dialog
-             val result = chatRepository.reportUser(reporterId = currentUserId, reportedId = userId, reason = "Spam/Abuse")
+             val result = chatRepository.reportUser(reporterId = currentUserId, reportedId = userId, reason = reason)
              result.onSuccess {
                  _effects.send(ChatEffect.ShowSnackbar("User reported"))
              }.onFailure {
