@@ -29,6 +29,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
 import com.synapse.social.studioasinc.model.SearchResult
 import com.synapse.social.studioasinc.ui.components.mentions.MentionSuggestions
@@ -101,7 +103,7 @@ fun ChatInputBar(
                 IconButton(onClick = onAttachClick) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Attach",
+                        contentDescription = stringResource(R.string.action_attach),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -143,20 +145,20 @@ fun ChatInputBar(
                         onClick = onSendClick,
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.primary, CircleShape)
-                            .size(40.dp)
+                            .size(48.dp) // Enforce touch target size
                     ) {
                         Icon(
                             imageVector = Icons.Default.Send,
-                            contentDescription = "Send",
+                            contentDescription = stringResource(R.string.action_send_message),
                             tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 } else {
                     IconButton(onClick = { /* TODO: Voice note */ }) {
                         Icon(
                             imageVector = Icons.Default.Mic,
-                            contentDescription = "Record",
+                            contentDescription = stringResource(R.string.action_record_audio),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -208,7 +210,7 @@ fun ReplyPreviewBar(
             IconButton(onClick = onCancel) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Cancel Reply",
+                    contentDescription = stringResource(R.string.cancel_reply),
                     modifier = Modifier.size(20.dp)
                 )
             }
