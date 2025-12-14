@@ -73,14 +73,17 @@ class SupabaseRealtimeService {
      * Creates and manages a channel for the specified chat ID.
      * 
      * @param chatId The unique identifier for the chat room
+     * @param onBeforeSubscribe Optional callback to configure the channel before subscribing (e.g. adding listeners)
      * @return The created or existing RealtimeChannel
      */
-    suspend fun subscribeToChat(chatId: String): RealtimeChannel {
+    suspend fun subscribeToChat(chatId: String, onBeforeSubscribe: ((RealtimeChannel) -> Unit)? = null): RealtimeChannel {
         Log.d(TAG, "Subscribing to chat: $chatId")
         
         // Return existing channel if already subscribed
         channels[chatId]?.let {
             Log.d(TAG, "Reusing existing channel for chat: $chatId")
+            // Note: onBeforeSubscribe is skipped if channel already exists,
+            // as it's assumed to be configured by the first subscriber.
             return it
         }
         
@@ -90,6 +93,9 @@ class SupabaseRealtimeService {
             val channelName = "chat:$chatId"
             val channel = SupabaseClient.client.realtime.channel(channelName)
             
+            // Configure channel before subscribing
+            onBeforeSubscribe?.invoke(channel)
+
             // Subscribe to the channel with timeout handling
             channel.subscribe()
             

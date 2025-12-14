@@ -31,6 +31,7 @@ import androidx.compose.material.icons.automirrored.filled.Forward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.synapse.social.studioasinc.util.FileUtils
 import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
 import com.synapse.social.studioasinc.ui.chat.components.MessageItem
 import com.synapse.social.studioasinc.ui.chat.components.ForwardMessageSheet
@@ -113,6 +115,16 @@ fun DirectChatScreen(
     val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             viewModel.handleIntent(ChatIntent.AddPendingAttachment(uri, AttachmentType.Audio))
+            viewModel.handleIntent(ChatIntent.HideMediaPicker)
+        }
+    }
+
+    // Camera Logic
+    var tempCameraUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
+
+    val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && tempCameraUri != null) {
+            viewModel.handleIntent(ChatIntent.AddPendingAttachment(tempCameraUri!!, AttachmentType.Image))
             viewModel.handleIntent(ChatIntent.HideMediaPicker)
         }
     }
@@ -382,8 +394,9 @@ fun DirectChatScreen(
         MediaPickerBottomSheet(
             onDismiss = { viewModel.handleIntent(ChatIntent.HideMediaPicker) },
             onSelectCamera = {
-                // TODO: Implement camera capture
-                viewModel.handleIntent(ChatIntent.HideMediaPicker)
+                val uri = FileUtils.getTmpFileUri(context)
+                tempCameraUri = uri
+                takePicture.launch(uri)
             },
             onSelectGallery = {
                 pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))

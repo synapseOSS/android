@@ -9,10 +9,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.long
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -244,31 +240,14 @@ class TypingIndicatorManager(
 
                     // Listen for broadcast events
                     // This will suspend until flow completes or throws
-                    channel.broadcastFlow<JsonObject>("typing").collect { json ->
+                    channel.broadcastFlow<TypingStatus>("typing").collect { status ->
                         try {
-                            val userId = json["user_id"]?.jsonPrimitive?.content ?: return@collect
-                            // Handle cases where is_typing might be string or boolean
-                            val isTyping = try {
-                                json["is_typing"]?.jsonPrimitive?.boolean ?: false
-                            } catch (e: Exception) {
-                                json["is_typing"]?.jsonPrimitive?.content?.toBoolean() ?: false
-                            }
-
-                            val timestamp = json["timestamp"]?.jsonPrimitive?.long ?: System.currentTimeMillis()
-                            val eventChatId = json["chat_id"]?.jsonPrimitive?.content ?: chatId
-
                             // Ensure the event matches the expected chat ID
-                            if (eventChatId == chatId) {
-                                val status = TypingStatus(
-                                    userId = userId,
-                                    chatId = chatId,
-                                    isTyping = isTyping,
-                                    timestamp = timestamp
-                                )
+                            if (status.chatId == chatId) {
                                 onTypingUpdate(status)
                             }
                         } catch (e: Exception) {
-                            Log.e(TAG, "Error parsing typing event for chat: $chatId", e)
+                            Log.e(TAG, "Error handling typing event for chat: $chatId", e)
                         }
                     }
 
