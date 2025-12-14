@@ -99,7 +99,7 @@ class SynapseApp : Application(), DefaultLifecycleObserver {
     }
     
     private fun initializeOneSignal() {
-        val oneSignalAppId = "044e1911-6911-4871-95f9-d60003002fe2"
+        val oneSignalAppId = NotificationConfig.ONESIGNAL_APP_ID
         OneSignal.Debug.logLevel = LogLevel.VERBOSE
         OneSignal.initWithContext(this, oneSignalAppId)
         
