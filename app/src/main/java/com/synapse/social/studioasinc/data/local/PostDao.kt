@@ -11,6 +11,9 @@ interface PostDao {
     @Query("SELECT * FROM posts ORDER BY timestamp DESC")
     fun getAllPosts(): Flow<List<PostEntity>>
 
+    @Query("SELECT id FROM posts")
+    suspend fun getAllPostIds(): List<String>
+
     @Query("SELECT * FROM posts WHERE id = :postId")
     suspend fun getPostById(postId: String): PostEntity?
 
@@ -19,6 +22,9 @@ interface PostDao {
 
     @Query("DELETE FROM posts WHERE id = :postId")
     suspend fun deletePost(postId: String)
+
+    @Query("DELETE FROM posts WHERE id IN (:ids)")
+    suspend fun deletePosts(ids: List<String>)
 
     @Query("DELETE FROM posts")
     suspend fun deleteAll()

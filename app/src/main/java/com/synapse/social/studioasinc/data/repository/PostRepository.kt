@@ -26,9 +26,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.*
 
-class PostRepository(private val postDao: PostDao) {
+import io.github.jan.supabase.SupabaseClient as JanSupabaseClient
 
-    private val client = SupabaseClient.client
+class PostRepository(
+    private val postDao: PostDao,
+    private val client: JanSupabaseClient = SupabaseClient.client
+) {
 
     fun getPostsPaged(): Flow<PagingData<Post>> {
         return Pager(
@@ -187,7 +190,6 @@ class PostRepository(private val postDao: PostDao) {
         }
     }
 
-    // TODO: Logic (Sync Strategy) - Currently uses insertAll (upsert) but does not handle local deletions if a post was removed from the server. Suggest implementing a sync strategy (e.g., fetch IDs -> delete missing -> upsert new).
     suspend fun refreshPosts(page: Int, pageSize: Int): Result<Unit> {
         return try {
             val offset = page * pageSize
@@ -221,10 +223,53 @@ class PostRepository(private val postDao: PostDao) {
 
             val postsWithReactions = populatePostReactions(posts)
             postDao.insertAll(postsWithReactions.map { PostMapper.toEntity(it) })
+
+            // Perform a sync of deleted posts only when refreshing the first page (Pull-to-Refresh)
+            if (page == 0) {
+                syncDeletedPosts()
+            }
+
             Result.success(Unit)
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to fetch posts page: ${e.message}", e)
             Result.failure(e)
+        }
+    }
+
+    private suspend fun syncDeletedPosts() {
+        try {
+            // Fetch all IDs from server to identify deleted posts using pagination to avoid limits
+            val serverIds = mutableSetOf<String>()
+            val pageSize = 1000
+            var offset = 0
+
+            while (true) {
+                val response = client.from("posts")
+                    .select(columns = Columns.raw("id")) {
+                        range(offset.toLong(), (offset + pageSize - 1).toLong())
+                    }
+                    .decodeList<JsonObject>()
+
+                val pageIds = response.mapNotNull { it["id"]?.jsonPrimitive?.contentOrNull }
+                serverIds.addAll(pageIds)
+
+                if (pageIds.size < pageSize) break
+                offset += pageSize
+            }
+
+            val localIds = postDao.getAllPostIds()
+            val idsToDelete = localIds.filter { !serverIds.contains(it) }
+
+            if (idsToDelete.isNotEmpty()) {
+                android.util.Log.d(TAG, "Syncing deletions: removing ${idsToDelete.size} posts")
+                // Batch delete to avoid SQLite limits on bind variables (max 999 usually)
+                idsToDelete.chunked(500).forEach { batch ->
+                    postDao.deletePosts(batch)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to sync deleted posts", e)
+            // We do not fail the whole refresh if sync fails, just log it
         }
     }
 
