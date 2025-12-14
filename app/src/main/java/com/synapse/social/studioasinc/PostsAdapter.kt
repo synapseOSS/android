@@ -87,6 +87,7 @@ class PostsAdapter(
             }
             previousPostText = postContent
 
+            // Username should be populated by the repository/viewmodel
             val authorUsername = post.username ?: "@${post.authorUid}"
             authorText.text = authorUsername
 
