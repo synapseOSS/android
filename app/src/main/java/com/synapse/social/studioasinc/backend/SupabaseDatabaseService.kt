@@ -210,6 +210,30 @@ class SupabaseDatabaseService : IDatabaseService {
             }
         }
     }
+
+    /**
+     * Select data from a table where a column value is in a list
+     */
+    override suspend fun selectWhereIn(table: String, columns: String, filter: String, values: List<Any>): Result<List<Map<String, Any?>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = client.from(table).select(columns = Columns.raw(columns)) {
+                    filter {
+                        isIn(filter, values)
+                    }
+                }.decodeList<JsonObject>()
+
+                val mappedResult = result.map { jsonObject ->
+                    jsonObject.toMap().mapValues { (_, jsonValue) ->
+                        extractJsonValue(jsonValue)
+                    }
+                }
+                Result.success(mappedResult)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
     
     /**
      * Delete data from a table

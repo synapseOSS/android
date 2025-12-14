@@ -622,7 +622,24 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                      result.onSuccess { chats ->
                          val currentUid = currentUserId ?: return@collect
 
+                         // Optimize: Bulk fetch participants for all direct chats
+                         val directChats = chats.filter { !it.isGroup }
+                         val directChatIds = directChats.map { it.id }
+
+                         val participantsMap = if (directChatIds.isNotEmpty()) {
+                             chatRepository.getParticipantsForChats(directChatIds).getOrDefault(emptyMap())
+                         } else {
+                             emptyMap()
+                         }
+
+                         // Optimize: Bulk fetch profiles for all other users
+                         val otherUserIds = participantsMap.values.flatten().filter { it != currentUid }.distinct()
+                         if (otherUserIds.isNotEmpty()) {
+                             UserProfileManager.getUserProfiles(otherUserIds)
+                         }
+
                          // Enrich with display names and avatars using parallel fetching
+                         // Now that profiles are likely cached, this should be fast
                          val deferredChats = chats.map { chat ->
                              async {
                                  if (chat.isGroup) {
@@ -634,19 +651,17 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                                      )
                                  } else {
                                      // Direct Chat: We need to find the OTHER user.
-                                     // We don't have participants list readily available in Chat model unless we join.
-                                     // ChatRepository needs a way to get participants for these chats.
-                                     // HACK: For now, we fetch participants for each chat. This is N+1 but necessary without better backend support.
-                                     // Optimization: Chat model should probably include participant IDs or we use a bulk fetch.
 
                                      var displayName = "Unknown User"
                                      var avatarUrl: String? = null
 
                                      try {
-                                         val participantsResult = chatRepository.getChatParticipants(chat.id)
-                                         val otherUserId = participantsResult.getOrNull()?.firstOrNull { it != currentUid }
+                                         // Use pre-fetched participants map
+                                         val chatParticipants = participantsMap[chat.id] ?: emptyList()
+                                         val otherUserId = chatParticipants.firstOrNull { it != currentUid }
 
                                          if (otherUserId != null) {
+                                             // Should hit cache now
                                              val profile = UserProfileManager.getUserProfile(otherUserId)
                                              displayName = profile?.displayName ?: profile?.username ?: "User"
                                              avatarUrl = profile?.profileImageUrl

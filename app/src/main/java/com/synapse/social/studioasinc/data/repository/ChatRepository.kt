@@ -114,6 +114,10 @@ class ChatRepository(private val chatDao: ChatDao) {
             Result.failure(e)
         }
     }
+
+    suspend fun getParticipantsForChats(chatIds: List<String>): Result<Map<String, List<String>>> {
+        return chatService.getParticipantsForChats(chatIds)
+    }
     
     suspend fun getMessagesPage(
         chatId: String,
