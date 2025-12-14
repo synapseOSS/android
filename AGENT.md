@@ -1,4 +1,4 @@
-# AI Coding Agent Guidelines
+# Agent Guidelines
 
 ## Development Practices
 
@@ -9,16 +9,14 @@
 - Add comments for complex logic only
 
 ### Architecture
-- Follow MVVM pattern
-- Use Repository pattern for data layer
+- Follow the MVVM pattern
+- Use a repository pattern for the data layer
 - Implement proper dependency injection
 - Separate UI, business logic, and data layers
 
-### Testing
-- Write unit tests for business logic
-- Use MockK for mocking in tests
-- Test edge cases and error scenarios
-- Maintain >80% code coverage
+### Model Context Protocol (If available)
+- Use **Supabase MCP** for backend related tasks.
+- Use **Context7** for better understanding lf latest guidance.
 
 ## AI Agent Instructions
 
@@ -35,17 +33,17 @@
 - Use existing utility classes and extensions
 - Follow the project's existing file structure
 
-### Firebase Integration
-- Use Firebase Genkit for AI features
-- Implement proper offline handling
-- Follow Firebase security rules
-- Use Firestore for real-time data
+### BaaS
+- Supabase
 
 ### UI Development
 - Use Jetpack Compose for UI
 - Follow Material Design 3 guidelines
 - Implement proper state management
 - Handle loading and error states
+- Use Material 3 Expressive
+- Keep consistency in the UI/UX
+- Use super smooth animations in everything (if possible)
 
 ## Prohibited Actions
 - Do not modify core architecture without approval
