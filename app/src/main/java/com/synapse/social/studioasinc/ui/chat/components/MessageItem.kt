@@ -30,9 +30,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.synapse.social.studioasinc.R
 import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.ui.chat.AttachmentType
 import com.synapse.social.studioasinc.ui.chat.MessagePosition
@@ -115,7 +118,7 @@ fun MessageItem(
         if (offsetX > 0) {
             Icon(
                 imageVector = Icons.Default.Reply,
-                contentDescription = "Reply",
+                contentDescription = stringResource(R.string.action_reply),
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .padding(start = 16.dp)
@@ -428,7 +431,7 @@ fun AttachmentView(
                 // Play icon
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
-                    contentDescription = "Play Video",
+                    contentDescription = stringResource(R.string.cd_play_video),
                     tint = Color.White,
                     modifier = Modifier.size(48.dp)
                 )
@@ -439,18 +442,20 @@ fun AttachmentView(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .heightIn(min = 48.dp)
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                    .padding(8.dp)
-                    .clickable { onClick(attachment.url, attachment.type) },
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(role = Role.Button) { onClick(attachment.url, attachment.type) }
+                    .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Default.AttachFile,
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.cd_media_attachment)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = attachment.fileName ?: "Attachment",
+                    text = attachment.fileName ?: stringResource(R.string.label_attachment),
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
