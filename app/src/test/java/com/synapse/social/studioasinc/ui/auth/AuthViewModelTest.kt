@@ -103,4 +103,31 @@ class AuthViewModelTest {
         val currentState = viewModel.uiState.value
         assertTrue(currentState is AuthUiState.Success)
     }
+
+    @Test
+    fun `resendVerificationEmail calls repository`() = runTest {
+        val email = "test@example.com"
+
+        // Manually set the state to EmailVerification to simulate being on that screen
+        // Accessing private _uiState? No, we can trigger a flow that leads there.
+        // Or we can rely on reflection or just call onSignIn with unverified email to get there.
+
+        // 1. Get into EmailVerification state
+        `when`(authRepository.signIn(email, "Password123")).thenReturn(Result.success("user_id"))
+        `when`(authRepository.isEmailVerified()).thenReturn(false)
+        viewModel.onSignInClick(email, "Password123")
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value is AuthUiState.EmailVerification)
+
+        // 2. Mock resend response
+        `when`(authRepository.resendVerificationEmail(email)).thenReturn(Result.success(Unit))
+
+        // 3. Click resend
+        viewModel.onResendVerificationClick()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 4. Verify repository call
+        verify(authRepository).resendVerificationEmail(email)
+    }
 }
