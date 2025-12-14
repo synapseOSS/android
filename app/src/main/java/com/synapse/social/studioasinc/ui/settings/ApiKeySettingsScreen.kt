@@ -19,9 +19,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 fun ApiKeySettingsScreen(
     viewModel: ApiKeySettingsViewModel = hiltViewModel()
 ) {
-    val apiKeys by viewModel.apiKeys.collectAsState()
-    val providerSettings by viewModel.providerSettings.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val apiKeys by viewModel.apiKeys
+    val providerSettings by viewModel.providerSettings
+    val isLoading by viewModel.isLoading
     
     var showAddKeyDialog by remember { mutableStateOf(false) }
     
@@ -136,7 +136,7 @@ fun ApiKeySettingsScreen(
                         items(apiKeys) { apiKey ->
                             ApiKeyItem(
                                 apiKey = apiKey,
-                                onDelete = { viewModel.deleteApiKey(it) }
+                                onDelete = { viewModel.deleteApiKey(apiKey) }
                             )
                         }
                     }
@@ -158,7 +158,7 @@ fun ApiKeySettingsScreen(
         AddApiKeyDialog(
             onDismiss = { showAddKeyDialog = false },
             onAdd = { provider, key, name, limit ->
-                viewModel.addApiKey(provider, key, name, limit)
+                viewModel.addApiKey(provider, name ?: "", key)
                 showAddKeyDialog = false
             }
         )

@@ -197,4 +197,26 @@ class ApiKeySettingsService @Inject constructor(
             else -> provider.capitalize()
         }
     }
+
+    suspend fun getUserApiKeys(): List<ApiKeyInfo> {
+        return _apiKeys.value
+    }
+
+    suspend fun getProviderSettings(): ProviderSettings {
+        return _providerSettings.value
+    }
+
+    suspend fun addApiKey(provider: String, keyName: String, apiKey: String) {
+        addApiKey(provider, keyName, apiKey, null)
+    }
+
+    suspend fun updatePreferredProvider(provider: String) {
+        val currentSettings = _providerSettings.value
+        updateProviderSettings(currentSettings.copy(preferredProvider = provider))
+    }
+
+    suspend fun updateFallbackSetting(fallbackToPlatform: Boolean) {
+        val currentSettings = _providerSettings.value
+        updateProviderSettings(currentSettings.copy(fallbackToPlatform = fallbackToPlatform))
+    }
 }
