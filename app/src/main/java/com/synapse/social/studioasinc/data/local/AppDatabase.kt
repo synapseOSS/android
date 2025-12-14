@@ -34,6 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 // Add proper migrations to preserve user data
                 .addMigrations(MIGRATION_1_2)
+                .fallbackToDestructiveMigrationOnDowngrade()
                 .build()
                 INSTANCE = instance
                 instance
