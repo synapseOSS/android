@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -252,12 +253,42 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
                     return@launch
                 }
 
-                // TODO: Implement actual password change with backend
-                android.util.Log.d("AccountSettingsViewModel", "Changing password")
+                // Get current user email
+                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val currentUser = supabaseClient.auth.currentUserOrNull()
+                val email = currentUser?.email
+
+                if (email == null) {
+                    _error.value = "User email not found. Please sign in again."
+                    return@launch
+                }
+
+                // Verify current password by attempting to sign in
+                try {
+                    supabaseClient.auth.signInWith(Email) {
+                        this.email = email
+                        this.password = currentPassword
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("AccountSettingsViewModel", "Failed to verify password", e)
+                    // Basic check to distinguish auth failure from other errors
+                    if (e.message?.contains("invalid", ignoreCase = true) == true ||
+                        e.message?.contains("credential", ignoreCase = true) == true) {
+                        _error.value = "Incorrect current password"
+                    } else {
+                        _error.value = "Failed to verify password: ${e.message}"
+                    }
+                    return@launch
+                }
+
+                // Update password
+                supabaseClient.auth.updateUser {
+                    password = newPassword
+                }
+
+                android.util.Log.d("AccountSettingsViewModel", "Password changed successfully")
                 
-                // Simulate success
                 _showChangePasswordDialog.value = false
-                // TODO: Show success message to user
             } catch (e: Exception) {
                 android.util.Log.e("AccountSettingsViewModel", "Failed to change password", e)
                 _error.value = "Failed to change password: ${e.message}"
