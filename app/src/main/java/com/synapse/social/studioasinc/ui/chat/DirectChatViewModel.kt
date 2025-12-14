@@ -134,6 +134,9 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private var currentUserId: String? = null
     private var realtimeJob: Job? = null
     
+    // Realtime Service - moved before init block
+    private val realtimeService = SupabaseRealtimeService()
+    
     init {
         loadCurrentUser()
         observeConnectionState()
@@ -206,9 +209,6 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
-    
-    // Realtime Service
-    private val realtimeService = SupabaseRealtimeService()
 
     /**
      * Start observing everything: Messages and Typing
