@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.backend.LinkPreviewService
+import com.synapse.social.studioasinc.backend.SupabaseStorageService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
@@ -40,6 +41,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private val chatRepository = ChatRepository(chatDao)
     private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
+    private val storageService = SupabaseStorageService()
     
     // UI State
     private val _uiState = MutableStateFlow(ChatUiState())

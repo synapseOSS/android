@@ -315,8 +315,8 @@ class HomeFragment : Fragment() {
     }
     
     private fun showPostStatistics(post: Post) {
-        // TODO: Implement post statistics dialog
-        Toast.makeText(requireContext(), "Statistics feature coming soon", Toast.LENGTH_SHORT).show()
+        val statisticsSheet = PostStatisticsBottomSheet.newInstance(post)
+        statisticsSheet.show(parentFragmentManager, "PostStatistics")
     }
     
     private fun reportPost(post: Post) {

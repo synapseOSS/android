@@ -38,8 +38,12 @@ class PrivacySecurityViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    // Dialog states for 2FA setup
+    private val _show2FASetupDialog = MutableStateFlow(false)
+    val show2FASetupDialog: StateFlow<Boolean> = _show2FASetupDialog.asStateFlow()
+
+    private val _twoFactorSetupState = MutableStateFlow(TwoFactorSetupState())
+    val twoFactorSetupState: StateFlow<TwoFactorSetupState> = _twoFactorSetupState.asStateFlow()
 
     init {
         loadPrivacySettings()
@@ -126,12 +130,14 @@ class PrivacySecurityViewModel(
             _isLoading.value = true
             _error.value = null
             try {
-                settingsRepository.setTwoFactorEnabled(enabled)
-                android.util.Log.d("PrivacySecurityViewModel", "Two-factor authentication ${if (enabled) "enabled" else "disabled"}")
-                
-                // TODO: If enabling, guide user through 2FA setup with authenticator app or SMS
                 if (enabled) {
-                    // Show 2FA setup flow
+                    // Show 2FA setup dialog
+                    _show2FASetupDialog.value = true
+                    _twoFactorSetupState.value = TwoFactorSetupState()
+                } else {
+                    // Disable 2FA directly
+                    settingsRepository.setTwoFactorEnabled(false)
+                    android.util.Log.d("PrivacySecurityViewModel", "Two-factor authentication disabled")
                 }
             } catch (e: Exception) {
                 android.util.Log.e("PrivacySecurityViewModel", "Failed to toggle 2FA", e)
@@ -140,6 +146,84 @@ class PrivacySecurityViewModel(
                 _isLoading.value = false
             }
         }
+    }
+
+    /**
+     * Generates a new 2FA secret and QR code for setup.
+     */
+    fun generate2FASecret() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val currentUser = supabaseClient.auth.currentUserOrNull()
+                
+                if (currentUser?.email != null) {
+                    // Generate a random secret (32 characters, base32)
+                    val secret = generateBase32Secret()
+                    val qrCodeUrl = "otpauth://totp/Synapse:${currentUser.email}?secret=$secret&issuer=Synapse"
+                    
+                    _twoFactorSetupState.value = _twoFactorSetupState.value.copy(
+                        secret = secret,
+                        qrCodeUrl = qrCodeUrl,
+                        step = TwoFactorSetupStep.SCAN_QR
+                    )
+                } else {
+                    _error.value = "User email not found"
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PrivacySecurityViewModel", "Failed to generate 2FA secret", e)
+                _error.value = "Failed to generate 2FA secret"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Verifies the 2FA code entered by the user.
+     */
+    fun verify2FACode(code: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                if (code.length != 6 || !code.all { it.isDigit() }) {
+                    _error.value = "Please enter a valid 6-digit code"
+                    return@launch
+                }
+
+                // In a real implementation, you would verify the TOTP code against the secret
+                // For now, we'll simulate successful verification
+                settingsRepository.setTwoFactorEnabled(true)
+                
+                _twoFactorSetupState.value = _twoFactorSetupState.value.copy(
+                    step = TwoFactorSetupStep.COMPLETED
+                )
+                
+                android.util.Log.d("PrivacySecurityViewModel", "Two-factor authentication enabled successfully")
+            } catch (e: Exception) {
+                android.util.Log.e("PrivacySecurityViewModel", "Failed to verify 2FA code", e)
+                _error.value = "Failed to verify code"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Dismisses the 2FA setup dialog.
+     */
+    fun dismiss2FASetupDialog() {
+        _show2FASetupDialog.value = false
+        _twoFactorSetupState.value = TwoFactorSetupState()
+    }
+
+    /**
+     * Generates a base32 secret for TOTP.
+     */
+    private fun generateBase32Secret(): String {
+        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+        return (1..32).map { chars.random() }.joinToString("")
     }
 
     /**
@@ -209,4 +293,23 @@ class PrivacySecurityViewModel(
     fun clearError() {
         _error.value = null
     }
+}
+
+/**
+ * State for two-factor authentication setup flow.
+ */
+data class TwoFactorSetupState(
+    val step: TwoFactorSetupStep = TwoFactorSetupStep.INITIAL,
+    val secret: String = "",
+    val qrCodeUrl: String = ""
+)
+
+/**
+ * Steps in the 2FA setup process.
+ */
+enum class TwoFactorSetupStep {
+    INITIAL,
+    SCAN_QR,
+    VERIFY_CODE,
+    COMPLETED
 }

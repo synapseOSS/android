@@ -1,7 +1,5 @@
 package com.synapse.social.studioasinc.ui.search
 
-// TODO: Fix Search Animation and Theme - ensure animations respect light/dark theme settings
-
 import android.text.format.DateUtils
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -457,13 +455,13 @@ fun MediaResultItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.4f)),
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "Play Video",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onScrim,
                         modifier = Modifier.size(32.dp)
                     )
                 }

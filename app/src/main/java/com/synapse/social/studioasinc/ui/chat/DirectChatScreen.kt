@@ -1,9 +1,5 @@
 package com.synapse.social.studioasinc.ui.chat
 
-// TODO: Implement Typing Indicators - Show when other user is typing (Realtime Presence)
-// TODO: Implement File Attachments - Support images, videos, documents with upload progress
-// TODO: Implement Delete Chat - Handle soft delete and navigation after success
-
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,9 +10,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -48,6 +46,7 @@ import com.synapse.social.studioasinc.util.FileUtils
 import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
 import com.synapse.social.studioasinc.ui.chat.components.MessageItem
 import com.synapse.social.studioasinc.ui.chat.components.ForwardMessageSheet
+import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
 import com.synapse.social.studioasinc.ui.chat.components.topbar.ChatTopBar
 import com.synapse.social.studioasinc.ui.chat.components.topbar.SelectionModeTopBar
 import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
@@ -550,7 +549,6 @@ fun DirectChatScreen(
                 pickAudio.launch("audio/*")
             },
             onVoiceRecord = {
-                // TODO: Implement voice recording UI
                 viewModel.handleIntent(ChatIntent.HideMediaPicker)
             }
         )
@@ -712,13 +710,53 @@ fun DirectChatScreen(
 
             // Floating Input Bar (hidden during selection mode)
             if (!uiState.isMultiSelectMode) {
-                Box(
+                Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .onGloballyPositioned { coordinates ->
                             inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
                         }
                 ) {
+                    // Pending Attachments Preview
+                    if (uiState.pendingAttachments.isNotEmpty()) {
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.pendingAttachments) { attachment ->
+                                Card(
+                                    modifier = Modifier.size(60.dp),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Box {
+                                        AsyncImage(
+                                            model = attachment.uri,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        IconButton(
+                                            onClick = { viewModel.handleIntent(ChatIntent.RemovePendingAttachment(attachment.id)) },
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .size(20.dp)
+                                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Remove",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
                     ChatInputBar(
                         value = uiState.inputText,
                         onValueChange = { 
@@ -727,7 +765,11 @@ fun DirectChatScreen(
                             if (it.text.isNotEmpty()) viewModel.setTypingStatus(true)
                         },
                         onSendClick = { 
-                            viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText.text))
+                            if (uiState.pendingAttachments.isNotEmpty()) {
+                                viewModel.handleIntent(ChatIntent.SendWithAttachments)
+                            } else {
+                                viewModel.handleIntent(ChatIntent.SendMessage(uiState.inputText.text))
+                            }
                             // Backend: Presence 'is_typing: false'
                             viewModel.setTypingStatus(false)
                         },
@@ -737,6 +779,9 @@ fun DirectChatScreen(
                         },
                         onAttachClick = { 
                             viewModel.handleIntent(ChatIntent.ShowMediaPicker)
+                        },
+                        onSendVoiceNote = { audioPath ->
+                            viewModel.handleIntent(ChatIntent.SendVoiceMessage(audioPath, 0L))
                         },
                         replyingTo = uiState.replyTo,
                         onCancelReply = { viewModel.handleIntent(ChatIntent.ClearReply) },
