@@ -81,4 +81,22 @@ object SupabaseClient {
      * @return The Supabase project URL
      */
     fun getUrl(): String = BuildConfig.SUPABASE_URL
+
+    const val BUCKET_POST_MEDIA = "post-media"
+    const val BUCKET_USER_AVATARS = "user-avatars"
+
+    /**
+     * Construct a full Supabase Storage URL from a storage path.
+     *
+     * @param bucket The storage bucket name
+     * @param path The path within the storage bucket
+     * @return Full public URL for the storage object
+     */
+    fun constructStorageUrl(bucket: String, path: String): String {
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return path
+        }
+        val supabaseUrl = BuildConfig.SUPABASE_URL
+        return "$supabaseUrl/storage/v1/object/public/$bucket/$path"
+    }
 }

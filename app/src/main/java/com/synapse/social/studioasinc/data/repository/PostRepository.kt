@@ -71,17 +71,11 @@ class PostRepository(private val postDao: PostDao) {
 
     // TODO: Refactor (Hardcoding) - URL construction should be centralized in SupabaseClient or a config file, not hardcoded strings.
     fun constructMediaUrl(storagePath: String): String {
-        if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
-            return storagePath
-        }
-        return ImageLoader.constructStorageUrl(storagePath, "post-media")
+        return SupabaseClient.constructStorageUrl(SupabaseClient.BUCKET_POST_MEDIA, storagePath)
     }
 
     private fun constructAvatarUrl(storagePath: String): String {
-        if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
-            return storagePath
-        }
-        return ImageLoader.constructStorageUrl(storagePath, "user-avatars")
+        return SupabaseClient.constructStorageUrl(SupabaseClient.BUCKET_USER_AVATARS, storagePath)
     }
 
     private fun mapSupabaseError(exception: Exception): String {
