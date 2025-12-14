@@ -63,23 +63,14 @@ class ProfileRepositoryImpl : ProfileRepository {
         const val KEY_TEXT = "text"
         const val KEY_VOTES = "votes"
         
-        // Storage buckets
-        const val BUCKET_POST_MEDIA = "post-media"
-        const val BUCKET_USER_AVATARS = "user-avatars"
-        
         // Media types
         const val MEDIA_TYPE_VIDEO = "VIDEO"
         const val MEDIA_TYPE_IMAGE = "IMAGE"
     }
 
-    private fun constructStorageUrl(storagePath: String, bucket: String): String {
-        if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) return storagePath
-        return "${SupabaseClient.getUrl()}/storage/v1/object/public/$bucket/$storagePath"
-    }
-
-    private fun constructMediaUrl(storagePath: String): String = constructStorageUrl(storagePath, BUCKET_POST_MEDIA)
+    private fun constructMediaUrl(storagePath: String): String = SupabaseClient.constructStorageUrl(SupabaseClient.BUCKET_POST_MEDIA, storagePath)
     
-    private fun constructAvatarUrl(storagePath: String): String = constructStorageUrl(storagePath, BUCKET_USER_AVATARS)
+    private fun constructAvatarUrl(storagePath: String): String = SupabaseClient.constructStorageUrl(SupabaseClient.BUCKET_USER_AVATARS, storagePath)
 
     private fun JsonObject.getString(key: String, default: String = ""): String = 
         this[key]?.jsonPrimitive?.contentOrNull ?: default
