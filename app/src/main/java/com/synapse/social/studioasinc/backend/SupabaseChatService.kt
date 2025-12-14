@@ -102,6 +102,35 @@ class SupabaseChatService {
     }
 
     /**
+     * Get participants for multiple chats in a single query
+     */
+    suspend fun getParticipantsForChats(chatIds: List<String>): Result<Map<String, List<String>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (chatIds.isEmpty()) return@withContext Result.success(emptyMap())
+
+                val participants = client.from("chat_participants")
+                    .select(columns = Columns.raw("chat_id, user_id")) {
+                        filter { isIn("chat_id", chatIds) }
+                    }
+                    .decodeList<JsonObject>()
+
+                val resultMap = participants
+                    .map {
+                        val chatId = it["chat_id"].toString().removeSurrounding("\"")
+                        val userId = it["user_id"].toString().removeSurrounding("\"")
+                        chatId to userId
+                    }
+                    .groupBy({ it.first }, { it.second })
+
+                Result.success(resultMap)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    /**
      * Mutes a chat for the current user for a specified duration
      */
     suspend fun muteChat(chatId: String, userId: String, durationMs: Long): Result<Unit> {

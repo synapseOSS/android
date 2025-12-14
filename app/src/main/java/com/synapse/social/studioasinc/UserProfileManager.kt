@@ -15,7 +15,7 @@ object UserProfileManager {
 
     private val dbService = SupabaseDatabaseService()
     private val authService = SupabaseAuthenticationService()
-    private val profileCache = mutableMapOf<String, User>()
+    private val profileCache = java.util.concurrent.ConcurrentHashMap<String, User>()
 
     /**
      * Gets a user profile by UID, with caching
@@ -112,10 +112,21 @@ object UserProfileManager {
      * Gets multiple user profiles by UIDs
      */
     suspend fun getUserProfiles(uids: List<String>): List<User> {
+        if (uids.isEmpty()) return emptyList()
+
+        // Check cache for all UIDs
+        val cachedUsers = uids.mapNotNull { profileCache[it] }
+        val missingUids = uids.filter { !profileCache.containsKey(it) }
+
+        if (missingUids.isEmpty()) {
+            return cachedUsers
+        }
+
         return try {
-            val results = dbService.select("users", "*").getOrNull() ?: emptyList()
-            
-            results.mapNotNull { result ->
+            // Fetch missing users
+            val results = dbService.selectWhereIn("users", "*", "uid", missingUids).getOrNull() ?: emptyList()
+
+            val fetchedUsers = results.mapNotNull { result ->
                 try {
                     val user = User(
                         uid = result["uid"] as? String ?: "",
@@ -135,8 +146,11 @@ object UserProfileManager {
                     null
                 }
             }
+
+            // Return combined list (cached + fetched) - Note: this might not return users that don't exist
+            cachedUsers + fetchedUsers
         } catch (e: Exception) {
-            emptyList()
+            cachedUsers
         }
     }
 
