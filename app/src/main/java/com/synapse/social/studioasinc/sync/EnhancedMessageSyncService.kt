@@ -51,7 +51,6 @@ class EnhancedMessageSyncService(private val scope: CoroutineScope) {
             emit(MessageSyncEvent.SyncError(e.message ?: "Unknown sync error"))
         }
     }
-    }
     
     /**
      * Send message with offline queue support
