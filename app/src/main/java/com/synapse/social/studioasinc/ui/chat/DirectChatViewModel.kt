@@ -217,28 +217,18 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private fun observeRealtimeMessages(chatId: String) {
         realtimeJob?.cancel()
         realtimeJob = viewModelScope.launch {
-            // Variable to capture the flow
-            var changesFlow: Flow<PostgresAction>? = null
-            
-            // 1. Subscribe to channel with configuration block
-            val channel = realtimeService.subscribeToChat(chatId) { ch ->
-                // Configure Postgres changes listener BEFORE subscription
-                changesFlow = ch.postgresChangeFlow<PostgresAction>(schema = "public") {
-                    table = "messages"
-                    filter("chat_id", FilterOperator.EQ, chatId)
-                }
+            // 1. Subscribe to channel and get postgres changes flow
+            val channel = realtimeService.subscribeToChat(chatId)
+            val changesFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                table = "messages"
+                filter("chat_id", FilterOperator.EQ, chatId)
             }
 
             // 2. Observe Messages (Insert/Update/Delete)
             launch {
                 try {
-                    // Use the flow captured during configuration, or set up a new one if channel was reused
-                    val flowToCollect = changesFlow ?: channel.postgresChangeFlow<PostgresAction>(schema = "public") {
-                        table = "messages"
-                        filter("chat_id", FilterOperator.EQ, chatId)
-                    }
 
-                    flowToCollect.collect { action ->
+                    changesFlow.collect { action ->
                         when (action) {
                             is PostgresAction.Insert -> {
                                 val message = action.decodeRecord<Message>()

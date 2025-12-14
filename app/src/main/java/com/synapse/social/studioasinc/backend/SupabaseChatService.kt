@@ -113,15 +113,10 @@ class SupabaseChatService {
                     .select(columns = Columns.raw("chat_id, user_id")) {
                         filter { isIn("chat_id", chatIds) }
                     }
-                    .decodeList<JsonObject>()
+                    .decodeList<com.synapse.social.studioasinc.backend.dto.ChatParticipantDto>()
 
                 val resultMap = participants
-                    .map {
-                        val chatId = it["chat_id"].toString().removeSurrounding("\"")
-                        val userId = it["user_id"].toString().removeSurrounding("\"")
-                        chatId to userId
-                    }
-                    .groupBy({ it.first }, { it.second })
+                    .groupBy({ it.chat_id }, { it.user_id })
 
                 Result.success(resultMap)
             } catch (e: Exception) {
