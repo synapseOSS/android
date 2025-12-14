@@ -9,6 +9,7 @@ import com.synapse.social.studioasinc.ui.settings.NotificationCategory
 import com.synapse.social.studioasinc.ui.settings.NotificationPreferences
 import com.synapse.social.studioasinc.ui.settings.PrivacySettings
 import com.synapse.social.studioasinc.ui.settings.ProfileVisibility
+import com.synapse.social.studioasinc.data.model.AppUpdateInfo
 import com.synapse.social.studioasinc.ui.settings.ThemeMode
 import kotlinx.coroutines.flow.Flow
 
@@ -241,4 +242,10 @@ interface SettingsRepository {
      * Restores default values for all settings.
      */
     suspend fun restoreDefaults()
+
+    /**
+     * Checks for the latest app update from the backend.
+     * @return Result containing AppUpdateInfo if successful
+     */
+    suspend fun checkForUpdates(): Result<AppUpdateInfo?>
 }
