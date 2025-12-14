@@ -125,61 +125,10 @@ class PostRepository(private val postDao: PostDao) {
                 }
             }
 
-            val insertData = buildJsonObject {
-                put("id", post.id)
-                post.key?.let { put("key", it) }
-                put("author_uid", post.authorUid)
-                post.postText?.let { put("post_text", it) }
-                post.postImage?.let { put("post_image", it) }
-                post.postType?.let { put("post_type", it) }
-                post.postVisibility?.let { put("post_visibility", it) }
-                post.postHideViewsCount?.let { put("post_hide_views_count", it) }
-                post.postHideLikeCount?.let { put("post_hide_like_count", it) }
-                post.postHideCommentsCount?.let { put("post_hide_comments_count", it) }
-                post.postDisableComments?.let { put("post_disable_comments", it) }
-                post.publishDate?.let { put("publish_date", it) }
-                put("timestamp", post.timestamp)
-                put("likes_count", 0)
-                put("comments_count", 0)
-                put("views_count", 0)
-                post.mediaItems?.let { items ->
-                    put("media_items", buildJsonArray {
-                        items.forEach { media ->
-                            add(buildJsonObject {
-                                put("id", media.id)
-                                put("url", media.url)
-                                put("type", media.type.name)
-                                media.thumbnailUrl?.let { put("thumbnailUrl", it) }
-                                media.duration?.let { put("duration", it) }
-                                media.size?.let { put("size", it) }
-                                media.mimeType?.let { put("mimeType", it) }
-                            })
-                        }
-                    })
-                }
-                post.hasPoll?.let { put("has_poll", it) }
-                post.pollQuestion?.let { put("poll_question", it) }
-                post.pollOptions?.let { options ->
-                    put("poll_options", buildJsonArray {
-                        options.forEach { opt ->
-                            add(buildJsonObject {
-                                put("text", opt.text)
-                                put("votes", opt.votes)
-                            })
-                        }
-                    })
-                }
-                post.pollEndTime?.let { put("poll_end_time", it) }
-                post.hasLocation?.let { put("has_location", it) }
-                post.locationName?.let { put("location_name", it) }
-                post.locationAddress?.let { put("location_address", it) }
-                post.locationLatitude?.let { put("location_latitude", it) }
-                post.locationLongitude?.let { put("location_longitude", it) }
-                post.youtubeUrl?.let { put("youtube_url", it) }
-            }
+            val postDto = post.toInsertDto()
 
-            android.util.Log.d(TAG, "Creating post with data: $insertData")
-            client.from("posts").insert(insertData)
+            android.util.Log.d(TAG, "Creating post with DTO")
+            client.from("posts").insert(postDto)
             postDao.insertAll(listOf(PostMapper.toEntity(post)))
             invalidateCache()
             Result.success(post)
@@ -257,14 +206,22 @@ class PostRepository(private val postDao: PostDao) {
                 ) {
                     range(offset.toLong(), (offset + pageSize - 1).toLong())
                 }
-                .decodeList<JsonObject>()
+                .decodeList<PostSelectDto>()
 
-            val posts = response.mapNotNull { postData ->
-                try {
-                    parsePostWithUserData(postData)
-                } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Failed to parse post: ${e.message}", e)
-                    null
+            val posts = response.map { postDto ->
+                postDto.toDomain(::constructMediaUrl, ::constructAvatarUrl).also { post ->
+                    // Update profile cache if we have user data
+                    postDto.user?.let { user ->
+                        if (user.uid.isNotEmpty()) {
+                            profileCache[user.uid] = CacheEntry(
+                                ProfileData(
+                                    user.username,
+                                    user.avatarUrl?.let { constructAvatarUrl(it) },
+                                    user.isVerified ?: false
+                                )
+                            )
+                        }
+                    }
                 }
             }.sortedByDescending { it.timestamp }
 
@@ -288,14 +245,21 @@ class PostRepository(private val postDao: PostDao) {
                 ) {
                     filter { eq("author_uid", userId) }
                 }
-                .decodeList<JsonObject>()
+                .decodeList<PostSelectDto>()
             
-            val posts = response.mapNotNull { postData ->
-                try {
-                    parsePostWithUserData(postData)
-                } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Failed to parse post: ${e.message}", e)
-                    null
+            val posts = response.map { postDto ->
+                postDto.toDomain(::constructMediaUrl, ::constructAvatarUrl).also { post ->
+                     postDto.user?.let { user ->
+                        if (user.uid.isNotEmpty()) {
+                            profileCache[user.uid] = CacheEntry(
+                                ProfileData(
+                                    user.username,
+                                    user.avatarUrl?.let { constructAvatarUrl(it) },
+                                    user.isVerified ?: false
+                                )
+                            )
+                        }
+                    }
                 }
             }
             Result.success(posts)
@@ -303,74 +267,6 @@ class PostRepository(private val postDao: PostDao) {
             android.util.Log.e(TAG, "Failed to fetch user posts: ${e.message}", e)
             Result.failure(e)
         }
-    }
-
-    // TODO: Refactor (Serialization) - Manual JSON parsing is fragile. Suggest using kotlinx.serialization and @Serializable DTOs.
-    private fun parsePostWithUserData(data: JsonObject): Post {
-        val post = Post(
-            id = data["id"]?.jsonPrimitive?.contentOrNull ?: "",
-            key = data["key"]?.jsonPrimitive?.contentOrNull,
-            authorUid = data["author_uid"]?.jsonPrimitive?.contentOrNull ?: "",
-            postText = data["post_text"]?.jsonPrimitive?.contentOrNull,
-            postImage = data["post_image"]?.jsonPrimitive?.contentOrNull?.let { constructMediaUrl(it) },
-            postType = data["post_type"]?.jsonPrimitive?.contentOrNull,
-            postHideViewsCount = data["post_hide_views_count"]?.jsonPrimitive?.contentOrNull,
-            postHideLikeCount = data["post_hide_like_count"]?.jsonPrimitive?.contentOrNull,
-            postHideCommentsCount = data["post_hide_comments_count"]?.jsonPrimitive?.contentOrNull,
-            postDisableComments = data["post_disable_comments"]?.jsonPrimitive?.contentOrNull,
-            postVisibility = data["post_visibility"]?.jsonPrimitive?.contentOrNull,
-            publishDate = data["publish_date"]?.jsonPrimitive?.contentOrNull,
-            timestamp = data["timestamp"]?.jsonPrimitive?.longOrNull ?: System.currentTimeMillis(),
-            likesCount = data["likes_count"]?.jsonPrimitive?.intOrNull ?: 0,
-            commentsCount = data["comments_count"]?.jsonPrimitive?.intOrNull ?: 0,
-            viewsCount = data["views_count"]?.jsonPrimitive?.intOrNull ?: 0,
-            resharesCount = data["reshares_count"]?.jsonPrimitive?.intOrNull ?: 0,
-            hasPoll = data["has_poll"]?.jsonPrimitive?.booleanOrNull,
-            pollQuestion = data["poll_question"]?.jsonPrimitive?.contentOrNull,
-            pollOptions = data["poll_options"]?.jsonArray?.mapNotNull {
-                val obj = it.jsonObject
-                val text = obj["text"]?.jsonPrimitive?.contentOrNull
-                val votes = obj["votes"]?.jsonPrimitive?.intOrNull ?: 0
-                if (text != null) PollOption(text, votes) else null
-            },
-            pollEndTime = data["poll_end_time"]?.jsonPrimitive?.contentOrNull,
-            hasLocation = data["has_location"]?.jsonPrimitive?.booleanOrNull,
-            locationName = data["location_name"]?.jsonPrimitive?.contentOrNull,
-            locationAddress = data["location_address"]?.jsonPrimitive?.contentOrNull,
-            locationLatitude = data["location_latitude"]?.jsonPrimitive?.doubleOrNull,
-            locationLongitude = data["location_longitude"]?.jsonPrimitive?.doubleOrNull,
-            youtubeUrl = data["youtube_url"]?.jsonPrimitive?.contentOrNull
-        )
-        val userData = data["users"]?.jsonObject
-        if (userData != null) {
-            post.username = userData["username"]?.jsonPrimitive?.contentOrNull
-            post.avatarUrl = userData["avatar"]?.jsonPrimitive?.contentOrNull?.let { constructAvatarUrl(it) }
-            post.isVerified = userData["verify"]?.jsonPrimitive?.booleanOrNull ?: false
-            val authorUid = post.authorUid
-            if (authorUid.isNotEmpty()) {
-                profileCache[authorUid] = CacheEntry(
-                    ProfileData(post.username, post.avatarUrl, post.isVerified)
-                )
-            }
-        }
-        val mediaData = data["media_items"]?.takeIf { it !is JsonNull }?.jsonArray
-        if (mediaData != null && mediaData.isNotEmpty()) {
-            post.mediaItems = mediaData.mapNotNull { item ->
-                val mediaMap = item.jsonObject
-                val url = mediaMap["url"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-                val typeStr = mediaMap["type"]?.jsonPrimitive?.contentOrNull ?: "IMAGE"
-                MediaItem(
-                    id = mediaMap["id"]?.jsonPrimitive?.contentOrNull ?: "",
-                    url = constructMediaUrl(url),
-                    type = if (typeStr.equals("VIDEO", ignoreCase = true)) MediaType.VIDEO else MediaType.IMAGE,
-                    thumbnailUrl = mediaMap["thumbnailUrl"]?.jsonPrimitive?.contentOrNull?.let { constructMediaUrl(it) },
-                    duration = mediaMap["duration"]?.jsonPrimitive?.longOrNull,
-                    size = mediaMap["size"]?.jsonPrimitive?.longOrNull,
-                    mimeType = mediaMap["mimeType"]?.jsonPrimitive?.contentOrNull
-                )
-            }.toMutableList()
-        }
-        return post
     }
 
     suspend fun updatePost(postId: String, updates: Map<String, Any?>): Result<Post> = withContext(Dispatchers.IO) {
@@ -388,58 +284,9 @@ class PostRepository(private val postDao: PostDao) {
 
     suspend fun updatePost(post: Post): Result<Post> = withContext(Dispatchers.IO) {
         try {
-            val updateData = buildJsonObject {
-                post.postText?.let { put("post_text", it) }
-                // Handle image update logic carefully - if null it might mean no change or deleted. 
-                // For simplicity assuming we send what we have.
-                if (post.postImage != null) put("post_image", post.postImage)
-                
-                post.postType?.let { put("post_type", it) }
-                post.postVisibility?.let { put("post_visibility", it) }
-                post.postHideViewsCount?.let { put("post_hide_views_count", it) }
-                post.postHideLikeCount?.let { put("post_hide_like_count", it) }
-                post.postHideCommentsCount?.let { put("post_hide_comments_count", it) }
-                post.postDisableComments?.let { put("post_disable_comments", it) }
-                // Don't update publish_date usually
-                put("updated_at", System.currentTimeMillis()) 
-                
-                post.mediaItems?.let { items ->
-                    put("media_items", buildJsonArray {
-                        items.forEach { media ->
-                            add(buildJsonObject {
-                                put("id", media.id)
-                                put("url", media.url)
-                                put("type", media.type.name)
-                                media.thumbnailUrl?.let { put("thumbnailUrl", it) }
-                                media.duration?.let { put("duration", it) }
-                                media.size?.let { put("size", it) }
-                                media.mimeType?.let { put("mimeType", it) }
-                            })
-                        }
-                    })
-                }
-                
-                // Poll updates (if allowed)
-                post.pollQuestion?.let { put("poll_question", it) }
-                post.pollOptions?.let { options ->
-                    put("poll_options", buildJsonArray {
-                        options.forEach { opt ->
-                            add(buildJsonObject {
-                                put("text", opt.text)
-                                put("votes", opt.votes)
-                            })
-                        }
-                    })
-                }
-                
-                post.youtubeUrl?.let { put("youtube_url", it) }
-                post.locationName?.let { put("location_name", it) }
-                post.locationAddress?.let { put("location_address", it) }
-                post.locationLatitude?.let { put("location_latitude", it) }
-                post.locationLongitude?.let { put("location_longitude", it) }
-            }
+            val updateDto = post.toUpdateDto()
 
-            client.from("posts").update(updateData) {
+            client.from("posts").update(updateDto) {
                 filter { eq("id", post.id) }
             }
             
