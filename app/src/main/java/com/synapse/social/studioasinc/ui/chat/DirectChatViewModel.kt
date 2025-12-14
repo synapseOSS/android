@@ -135,6 +135,21 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     
     init {
         loadCurrentUser()
+        observeConnectionState()
+    }
+
+    private fun observeConnectionState() {
+        viewModelScope.launch {
+            realtimeService.connectionState.collect { state ->
+                val connectionState = when (state) {
+                    is com.synapse.social.studioasinc.chat.service.RealtimeState.Connected -> RealtimeConnectionState.Connected
+                    is com.synapse.social.studioasinc.chat.service.RealtimeState.Connecting -> RealtimeConnectionState.Connecting
+                    is com.synapse.social.studioasinc.chat.service.RealtimeState.Disconnected -> RealtimeConnectionState.Disconnected
+                    is com.synapse.social.studioasinc.chat.service.RealtimeState.Error -> RealtimeConnectionState.Disconnected
+                }
+                _uiState.update { it.copy(connectionState = connectionState) }
+            }
+        }
     }
     
     private fun loadCurrentUser() {

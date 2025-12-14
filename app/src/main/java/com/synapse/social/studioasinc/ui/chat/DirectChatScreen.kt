@@ -432,7 +432,7 @@ fun DirectChatScreen(
             } else {
                 ChatTopBar(
                     userInfo = uiState.otherUser,
-                    connectionState = RealtimeConnectionState.Connected, // TODO: observe real connection state
+                    connectionState = uiState.connectionState,
                     onBackClick = onBackClick,
                     onProfileClick = { /* TODO: Open Profile */ },
                     onCallClick = { /* TODO: Call */ },
