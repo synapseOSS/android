@@ -298,21 +298,4 @@ class AboutSupportViewModel(
         return "${_appVersion.value} (${_buildNumber.value})"
     }
 
-    /**
-     * Gets the Terms of Service URL.
-     * 
-     * @return Terms of Service URL
-     */
-    fun getTermsOfServiceUrl(): String {
-        return "https://synapse-social.com/terms"
-    }
-
-    /**
-     * Gets the Privacy Policy URL.
-     * 
-     * @return Privacy Policy URL
-     */
-    fun getPrivacyPolicyUrl(): String {
-        return "https://synapse-social.com/privacy"
-    }
 }

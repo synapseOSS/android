@@ -144,7 +144,7 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
                     }
                     
                     if (targetIdentity != null) {
-                        supabaseClient.auth.unlinkIdentity(targetIdentity)
+                        supabaseClient.auth.unlinkIdentity(targetIdentity.id)
                         // Reload linked accounts to reflect changes
                         loadLinkedAccounts()
                     } else {

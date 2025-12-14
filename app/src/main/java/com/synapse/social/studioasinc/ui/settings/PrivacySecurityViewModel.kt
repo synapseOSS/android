@@ -38,6 +38,9 @@ class PrivacySecurityViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
     // Dialog states for 2FA setup
     private val _show2FASetupDialog = MutableStateFlow(false)
     val show2FASetupDialog: StateFlow<Boolean> = _show2FASetupDialog.asStateFlow()

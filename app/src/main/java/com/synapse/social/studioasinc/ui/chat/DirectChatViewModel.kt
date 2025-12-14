@@ -41,7 +41,6 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private val chatRepository = ChatRepository(chatDao)
     private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
-    private val storageService = SupabaseStorageService()
     
     // UI State
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -557,7 +556,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                     val path = storageService.generateStoragePath(chatId, fileName)
                     
                     storageService.uploadFileBytes(bytes, path)
-                        .onSuccess { url -> uploadedUrls.add(url) }
+                        .onSuccess { url: String -> uploadedUrls.add(url) }
                 }  catch (e: Exception) {
                     // Log error but continue
                 }
