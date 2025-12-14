@@ -250,7 +250,7 @@ class AuthRepository {
             if (!isSupabaseConfigured()) {
                 return Result.failure(Exception("Supabase not configured"))
             }
-            android.util.Log.d("AuthRepository", "Resending verification email to $email")
+            android.util.Log.d("AuthRepository", "Resending verification email.")
             client.auth.resendEmail(OtpType.Email.SIGNUP, email)
             Result.success(Unit)
         } catch (e: Exception) {
