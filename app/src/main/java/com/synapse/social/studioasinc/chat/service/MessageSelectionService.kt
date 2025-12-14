@@ -2,9 +2,12 @@ package com.synapse.social.studioasinc.chat.service
 
 import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -73,8 +76,11 @@ class MessageSelectionService {
         
         // Update session in database
         supabase.from("message_selection_sessions")
-            .update(mapOf("selected_message_ids" to newIds.toList()))
-            .eq("id", session.id)
+            .update(mapOf("selected_message_ids" to newIds.toList())) {
+                filter {
+                    eq("id", session.id)
+                }
+            }
     }
     
     /**
@@ -83,7 +89,7 @@ class MessageSelectionService {
     suspend fun executeAction(
         action: MessageAction,
         userId: String,
-        additionalData: Map<String, Any> = emptyMap()
+        additionalData: Map<String, @Contextual Any> = emptyMap()
     ) {
         val session = _currentSession.value ?: return
         val selectedIds = _selectedMessageIds.value
@@ -113,8 +119,11 @@ class MessageSelectionService {
         
         // Update session as inactive
         supabase.from("message_selection_sessions")
-            .update(mapOf("selection_mode" to false))
-            .eq("id", session.id)
+            .update(mapOf("selection_mode" to false)) {
+                filter {
+                    eq("id", session.id)
+                }
+            }
         
         // Clear local state
         _currentSession.value = null
@@ -127,10 +136,13 @@ class MessageSelectionService {
      */
     suspend fun getActionHistory(userId: String, limit: Int = 20): List<MessageActionHistory> {
         val response = supabase.from("message_actions_history")
-            .select()
-            .eq("user_id", userId)
-            .order("created_at", ascending = false)
-            .limit(limit)
+            .select() {
+                filter {
+                    eq("user_id", userId)
+                }
+                order("created_at", ascending = false)
+                limit(limit)
+            }
             .decodeList<MessageActionHistoryDto>()
         
         return response.map { it.toDomain() }
@@ -152,7 +164,7 @@ data class MessageActionHistory(
     val actionType: String,
     val messageIds: List<String>,
     val chatId: String?,
-    val actionData: Map<String, Any>,
+    val actionData: Map<String, @Contextual Any>,
     val createdAt: String
 )
 
@@ -177,7 +189,7 @@ data class MessageActionHistoryDto(
     val action_type: String,
     val message_ids: List<String>,
     val chat_id: String?,
-    val action_data: Map<String, Any>
+    val action_data: Map<String, @Contextual Any>
 ) {
     fun toDomain() = MessageActionHistory(
         id = id ?: "",

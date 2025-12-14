@@ -1,8 +1,9 @@
 package com.synapse.social.studioasinc.settings
 
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.functions.functions
+import io.github.jan.supabase.SupabaseClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
@@ -52,13 +53,12 @@ class ApiKeySettingsService @Inject constructor(
             val token = supabaseClient.auth.currentAccessTokenOrNull()
                 ?: return Result.failure(Exception("Not authenticated"))
 
-            val response = supabaseClient.functions.invoke(
+            val response = supabaseClient.functions.invoke<Map<String, Any>, String>(
                 function = "api-key-manager",
-                body = emptyMap<String, Any>(),
-                headers = mapOf("Authorization" to "Bearer $token")
+                body = emptyMap<String, Any>()
             )
 
-            val result = Json.decodeFromString<Map<String, Any>>(response.data.toString())
+            val result = Json.decodeFromString<Map<String, Any>>(response)
             if (result["success"] == true) {
                 val keys = (result["api_keys"] as List<*>).map { 
                     Json.decodeFromString<ApiKeyInfo>(Json.encodeToString(it))
@@ -90,13 +90,12 @@ class ApiKeySettingsService @Inject constructor(
                 usage_limit = usageLimit
             )
 
-            val response = supabaseClient.functions.invoke(
+            val response = supabaseClient.functions.invoke<ApiKeyRequest, String>(
                 function = "api-key-manager",
-                body = request,
-                headers = mapOf("Authorization" to "Bearer $token")
+                body = request
             )
 
-            val result = Json.decodeFromString<Map<String, Any>>(response.data.toString())
+            val result = Json.decodeFromString<Map<String, Any>>(response)
             if (result["success"] == true) {
                 loadApiKeys() // Refresh list
                 Result.success(result["message"].toString())
@@ -113,13 +112,12 @@ class ApiKeySettingsService @Inject constructor(
             val token = supabaseClient.auth.currentAccessTokenOrNull()
                 ?: return Result.failure(Exception("Not authenticated"))
 
-            val response = supabaseClient.functions.invoke(
+            val response = supabaseClient.functions.invoke<Map<String, String>, String>(
                 function = "api-key-manager",
-                body = mapOf("key_id" to keyId),
-                headers = mapOf("Authorization" to "Bearer $token")
+                body = mapOf("key_id" to keyId)
             )
 
-            val result = Json.decodeFromString<Map<String, Any>>(response.data.toString())
+            val result = Json.decodeFromString<Map<String, Any>>(response)
             if (result["success"] == true) {
                 loadApiKeys() // Refresh list
                 Result.success(result["message"].toString())
@@ -160,9 +158,12 @@ class ApiKeySettingsService @Inject constructor(
                 ?: return Result.failure(Exception("Not authenticated"))
 
             val response = supabaseClient.from("ai_provider_settings")
-                .select()
-                .eq("user_id", userId)
-                .singleOrNull()
+                .select() {
+                    filter {
+                        eq("user_id", userId)
+                    }
+                }
+                .decodeSingleOrNull<Map<String, Any>>()
 
             val settings = if (response != null) {
                 ProviderSettings(

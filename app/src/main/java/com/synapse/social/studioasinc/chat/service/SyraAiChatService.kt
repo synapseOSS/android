@@ -48,12 +48,12 @@ class SyraAiChatService {
                 session_type = "assistant"
             )
             
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<SyraRequest, String>(
                 function = "ai-chat-assistant",
                 body = request
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
             SyraResponse(
                 response = jsonResponse["response"]?.jsonPrimitive?.content ?: "",
@@ -83,12 +83,12 @@ class SyraAiChatService {
                 chat_context = chatContext
             )
             
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<SmartReplyRequest, String>(
                 function = "smart-replies",
                 body = request
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             val suggestions = jsonResponse["suggestions"]?.let { element ->
                 Json.decodeFromJsonElement<List<String>>(element)
             } ?: emptyList()
@@ -123,7 +123,7 @@ class SyraAiChatService {
                 "comment" to comment
             )
             
-            supabase.functions.invoke(
+            supabase.functions.invoke<Map<String, Any>, String>(
                 function = "ai-chat-analytics",
                 body = request
             )
@@ -137,11 +137,11 @@ class SyraAiChatService {
      */
     suspend fun getAnalytics(): AiChatAnalytics? {
         return try {
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<Unit, String>(
                 function = "ai-chat-analytics/stats"
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
             AiChatAnalytics(
                 totalSessions = jsonResponse["total_sessions"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,

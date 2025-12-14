@@ -40,12 +40,12 @@ class AiModerationService {
                 user_id = userId
             )
             
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<ModerationRequest, String>(
                 function = "ai-content-moderator",
                 body = request
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
             ModerationResult(
                 flagged = jsonResponse["flagged"]?.jsonPrimitive?.content?.toBoolean() ?: false,
@@ -103,7 +103,7 @@ class AiModerationService {
                 "reporter_id" to reporterId
             )
             
-            supabase.functions.invoke(
+            supabase.functions.invoke<Map<String, String>, String>(
                 function = "moderation-actions",
                 body = request
             )
@@ -119,11 +119,11 @@ class AiModerationService {
      */
     suspend fun getModerationStats(): ModerationStats? {
         return try {
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<Unit, String>(
                 function = "moderation-dashboard/stats"
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
             ModerationStats(
                 totalFlagged = jsonResponse["total_flagged"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,

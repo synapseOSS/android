@@ -44,12 +44,12 @@ class SyraPostCompositionService {
                 userId = userId
             )
             
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<SyraAdviceRequest, String>(
                 function = "syra-content-generator",
                 body = request
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
             val advice = SyraPostAdvice(
                 advice = jsonResponse["advice"]?.jsonPrimitive?.content ?: "",
@@ -90,12 +90,12 @@ class SyraPostCompositionService {
                 user_id = userId
             )
             
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<ContentEnhancementRequest, String>(
                 function = "syra-content-generator",
                 body = request
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
             ContentEnhancement(
                 enhancedContent = jsonResponse["enhanced_content"]?.jsonPrimitive?.content ?: content,
@@ -123,12 +123,12 @@ class SyraPostCompositionService {
                 "type" to "hashtags"
             )
             
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<Map<String, String>, String>(
                 function = "syra-content-generator",
                 body = request
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             val hashtags = jsonResponse["hashtags"]?.let { element ->
                 Json.decodeFromJsonElement<List<String>>(element)
             } ?: emptyList()
@@ -153,12 +153,12 @@ class SyraPostCompositionService {
                 "user_id" to userId
             )
             
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<Map<String, String>, String>(
                 function = "syra-content-generator",
                 body = request
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             jsonResponse["ideas"]?.let { element ->
                 Json.decodeFromJsonElement<List<ContentIdea>>(element)
             } ?: emptyList()
@@ -185,12 +185,12 @@ class SyraPostCompositionService {
                 "user_id" to userId
             )
             
-            val response = supabase.functions.invoke(
+            val response = supabase.functions.invoke<Map<String, String>, String>(
                 function = "syra-content-generator",
                 body = request
             )
             
-            val jsonResponse = Json.parseToJsonElement(response.data ?: "{}").jsonObject
+            val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
             PostingTimeAdvice(
                 recommendedTime = jsonResponse["recommended_time"]?.jsonPrimitive?.content ?: "",

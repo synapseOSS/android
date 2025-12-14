@@ -1,9 +1,12 @@
 package com.synapse.social.studioasinc.chat.service
 
 import io.github.jan.supabase.functions.functions
-import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.SupabaseClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -15,7 +18,7 @@ data class AiChatRequest(
     val conversation_id: String? = null,
     val user_api_key: String? = null,
     val provider: String? = null,
-    val context: Map<String, Any>? = null
+    val context: Map<String, @Contextual Any>? = null
 )
 
 @Serializable
@@ -56,13 +59,12 @@ class SyraAiChatServiceUpdated @Inject constructor(
                 context = context
             )
 
-            val response = supabaseClient.functions.invoke(
+            val response = supabaseClient.functions.invoke<AiChatRequest, String>(
                 function = "ai-chat-assistant",
-                body = request,
-                headers = mapOf("Authorization" to "Bearer $token")
+                body = request
             )
 
-            val result = Json.decodeFromString<Map<String, Any>>(response.data.toString())
+            val result = Json.decodeFromString<Map<String, @Contextual Any>>(response)
             
             if (result["success"] == true) {
                 val aiResponse = AiChatResponse(
@@ -95,9 +97,12 @@ class SyraAiChatServiceUpdated @Inject constructor(
             
             // Get user's preferred provider
             val settingsResponse = supabaseClient.from("ai_provider_settings")
-                .select("preferred_provider")
-                .eq("user_id", supabaseClient.auth.currentUserOrNull()?.id ?: "")
-                .singleOrNull()
+                .select("preferred_provider") {
+                    filter {
+                        eq("user_id", supabaseClient.auth.currentUserOrNull()?.id ?: "")
+                    }
+                }
+                .decodeSingleOrNull<Map<String, @Contextual Any>>()
             
             val preferredProvider = settingsResponse?.get("preferred_provider") as? String ?: "platform"
             
@@ -106,16 +111,12 @@ class SyraAiChatServiceUpdated @Inject constructor(
             }
 
             // Get user's API key for the preferred provider
-            val keyResponse = supabaseClient.functions.invoke(
+            val keyResponse = supabaseClient.functions.invoke<Map<String, @Contextual Any>, String>(
                 function = "api-key-manager",
-                body = emptyMap<String, Any>(),
-                headers = mapOf(
-                    "Authorization" to "Bearer $token",
-                    "X-Provider" to preferredProvider
-                )
+                body = emptyMap<String, @Contextual Any>()
             )
 
-            val keyResult = Json.decodeFromString<Map<String, Any>>(keyResponse.data.toString())
+            val keyResult = Json.decodeFromString<Map<String, @Contextual Any>>(keyResponse)
             
             if (keyResult["has_key"] == true && keyResult["use_platform_key"] == false) {
                 keyResult["api_key"]?.toString() to preferredProvider
@@ -133,10 +134,13 @@ class SyraAiChatServiceUpdated @Inject constructor(
             
             // Increment usage count
             supabaseClient.from("user_api_keys")
-                .update(mapOf("usage_count" to "usage_count + $tokensUsed"))
-                .eq("user_id", userId)
-                .eq("provider", provider)
-                .eq("is_active", true)
+                .update(mapOf("usage_count" to "usage_count + $tokensUsed")) {
+                    filter {
+                        eq("user_id", userId)
+                        eq("provider", provider)
+                        eq("is_active", true)
+                    }
+                }
         } catch (e: Exception) {
             // Log error but don't fail the main operation
         }
@@ -159,13 +163,12 @@ class SyraAiChatServiceUpdated @Inject constructor(
                 "provider" to provider
             )
 
-            val response = supabaseClient.functions.invoke(
+            val response = supabaseClient.functions.invoke<Map<String, @Contextual Any>, String>(
                 function = "smart-replies",
-                body = request,
-                headers = mapOf("Authorization" to "Bearer $token")
+                body = request
             )
 
-            val result = Json.decodeFromString<Map<String, Any>>(response.data.toString())
+            val result = Json.decodeFromString<Map<String, @Contextual Any>>(response)
             
             if (result["success"] == true) {
                 val suggestions = result["suggestions"] as? List<*> ?: emptyList<String>()

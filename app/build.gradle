@@ -4,6 +4,7 @@ plugins {
     id 'com.google.devtools.ksp'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'org.jetbrains.kotlin.plugin.compose'
+    id 'dagger.hilt.android.plugin'
 }
 
 def keystoreProperties = new Properties()
@@ -204,6 +205,11 @@ dependencies {
     // Accompanist for system UI controller
     implementation 'com.google.accompanist:accompanist-systemuicontroller:0.32.0'
     implementation 'com.google.accompanist:accompanist-swiperefresh:0.32.0'
+
+    // Hilt for dependency injection
+    implementation 'com.google.dagger:hilt-android:2.51.1'
+    ksp 'com.google.dagger:hilt-compiler:2.51.1'
+    implementation 'androidx.hilt:hilt-navigation-compose:1.2.0'
 
     // Supabase BOM and dependencies (3.x uses auth-kt instead of gotrue-kt and requires Ktor 3.x)
     implementation(platform("io.github.jan-tennert.supabase:bom:3.2.6"))
