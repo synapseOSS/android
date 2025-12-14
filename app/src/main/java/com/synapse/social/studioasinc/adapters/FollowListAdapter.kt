@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.components.FollowButton
+import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 
@@ -70,32 +71,24 @@ class FollowListAdapter(
             if (itemView.context is androidx.lifecycle.LifecycleOwner) {
                 val lifecycleOwner = itemView.context as androidx.lifecycle.LifecycleOwner
                 
-                // Get current user UID asynchronously
-                lifecycleOwner.lifecycleScope.launch {
-                    try {
-                        val authRepository = com.synapse.social.studioasinc.data.repository.AuthRepository()
-                        val currentUserUid = authRepository.getCurrentUserUid()
-                        
-                        if (currentUserUid != null && currentUserUid != userId) {
-                            followButton.visibility = View.VISIBLE
-                            messageButton.visibility = View.VISIBLE
-                            
-                            // Setup follow button with correct UIDs
-                            followButton.setup(currentUserUid, userId, lifecycleOwner.lifecycleScope)
-                            
-                            // Setup message button
-                            messageButton.setOnClickListener {
-                                onMessageClick?.invoke(user)
-                            }
-                        } else {
-                            followButton.visibility = View.GONE
-                            messageButton.visibility = View.GONE
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.e("FollowListAdapter", "Failed to get current user UID", e)
-                        followButton.visibility = View.GONE
-                        messageButton.visibility = View.GONE
+                // Use auth UUID directly to avoid network call in bind
+                // We'll use the auth UUID for now and fix the follow button setup
+                val currentUserUid = SupabaseClient.client.auth.currentUserOrNull()?.id
+
+                if (currentUserUid != null && currentUserUid != userId) {
+                    followButton.visibility = View.VISIBLE
+                    messageButton.visibility = View.VISIBLE
+
+                    // Setup follow button with correct UIDs
+                    followButton.setup(currentUserUid, userId, lifecycleOwner.lifecycleScope)
+
+                    // Setup message button
+                    messageButton.setOnClickListener {
+                        onMessageClick?.invoke(user)
                     }
+                } else {
+                    followButton.visibility = View.GONE
+                    messageButton.visibility = View.GONE
                 }
             } else {
                 followButton.visibility = View.GONE
@@ -104,18 +97,6 @@ class FollowListAdapter(
 
             itemView.setOnClickListener {
                 onUserClick(user)
-            }
-        }
-
-        private fun getCurrentUserId(): String? {
-            return try {
-                // Get the user UID from the users table, not the auth UUID
-                val authRepository = com.synapse.social.studioasinc.data.repository.AuthRepository()
-                // We need to use a coroutine for this, but since this is called from bind(),
-                // we'll use the auth UUID for now and fix the follow button setup
-                com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()?.id
-            } catch (e: Exception) {
-                null
             }
         }
     }
