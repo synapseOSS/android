@@ -210,12 +210,8 @@ fun DirectChatScreen(
                         headlineContent = { Text("Edit") },
                         leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.Edit, contentDescription = null) },
                         modifier = Modifier.clickable {
-                             // TODO: Implement Edit Dialog (simplification for now: trigger intent with current text)
-                             // Ideally show a dialog input with 'msg.content' pre-filled.
-                             // Backend Context:
-                             // 1. Update 'messages' table: content = newText, is_edited = true, updated_at = now
-                             // 2. Realtime: Broadcast 'UPDATE' event to listeners.
-                             // viewModel.handleIntent(ChatIntent.EditMessage(msg.id, "Edited Content"))
+                            editMessageText = msg.content
+                            showEditDialog = true
                             scope.launch { sheetState.hide() }.invokeOnCompletion { showMessageOptions = false }
                         }
                     )
@@ -337,6 +333,10 @@ fun DirectChatScreen(
 
     // Multi-select delete confirmation dialog
     var showDeleteSelectedDialog by remember { mutableStateOf(false) }
+
+    // Edit Message Dialog State
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editMessageText by remember { mutableStateOf("") }
     
     if (showDeleteSelectedDialog) {
         AlertDialog(
@@ -365,6 +365,49 @@ fun DirectChatScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteSelectedDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Edit Message Dialog
+    if (showEditDialog && selectedMessage != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showEditDialog = false
+                selectedMessage = null
+            },
+            title = { Text("Edit Message") },
+            text = {
+                OutlinedTextField(
+                    value = editMessageText,
+                    onValueChange = { editMessageText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Message") },
+                    singleLine = false,
+                    maxLines = 5
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (editMessageText.isNotBlank() && editMessageText != selectedMessage?.content) {
+                            viewModel.handleIntent(ChatIntent.EditMessage(selectedMessage!!.id, editMessageText))
+                        }
+                        showEditDialog = false
+                        selectedMessage = null
+                    },
+                    enabled = editMessageText.isNotBlank()
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showEditDialog = false
+                    selectedMessage = null
+                }) {
                     Text("Cancel")
                 }
             }
