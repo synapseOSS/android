@@ -58,6 +58,12 @@ object NotificationHelper {
         }
 
         scope.launch {
+            // Persist notification to Supabase DB for Activity Feed
+            // Note: We skip persisting chat messages as they are part of the chat history
+            if (notificationType != "chat_message") {
+                persistNotification(recipientUid, senderUid, message, notificationType, data)
+            }
+
             try {
                 // Fetch recipient data from Supabase
                 val userResult = dbService.getSingle("users", "uid", recipientUid)
@@ -364,6 +370,51 @@ object NotificationHelper {
     }
 
     /**
+     * Persists the notification to the Supabase "notifications" table.
+     * This ensures the notification appears in the user's Activity Feed/Notification Screen.
+     */
+    private suspend fun persistNotification(
+        recipientUid: String,
+        senderUid: String,
+        message: String,
+        notificationType: String,
+        data: Map<String, String>?
+    ) {
+        try {
+            // Extract target ID based on notification type
+            val targetId = data?.get("postId")
+                ?: data?.get("commentId")
+                ?: data?.get("followerId")
+                ?: data?.get("chat_id")
+
+            // Map to database schema
+            // Note: We use 'sender_id' assuming the column exists. If it fails, check schema.
+            val notificationData = mutableMapOf<String, Any?>(
+                "receiver_id" to recipientUid,
+                "sender_id" to senderUid,
+                "type" to notificationType,
+                "content" to message,
+                "is_read" to false,
+                "created_at" to java.time.Instant.now().toString()
+            )
+
+            if (targetId != null) {
+                notificationData["target_id"] = targetId
+            }
+
+            val result = dbService.insert("notifications", notificationData)
+
+            if (result.isFailure) {
+                 Log.w(TAG, "Failed to persist notification: ${result.exceptionOrNull()?.message}")
+            } else {
+                 Log.d(TAG, "Notification persisted to Supabase DB")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error persisting notification", e)
+        }
+    }
+
+    /**
      * Generates a deep link URL based on notification type and data.
      * @param notificationType The type of notification
      * @param senderUid The sender's UID (optional)
@@ -414,6 +465,4 @@ object NotificationHelper {
             else -> "synapse://home"
         }
     }
-
-    // Removed saveNotificationToDatabase function as Firebase RDB chat notifications are no longer needed
 }
