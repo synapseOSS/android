@@ -705,9 +705,10 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
 
                 val content = if (type == "text") messageToForward.content else {
                     // If media, we need the URL.
-                    // For now, assuming content holds the URL for media types or we take first attachment
-                    // If it's a media message, 'content' might be empty or a description.
-                    // Let's check attachments.
+                    // Prioritize the attachment URL, otherwise fall back to content (which might be the URL in some cases).
+                    // Note: If the original message had a caption (stored in content), it is currently lost
+                    // when forwarding as a media message because sendMessage only accepts one content string (URL or text).
+                    // Future improvement: Support sending both caption and media URL.
                     messageToForward.attachments?.firstOrNull()?.url ?: messageToForward.content
                 }
 
