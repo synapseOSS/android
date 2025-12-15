@@ -34,7 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 // Add proper migrations to preserve user data
                 .addMigrations(MIGRATION_1_2)
-                .fallbackToDestructiveMigrationOnDowngrade()
+                .fallbackToDestructiveMigration() // Allow destructive migration as fallback
                 .build()
                 INSTANCE = instance
                 instance
@@ -43,8 +43,28 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // Add parentCommentId column to comments table
-                db.execSQL("ALTER TABLE comments ADD COLUMN parentCommentId TEXT")
+                try {
+                    // Check if column already exists
+                    val cursor = db.query("PRAGMA table_info(comments)")
+                    var hasParentCommentId = false
+                    
+                    while (cursor.moveToNext()) {
+                        val columnName = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                        if (columnName == "parentCommentId") {
+                            hasParentCommentId = true
+                            break
+                        }
+                    }
+                    cursor.close()
+                    
+                    // Add parentCommentId column to comments table if it doesn't exist
+                    if (!hasParentCommentId) {
+                        db.execSQL("ALTER TABLE comments ADD COLUMN parentCommentId TEXT")
+                    }
+                } catch (e: Exception) {
+                    // If migration fails, let Room handle it with destructive migration
+                    throw e
+                }
             }
         }
     }

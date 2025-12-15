@@ -105,6 +105,7 @@ class CommentRepository(private val commentDao: CommentDao) {
 
     suspend fun getReplies(commentId: String): Result<List<CommentWithUser>> = withContext(Dispatchers.IO) {
         try {
+            Log.d(TAG, "Fetching replies for comment: $commentId")
             val response = client.from("comments")
                 .select(
                     columns = Columns.raw("""
@@ -117,10 +118,17 @@ class CommentRepository(private val commentDao: CommentDao) {
                 }
                 .decodeList<JsonObject>()
             
+            Log.d(TAG, "Raw response size: ${response.size}")
+            
             val replies = mutableListOf<CommentWithUser>()
             for (json in response) {
-                parseCommentFromJson(json)?.let { replies.add(it) }
+                parseCommentFromJson(json)?.let { 
+                    replies.add(it)
+                    Log.d(TAG, "Parsed reply: ${it.id} - ${it.content}")
+                }
             }
+            
+            Log.d(TAG, "Successfully parsed ${replies.size} replies")
             
             // Store replies in local database
             commentDao.insertAll(replies.map { 

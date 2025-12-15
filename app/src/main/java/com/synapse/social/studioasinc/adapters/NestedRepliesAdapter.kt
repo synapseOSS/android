@@ -27,6 +27,7 @@ class NestedRepliesAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        android.util.Log.d("NestedRepliesAdapter", "Binding reply at position $position")
         holder.bind(getItem(position))
     }
 

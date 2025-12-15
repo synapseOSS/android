@@ -8,6 +8,7 @@ import com.synapse.social.studioasinc.data.repository.*
 import com.synapse.social.studioasinc.model.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 
 class PostDetailViewModel(application: Application) : AndroidViewModel(application) {
     private val postDetailRepository = PostDetailRepository()
@@ -132,9 +133,21 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
     
     fun loadReplies(commentId: String, callback: (List<CommentWithUser>) -> Unit) {
         viewModelScope.launch {
+            android.util.Log.d("PostDetailViewModel", "Loading replies for comment: $commentId")
             commentRepository.getReplies(commentId).fold(
-                onSuccess = { replies -> callback(replies) },
-                onFailure = { callback(emptyList()) }
+                onSuccess = { replies -> 
+                    android.util.Log.d("PostDetailViewModel", "Successfully loaded ${replies.size} replies")
+                    // Ensure callback runs on main thread
+                    launch(Dispatchers.Main) {
+                        callback(replies)
+                    }
+                },
+                onFailure = { error ->
+                    android.util.Log.e("PostDetailViewModel", "Failed to load replies: ${error.message}")
+                    launch(Dispatchers.Main) {
+                        callback(emptyList())
+                    }
+                }
             )
         }
     }

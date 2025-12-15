@@ -41,6 +41,11 @@ class CommentDetailAdapter(
         private var repliesExpanded = false
 
         fun bind(comment: CommentWithUser) {
+            // Reset state for ViewHolder reuse
+            repliesExpanded = false
+            repliesAdapter = null
+            binding.rvReplies.isVisible = false
+            
             // Avatar
             Glide.with(binding.root.context)
                 .load(comment.user?.profileImageUrl)
@@ -119,7 +124,6 @@ class CommentDetailAdapter(
 
         private fun toggleReplies(comment: CommentWithUser) {
             repliesExpanded = !repliesExpanded
-            binding.rvReplies.isVisible = repliesExpanded
 
             if (repliesExpanded) {
                 binding.tvViewReplies.text = binding.root.context.getString(R.string.hide_replies)
@@ -131,11 +135,44 @@ class CommentDetailAdapter(
                     binding.rvReplies.adapter = repliesAdapter
                 }
                 
+                // Show the RecyclerView first
+                binding.rvReplies.isVisible = true
+                
                 // Load replies from the repository
                 onLoadReplies(comment.id) { replies ->
-                    repliesAdapter?.submitList(replies)
+                    // Ensure UI update happens on main thread
+                    if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+                        // Already on main thread
+                        android.util.Log.d("CommentDetailAdapter", "Loaded ${replies.size} replies for comment ${comment.id}")
+                        repliesAdapter?.submitList(replies) {
+                            // Force RecyclerView to refresh after list is submitted
+                            binding.rvReplies.invalidate()
+                            binding.rvReplies.requestLayout()
+                        }
+                        // Only hide if we actually have no replies
+                        if (replies.isEmpty()) {
+                            binding.rvReplies.isVisible = false
+                            binding.tvViewReplies.text = binding.root.context.getString(R.string.no_replies_yet)
+                        }
+                    } else {
+                        // Switch to main thread
+                        binding.root.post {
+                            android.util.Log.d("CommentDetailAdapter", "Loaded ${replies.size} replies for comment ${comment.id}")
+                            repliesAdapter?.submitList(replies) {
+                                // Force RecyclerView to refresh after list is submitted
+                                binding.rvReplies.invalidate()
+                                binding.rvReplies.requestLayout()
+                            }
+                            // Only hide if we actually have no replies
+                            if (replies.isEmpty()) {
+                                binding.rvReplies.isVisible = false
+                                binding.tvViewReplies.text = binding.root.context.getString(R.string.no_replies_yet)
+                            }
+                        }
+                    }
                 }
             } else {
+                binding.rvReplies.isVisible = false
                 binding.tvViewReplies.text = binding.root.context.getString(
                     R.string.view_replies, comment.repliesCount
                 )

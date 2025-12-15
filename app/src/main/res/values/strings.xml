@@ -218,6 +218,7 @@
     <string name="no_followed">This user does not follow anyone</string>
     <string name="show_replies">Show Replies</string>
     <string name="hide_replies">Hide Replies</string>
+    <string name="no_replies_yet">No replies yet</string>
     <string name="reply_to_user_hint">Reply to %1$s</string>
     <string name="status_text_seconds">seconds ago</string>
     <string name="status_text_minutes">minute ago</string>
