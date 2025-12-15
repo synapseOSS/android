@@ -76,7 +76,12 @@ class PostDetailActivity : BaseActivity() {
             onLikeClick = { comment -> viewModel.toggleCommentReaction(comment.id, ReactionType.LIKE) },
             onUserClick = { userId -> navigateToProfile(userId) },
             onOptionsClick = { comment -> showCommentOptions(comment) },
-            onReactionPickerClick = { comment -> showCommentReactionPicker(comment) }
+            onReactionPickerClick = { comment -> showCommentReactionPicker(comment) },
+            onLoadReplies = { commentId, callback -> 
+                viewModel.loadReplies(commentId) { replies ->
+                    callback(replies)
+                }
+            }
         )
         binding.rvComments.apply {
             layoutManager = LinearLayoutManager(this@PostDetailActivity)

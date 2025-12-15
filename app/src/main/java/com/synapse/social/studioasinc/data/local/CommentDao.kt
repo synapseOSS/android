@@ -13,4 +13,7 @@ interface CommentDao {
 
     @Query("SELECT * FROM comments WHERE postId = :postId ORDER BY timestamp DESC")
     fun getCommentsForPost(postId: String): Flow<List<CommentEntity>>
+    
+    @Query("SELECT * FROM comments WHERE parentCommentId = :commentId ORDER BY timestamp ASC")
+    fun getRepliesForComment(commentId: String): Flow<List<CommentEntity>>
 }

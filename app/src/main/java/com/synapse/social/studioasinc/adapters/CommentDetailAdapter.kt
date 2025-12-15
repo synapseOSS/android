@@ -19,7 +19,8 @@ class CommentDetailAdapter(
     private val onLikeClick: (CommentWithUser) -> Unit,
     private val onUserClick: (String) -> Unit,
     private val onOptionsClick: (CommentWithUser) -> Unit,
-    private val onReactionPickerClick: (CommentWithUser) -> Unit
+    private val onReactionPickerClick: (CommentWithUser) -> Unit,
+    private val onLoadReplies: (String, (List<CommentWithUser>) -> Unit) -> Unit
 ) : ListAdapter<CommentWithUser, CommentDetailAdapter.ViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -122,11 +123,17 @@ class CommentDetailAdapter(
 
             if (repliesExpanded) {
                 binding.tvViewReplies.text = binding.root.context.getString(R.string.hide_replies)
-                // Load replies - in real implementation, fetch from repository
+                
+                // Initialize replies adapter if not already done
                 if (repliesAdapter == null) {
                     repliesAdapter = NestedRepliesAdapter(onUserClick, onLikeClick, onOptionsClick, onReactionPickerClick)
                     binding.rvReplies.layoutManager = LinearLayoutManager(binding.root.context)
                     binding.rvReplies.adapter = repliesAdapter
+                }
+                
+                // Load replies from the repository
+                onLoadReplies(comment.id) { replies ->
+                    repliesAdapter?.submitList(replies)
                 }
             } else {
                 binding.tvViewReplies.text = binding.root.context.getString(

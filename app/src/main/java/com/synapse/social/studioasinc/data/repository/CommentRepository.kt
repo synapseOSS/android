@@ -122,6 +122,7 @@ class CommentRepository(private val commentDao: CommentDao) {
                 parseCommentFromJson(json)?.let { replies.add(it) }
             }
             
+            // Store replies in local database
             commentDao.insertAll(replies.map { 
                 CommentMapper.toEntity(it.toComment(), it.user?.username, it.user?.profileImageUrl) 
             })

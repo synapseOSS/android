@@ -41,25 +41,12 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
     fun loadComments(postId: String, limit: Int = 20, offset: Int = 0) {
         viewModelScope.launch {
             _commentsState.value = CommentsState.Loading
-            commentRepository.getComments(postId).collect { result ->
-                result.fold(
-                    onSuccess = { comments ->
-                        val commentsWithUser = comments.map { comment ->
-                            CommentWithUser(
-                                id = comment.key,
-                                postId = comment.postKey,
-                                userId = comment.uid,
-                                parentCommentId = comment.replyCommentKey,
-                                content = comment.comment,
-                                createdAt = comment.push_time,
-                                user = null
-                            )
-                        }
-                        _commentsState.value = CommentsState.Success(commentsWithUser, commentsWithUser.size >= limit)
-                    },
-                    onFailure = { _commentsState.value = CommentsState.Error(it.message ?: "Failed") }
-                )
-            }
+            commentRepository.fetchComments(postId, limit, offset).fold(
+                onSuccess = { comments ->
+                    _commentsState.value = CommentsState.Success(comments, comments.size >= limit)
+                },
+                onFailure = { _commentsState.value = CommentsState.Error(it.message ?: "Failed to load comments") }
+            )
         }
     }
 
@@ -140,6 +127,15 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
     fun reportComment(commentId: String, reason: String, description: String?) {
         viewModelScope.launch {
             commentRepository.reportComment(commentId, reason)
+        }
+    }
+    
+    fun loadReplies(commentId: String, callback: (List<CommentWithUser>) -> Unit) {
+        viewModelScope.launch {
+            commentRepository.getReplies(commentId).fold(
+                onSuccess = { replies -> callback(replies) },
+                onFailure = { callback(emptyList()) }
+            )
         }
     }
 }
