@@ -46,30 +46,8 @@ object ImageLoadingDebugger {
                 Glide.with(context)
                     .load(imageUrl)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                        override fun onLoadFailed(
-                            e: com.bumptech.glide.load.engine.GlideException?,
-                            model: Any?,
-                            target: Target<android.graphics.drawable.Drawable>?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            Log.e(TAG, "Glide failed to load image: $imageUrl", e)
-                            e?.logRootCauses(TAG)
-                            return false
-                        }
-                        
-                        override fun onResourceReady(
-                            resource: android.graphics.drawable.Drawable?,
-                            model: Any?,
-                            target: Target<android.graphics.drawable.Drawable>?,
-                            dataSource: com.bumptech.glide.load.DataSource?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            Log.d(TAG, "Glide successfully loaded image: $imageUrl from $dataSource")
-                            return false
-                        }
-                    })
                     .preload()
+                Log.d(TAG, "Glide preload initiated for: $imageUrl")
             } catch (e: Exception) {
                 Log.e(TAG, "Exception during Glide preload: $imageUrl", e)
             }

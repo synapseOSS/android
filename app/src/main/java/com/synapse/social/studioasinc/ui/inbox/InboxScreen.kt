@@ -19,6 +19,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
 import com.synapse.social.studioasinc.ui.inbox.models.InboxAction
 import com.synapse.social.studioasinc.ui.inbox.models.InboxUiState
 import com.synapse.social.studioasinc.ui.inbox.components.*
@@ -33,7 +34,8 @@ import kotlinx.coroutines.launch
 fun InboxScreen(
     onNavigateBack: () -> Unit,
     onNavigateToChat: (String, String) -> Unit,
-    viewModel: InboxViewModel = viewModel(factory = InboxViewModelFactory())
+    messageDeletionViewModel: MessageDeletionViewModel,
+    viewModel: InboxViewModel = viewModel(factory = InboxViewModelFactory(messageDeletionViewModel = messageDeletionViewModel))
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()

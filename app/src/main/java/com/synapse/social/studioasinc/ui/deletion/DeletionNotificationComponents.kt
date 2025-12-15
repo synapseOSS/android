@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.synapse.social.studioasinc.ui.deletion
 
 import androidx.compose.foundation.layout.*

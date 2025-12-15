@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
 import com.synapse.social.studioasinc.ui.inbox.InboxScreen
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
@@ -58,6 +59,8 @@ class InboxComposeActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val messageDeletionViewModel: MessageDeletionViewModel = viewModel()
+                    
                     InboxScreen(
                         onNavigateBack = { finish() },
                         onNavigateToChat = { chatId, userId ->
@@ -66,7 +69,8 @@ class InboxComposeActivity : ComponentActivity() {
                             
                             val intent = ChatActivity.createIntent(this, chatId, userId)
                             ActivityTransitions.startActivityWithTransition(this, intent)
-                        }
+                        },
+                        messageDeletionViewModel = messageDeletionViewModel
                     )
                 }
             }

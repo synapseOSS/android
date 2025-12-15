@@ -702,46 +702,7 @@ fun ProfileHeaderCard(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(CircleShape),
-                        contentScale = ContentScale.Crop,
-                        loading = {
-                            // Show loading indicator
-                            Surface(
-                                modifier = Modifier.fillMaxSize(),
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.surfaceVariant
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                }
-                            }
-                        },
-                        failure = {
-                            // Fallback to placeholder when image fails to load
-                            android.util.Log.w("ProfileHeaderCard", "Failed to load image from URL: $avatarUrl")
-                            Surface(
-                                modifier = Modifier.fillMaxSize(),
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primaryContainer
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_person),
-                                        contentDescription = "$profileAvatarDescription, $displayName",
-                                        modifier = Modifier.size(32.dp),
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                }
-                            }
-                        }
+                        contentScale = ContentScale.Crop
                     )
                 } else {
                     // Placeholder avatar
