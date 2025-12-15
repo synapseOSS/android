@@ -123,6 +123,28 @@ class SupabaseRealtimeService {
     }
     
     /**
+     * Get or create a channel specifically for message observation.
+     * This ensures postgres change flows can be set up before joining.
+     */
+    suspend fun getOrCreateChannelForMessages(chatId: String): RealtimeChannel {
+        Log.d(TAG, "Getting channel for messages: $chatId")
+        
+        // If channel exists and is joined, create a new one for messages
+        channels[chatId]?.let { existingChannel ->
+            if (existingChannel.status == RealtimeChannel.Status.JOINED) {
+                Log.d(TAG, "Existing channel is joined, creating new channel for messages")
+                val channelName = "chat:$chatId:messages"
+                val newChannel = SupabaseClient.client.realtime.channel(channelName)
+                newChannel.subscribe()
+                return newChannel
+            }
+        }
+        
+        // Otherwise use the regular subscribe method
+        return subscribeToChat(chatId)
+    }
+    
+    /**
      * Broadcast a typing event to the chat room.
      * Falls back to queuing if WebSocket is unavailable.
      * 

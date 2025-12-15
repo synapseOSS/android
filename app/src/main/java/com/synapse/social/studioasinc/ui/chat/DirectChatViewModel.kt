@@ -216,8 +216,8 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private fun observeRealtimeMessages(chatId: String) {
         realtimeJob?.cancel()
         realtimeJob = viewModelScope.launch {
-            // 1. Subscribe to channel and get postgres changes flow
-            val channel = realtimeService.subscribeToChat(chatId)
+            // 1. Get or create channel for postgres changes flow
+            val channel = realtimeService.getOrCreateChannelForMessages(chatId)
             val changesFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
                 table = "messages"
                 filter("chat_id", FilterOperator.EQ, chatId)
