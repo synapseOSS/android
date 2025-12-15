@@ -131,7 +131,7 @@ class SupabaseRealtimeService {
         
         // If channel exists and is joined, create a new one for messages
         channels[chatId]?.let { existingChannel ->
-            if (existingChannel.status == RealtimeChannel.Status.JOINED) {
+            if (existingChannel.status.toString() == "JOINED") {
                 Log.d(TAG, "Existing channel is joined, creating new channel for messages")
                 val channelName = "chat:$chatId:messages"
                 val newChannel = SupabaseClient.client.realtime.channel(channelName)
