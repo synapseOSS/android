@@ -4,10 +4,9 @@ import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator.eq
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator.neq
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator.gt
+import io.github.jan.supabase.postgrest.query.filter.eq
+import io.github.jan.supabase.postgrest.query.filter.neq
+import io.github.jan.supabase.postgrest.query.filter.gt
 import io.github.jan.supabase.realtime.realtime
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow

@@ -5,8 +5,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator.eq
+import io.github.jan.supabase.postgrest.query.filter.eq
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -129,7 +128,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
                 return null to "platform"
             }
         } catch (e: Exception) {
-            null to "platform"
+            return null to "platform"
         }
     }
 
