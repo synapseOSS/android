@@ -41,7 +41,7 @@ class AiModerationService {
                 user_id = userId
             )
             
-            val response = supabase.functions.invoke<ModerationRequest, String>(
+            val response = supabase.functions.invoke(
                 function = "ai-content-moderator",
                 body = request
             )
@@ -105,7 +105,7 @@ class AiModerationService {
                 "reporter_id" to reporterId
             )
             
-            supabase.functions.invoke<Map<String, String>, String>(
+            supabase.functions.invoke, String>(
                 function = "moderation-actions",
                 body = request
             )
@@ -122,7 +122,7 @@ class AiModerationService {
      */
     suspend fun getModerationStats(): ModerationStats? {
         return try {
-            val response = supabase.functions.invoke<Unit, String>(
+            val response = supabase.functions.invoke(
                 function = "moderation-dashboard/stats"
             )
             

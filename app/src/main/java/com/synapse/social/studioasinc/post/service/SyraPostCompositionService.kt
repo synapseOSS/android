@@ -45,7 +45,7 @@ class SyraPostCompositionService {
                 userId = userId
             )
             
-            val response = supabase.functions.invoke<SyraAdviceRequest, String>(
+            val response = supabase.functions.invoke(
                 function = "syra-content-generator",
                 body = request
             )
@@ -91,7 +91,7 @@ class SyraPostCompositionService {
                 user_id = userId
             )
             
-            val response = supabase.functions.invoke<ContentEnhancementRequest, String>(
+            val response = supabase.functions.invoke(
                 function = "syra-content-generator",
                 body = request
             )
@@ -124,7 +124,7 @@ class SyraPostCompositionService {
                 "type" to "hashtags"
             )
             
-            val response = supabase.functions.invoke<Map<String, String>, String>(
+            val response = supabase.functions.invoke, String>(
                 function = "syra-content-generator",
                 body = request
             )
@@ -154,7 +154,7 @@ class SyraPostCompositionService {
                 "user_id" to userId
             )
             
-            val response = supabase.functions.invoke<Map<String, String>, String>(
+            val response = supabase.functions.invoke, String>(
                 function = "syra-content-generator",
                 body = request
             )
@@ -186,7 +186,7 @@ class SyraPostCompositionService {
                 "user_id" to userId
             )
             
-            val response = supabase.functions.invoke<Map<String, String>, String>(
+            val response = supabase.functions.invoke, String>(
                 function = "syra-content-generator",
                 body = request
             )

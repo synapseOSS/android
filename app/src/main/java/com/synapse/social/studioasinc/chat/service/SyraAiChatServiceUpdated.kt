@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc.chat.service
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.SupabaseClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -98,7 +99,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
             
             // Get user's preferred provider
             val settingsResponse = supabaseClient.from("ai_provider_settings")
-                .select("preferred_provider") {
+                .select(columns = Columns.list("preferred_provider")) {
                     filter {
                         eq("user_id", supabaseClient.auth.currentUserOrNull()?.id ?: "")
                     }

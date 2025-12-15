@@ -49,10 +49,10 @@ class SyraAiChatService {
                 session_type = "assistant"
             )
             
-            val response = supabase.functions.invoke<SyraRequest, String>(
+            val response = supabase.functions.invoke(
                 function = "ai-chat-assistant",
                 body = request
-            )
+            ).body<String>()
             
             val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
@@ -84,10 +84,10 @@ class SyraAiChatService {
                 chat_context = chatContext
             )
             
-            val response = supabase.functions.invoke<SmartReplyRequest, String>(
+            val response = supabase.functions.invoke(
                 function = "smart-replies",
                 body = request
-            )
+            ).body<String>()
             
             val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             val suggestions = jsonResponse["suggestions"]?.let { element ->
@@ -124,7 +124,7 @@ class SyraAiChatService {
                 "comment" to comment
             )
             
-            supabase.functions.invoke<Map<String, Any>, String>(
+            supabase.functions.invoke(
                 function = "ai-chat-analytics",
                 body = request
             )
@@ -138,9 +138,9 @@ class SyraAiChatService {
      */
     suspend fun getAnalytics(): AiChatAnalytics? {
         return try {
-            val response = supabase.functions.invoke<Unit, String>(
+            val response = supabase.functions.invoke(
                 function = "ai-chat-analytics/stats"
-            )
+            ).body<String>()
             
             val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             

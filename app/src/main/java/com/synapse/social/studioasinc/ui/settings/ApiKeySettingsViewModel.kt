@@ -100,16 +100,3 @@ class ApiKeySettingsViewModel @Inject constructor(
         return listOf("openai", "anthropic", "google", "openrouter")
     }
 }
-
-data class ApiKeyInfo(
-    val id: String,
-    val keyName: String,
-    val provider: String,
-    val usageCount: Int,
-    val usageLimit: Int?
-)
-
-data class ProviderSettings(
-    val preferredProvider: String = "platform",
-    val fallbackToPlatform: Boolean = true
-)
