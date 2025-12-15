@@ -124,7 +124,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
             val keyResult = Json.decodeFromString<Map<String, @Contextual Any>>(keyResponse)
             
             if (keyResult["has_key"] == true && keyResult["use_platform_key"] == false) {
-                return keyResult["api_key"]?.toString() ?: "" to preferredProvider
+                return (keyResult["api_key"] as? String) to preferredProvider
             } else {
                 return null to "platform"
             }
