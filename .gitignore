@@ -73,3 +73,6 @@ thumbs.db
 # However, the best practice is to manage all dependencies via build.gradle.
 # I will only exclude the *generated* AAR/APK files here for standard practice.
 # If those in app/libs/ are custom-built external dependencies, consider removing them.
+
+# Build scripts
+build-and-push.sh

@@ -78,9 +78,7 @@ class PostDetailActivity : BaseActivity() {
             onOptionsClick = { comment -> showCommentOptions(comment) },
             onReactionPickerClick = { comment -> showCommentReactionPicker(comment) },
             onLoadReplies = { commentId, callback -> 
-                viewModel.loadReplies(commentId) { replies ->
-                    callback(replies)
-                }
+                viewModel.loadReplies(commentId)
             }
         )
         binding.rvComments.apply {

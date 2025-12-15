@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.*
 import com.synapse.social.studioasinc.model.*
+import com.synapse.social.studioasinc.util.Logger
+import com.synapse.social.studioasinc.util.logd
+import com.synapse.social.studioasinc.util.loge
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -25,15 +28,28 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
     private val _commentsState = MutableStateFlow<CommentsState>(CommentsState.Loading)
     val commentsState: StateFlow<CommentsState> = _commentsState.asStateFlow()
 
+    private val _repliesState = MutableStateFlow<Map<String, List<CommentWithUser>>>(emptyMap())
+    val repliesState: StateFlow<Map<String, List<CommentWithUser>>> = _repliesState.asStateFlow()
+
+    private val _replyLoadingState = MutableStateFlow<Set<String>>(emptySet())
+    val replyLoadingState: StateFlow<Set<String>> = _replyLoadingState.asStateFlow()
+
     private var currentPostId: String? = null
 
     fun loadPost(postId: String) {
         currentPostId = postId
+        logd("Loading post: $postId")
         viewModelScope.launch {
             _postState.value = PostDetailState.Loading
             postDetailRepository.getPostWithDetails(postId).fold(
-                onSuccess = { _postState.value = PostDetailState.Success(it) },
-                onFailure = { _postState.value = PostDetailState.Error(it.message ?: "Failed to load") }
+                onSuccess = { 
+                    logd("Successfully loaded post: $postId")
+                    _postState.value = PostDetailState.Success(it) 
+                },
+                onFailure = { 
+                    loge("Failed to load post: $postId - ${it.message}", it)
+                    _postState.value = PostDetailState.Error(it.message ?: "Failed to load") 
+                }
             )
             postDetailRepository.incrementViewCount(postId)
         }
@@ -74,15 +90,29 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
 
     fun deleteComment(commentId: String) {
         val postId = currentPostId ?: return
+        Logger.d("Deleting comment: $commentId", "PostDetailViewModel")
         viewModelScope.launch {
-            commentRepository.deleteComment(commentId).onSuccess { loadComments(postId) }
+            commentRepository.deleteComment(commentId).fold(
+                onSuccess = { 
+                    Logger.d("Successfully deleted comment: $commentId", "PostDetailViewModel")
+                    loadComments(postId) 
+                },
+                onFailure = { Logger.e("Failed to delete comment: $commentId - ${it.message}", it, "PostDetailViewModel") }
+            )
         }
     }
 
     fun editComment(commentId: String, content: String) {
         val postId = currentPostId ?: return
+        Logger.d("Editing comment: $commentId", "PostDetailViewModel")
         viewModelScope.launch {
-            commentRepository.editComment(commentId, content).onSuccess { loadComments(postId) }
+            commentRepository.editComment(commentId, content).fold(
+                onSuccess = { 
+                    Logger.d("Successfully edited comment: $commentId", "PostDetailViewModel")
+                    loadComments(postId) 
+                },
+                onFailure = { Logger.e("Failed to edit comment: $commentId - ${it.message}", it, "PostDetailViewModel") }
+            )
         }
     }
 
@@ -131,22 +161,24 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
-    fun loadReplies(commentId: String, callback: (List<CommentWithUser>) -> Unit) {
+    fun loadReplies(commentId: String) {
         viewModelScope.launch {
-            android.util.Log.d("PostDetailViewModel", "Loading replies for comment: $commentId")
+            // Add to loading state
+            _replyLoadingState.value = _replyLoadingState.value + commentId
+            
+            logd("Loading replies for comment: $commentId")
             commentRepository.getReplies(commentId).fold(
                 onSuccess = { replies -> 
-                    android.util.Log.d("PostDetailViewModel", "Successfully loaded ${replies.size} replies")
-                    // Ensure callback runs on main thread
-                    launch(Dispatchers.Main) {
-                        callback(replies)
-                    }
+                    logd("Successfully loaded ${replies.size} replies")
+                    // Update replies state
+                    _repliesState.value = _repliesState.value + (commentId to replies)
+                    // Remove from loading state
+                    _replyLoadingState.value = _replyLoadingState.value - commentId
                 },
                 onFailure = { error ->
-                    android.util.Log.e("PostDetailViewModel", "Failed to load replies: ${error.message}")
-                    launch(Dispatchers.Main) {
-                        callback(emptyList())
-                    }
+                    loge("Failed to load replies: ${error.message}", error)
+                    // Remove from loading state even on failure
+                    _replyLoadingState.value = _replyLoadingState.value - commentId
                 }
             )
         }
