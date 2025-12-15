@@ -7,7 +7,9 @@ import com.synapse.social.studioasinc.data.local.CommentEntity
 import com.synapse.social.studioasinc.data.repository.CommentMapper
 import com.synapse.social.studioasinc.model.*
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
+import io.ktor.client.statement.bodyAsText
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.Dispatchers
@@ -197,6 +199,9 @@ class CommentRepository(private val commentDao: CommentDao) {
                     }
                     
                     updatePostCommentsCount(postId, 1)
+                    
+                    // Process mentions for Syra AI
+                    processMentions(postId, comment.id, content, userId, parentCommentId)
                     
                     Log.d(TAG, "Comment created successfully: ${comment.id}")
                     return@withContext Result.success(comment)
@@ -501,6 +506,42 @@ class CommentRepository(private val commentDao: CommentDao) {
             message.contains("timeout", ignoreCase = true) -> "Request timed out. Please try again."
             message.contains("unauthorized", ignoreCase = true) -> "Permission denied."
             else -> "Failed to process comment: $message"
+        }
+    }
+    
+    private suspend fun processMentions(
+        postId: String,
+        commentId: String,
+        content: String,
+        senderId: String,
+        parentCommentId: String?
+    ) {
+        try {
+            // Extract mentions from the comment content
+            val mentionedUsers = com.synapse.social.studioasinc.util.MentionParser.extractMentions(content)
+            
+            if (mentionedUsers.contains("syra")) {
+                Log.d(TAG, "Syra mentioned in comment - calling mention handler")
+                
+                // Call the syra-mention-handler function
+                val mentionRequest = mapOf(
+                    "postId" to postId,
+                    "commentId" to if (parentCommentId != null) parentCommentId else commentId,
+                    "messageText" to content,
+                    "mentionedUsers" to mentionedUsers,
+                    "senderId" to senderId,
+                    "mentionType" to if (parentCommentId != null) "comment" else "post"
+                )
+                
+                val response = client.functions.invoke(
+                    function = "syra-mention-handler",
+                    body = mentionRequest
+                )
+                
+                Log.d(TAG, "Syra mention handler response: ${response.bodyAsText()}")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to process mentions: ${e.message}", e)
         }
     }
 }

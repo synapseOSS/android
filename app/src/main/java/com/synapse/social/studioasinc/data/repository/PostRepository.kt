@@ -11,7 +11,9 @@ import com.synapse.social.studioasinc.model.UserReaction
 import com.synapse.social.studioasinc.model.MediaItem
 import com.synapse.social.studioasinc.model.MediaType
 import com.synapse.social.studioasinc.util.ImageLoader
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
+import io.ktor.client.statement.bodyAsText
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.Dispatchers
@@ -127,6 +129,10 @@ class PostRepository(
             client.from("posts").insert(postDto)
             postDao.insertAll(listOf(PostMapper.toEntity(post)))
             invalidateCache()
+            
+            // Process mentions for Syra AI
+            processMentions(post.id, post.postText ?: "", post.authorUid)
+            
             Result.success(post)
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to create post", e)
@@ -482,6 +488,39 @@ class PostRepository(
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to fetch user profile for $userId", e)
             null
+        }
+    }
+    
+    private suspend fun processMentions(
+        postId: String,
+        content: String,
+        senderId: String
+    ) {
+        try {
+            // Extract mentions from the post content
+            val mentionedUsers = com.synapse.social.studioasinc.util.MentionParser.extractMentions(content)
+            
+            if (mentionedUsers.contains("syra")) {
+                android.util.Log.d(TAG, "Syra mentioned in post - calling mention handler")
+                
+                // Call the syra-mention-handler function
+                val mentionRequest = mapOf(
+                    "postId" to postId,
+                    "messageText" to content,
+                    "mentionedUsers" to mentionedUsers,
+                    "senderId" to senderId,
+                    "mentionType" to "post"
+                )
+                
+                val response = client.functions.invoke(
+                    function = "syra-mention-handler",
+                    body = mentionRequest
+                )
+                
+                android.util.Log.d(TAG, "Syra mention handler response: ${response.bodyAsText()}")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to process mentions: ${e.message}", e)
         }
     }
 }

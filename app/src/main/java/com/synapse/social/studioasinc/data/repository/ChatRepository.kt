@@ -7,7 +7,9 @@ import com.synapse.social.studioasinc.data.local.ChatDao
 import com.synapse.social.studioasinc.data.local.ChatEntity
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.model.Message
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
+import io.ktor.client.statement.bodyAsText
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.PostgresAction
@@ -90,12 +92,49 @@ class ChatRepository(private val chatDao: ChatDao) {
         result.onSuccess { messageId ->
             android.util.Log.d("ChatRepository", "✓ Message sent successfully, messageId: $messageId")
             refreshUserChats(senderId)
+            
+            // Check for Syra mentions and trigger AI response
+            processMentions(chatId, content, senderId, messageType)
         }.onFailure { error ->
             android.util.Log.e("ChatRepository", "✗ Failed to send message: ${error.message}", error)
         }
         
         android.util.Log.d("ChatRepository", "=== sendMessage END ===")
         return result
+    }
+    
+    private suspend fun processMentions(
+        chatId: String,
+        messageText: String,
+        senderId: String,
+        mentionType: String
+    ) {
+        try {
+            // Extract mentions from the message
+            val mentionedUsers = com.synapse.social.studioasinc.util.MentionParser.extractMentions(messageText)
+            
+            if (mentionedUsers.contains("syra")) {
+                android.util.Log.d("ChatRepository", "Syra mentioned - calling mention handler")
+                
+                // Call the syra-mention-handler function
+                val mentionRequest = mapOf(
+                    "chatId" to chatId,
+                    "messageText" to messageText,
+                    "mentionedUsers" to mentionedUsers,
+                    "senderId" to senderId,
+                    "mentionType" to "chat"
+                )
+                
+                val response = client.functions.invoke(
+                    function = "syra-mention-handler",
+                    body = mentionRequest
+                )
+                
+                android.util.Log.d("ChatRepository", "Syra mention handler response: ${response.bodyAsText()}")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ChatRepository", "Failed to process mentions: ${e.message}", e)
+        }
     }
 
     suspend fun getMessages(

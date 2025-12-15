@@ -43,15 +43,16 @@ class SyraAiChatService {
         chatId: String? = null
     ): SyraResponse? {
         return try {
-            val request = SyraRequest(
-                user_id = userId,
-                message = message,
-                chat_id = chatId,
-                session_type = "assistant"
+            val request = mapOf(
+                "chatId" to chatId,
+                "messageText" to message,
+                "mentionedUsers" to listOf("syra"),
+                "senderId" to userId,
+                "mentionType" to "chat"
             )
             
             val response = supabase.functions.invoke(
-                function = "ai-chat-assistant",
+                function = "syra-mention-handler",
                 body = request
             ).bodyAsText()
             
@@ -59,11 +60,12 @@ class SyraAiChatService {
             
             SyraResponse(
                 response = jsonResponse["response"]?.jsonPrimitive?.content ?: "",
-                sessionId = jsonResponse["session_id"]?.jsonPrimitive?.content ?: "",
-                responseTimeMs = jsonResponse["response_time_ms"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
-                type = jsonResponse["type"]?.jsonPrimitive?.content ?: "assistant"
+                sessionId = "", // Not used in mention handler
+                responseTimeMs = 0, // Not provided by mention handler
+                type = jsonResponse["type"]?.jsonPrimitive?.content ?: "chat"
             )
         } catch (e: Exception) {
+            android.util.Log.e("SyraAiChatService", "Failed to send to Syra: ${e.message}", e)
             null
         }
     }
@@ -157,14 +159,7 @@ class SyraAiChatService {
     }
 }
 
-// Data Models
-@Serializable
-data class SyraRequest(
-    val user_id: String,
-    val message: String,
-    val chat_id: String? = null,
-    val session_type: String = "assistant"
-)
+// Data Models - Updated for mention handler compatibility
 
 @Serializable
 data class SmartReplyRequest(

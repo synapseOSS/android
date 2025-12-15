@@ -159,7 +159,7 @@ async function handleChatMention(supabase: any, chatId: string, responseContent:
     .from('messages')
     .insert({
       chat_id: chatId,
-      sender_id: '15ce5fde-7085-495d-b9a2-78ff83c79c06',
+      sender_id: 'syra-ai-uid',
       content: responseContent,
       message_type: 'text',
       created_at: new Date().toISOString()
@@ -180,7 +180,7 @@ async function handlePostMention(supabase: any, postId: string, responseContent:
     .from('comments')
     .insert({
       post_id: postId,
-      user_id: '15ce5fde-7085-495d-b9a2-78ff83c79c06',
+      user_id: 'syra-ai-uid',
       content: responseContent,
       created_at: new Date().toISOString()
     })
@@ -200,7 +200,7 @@ async function handleCommentMention(supabase: any, commentId: string, responseCo
     .from('comments')
     .insert({
       parent_comment_id: commentId,
-      user_id: '15ce5fde-7085-495d-b9a2-78ff83c79c06',
+      user_id: 'syra-ai-uid',
       content: responseContent,
       created_at: new Date().toISOString()
     })
