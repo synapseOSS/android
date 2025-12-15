@@ -105,7 +105,7 @@ class AiModerationService {
                 "reporter_id" to reporterId
             )
             
-            supabase.functions.invoke, String>(
+            supabase.functions.invoke(
                 function = "moderation-actions",
                 body = request
             )

@@ -124,10 +124,10 @@ class SyraPostCompositionService {
                 "type" to "hashtags"
             )
             
-            val response = supabase.functions.invoke, String>(
+            val response = supabase.functions.invoke(
                 function = "syra-content-generator",
                 body = request
-            )
+            ).body<String>()
             
             val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             val hashtags = jsonResponse["hashtags"]?.let { element ->
@@ -154,10 +154,10 @@ class SyraPostCompositionService {
                 "user_id" to userId
             )
             
-            val response = supabase.functions.invoke, String>(
+            val response = supabase.functions.invoke(
                 function = "syra-content-generator",
                 body = request
-            )
+            ).body<String>()
             
             val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             jsonResponse["ideas"]?.let { element ->
@@ -186,10 +186,10 @@ class SyraPostCompositionService {
                 "user_id" to userId
             )
             
-            val response = supabase.functions.invoke, String>(
+            val response = supabase.functions.invoke(
                 function = "syra-content-generator",
                 body = request
-            )
+            ).body<String>()
             
             val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
