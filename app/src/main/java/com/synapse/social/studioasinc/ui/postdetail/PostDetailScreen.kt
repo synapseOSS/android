@@ -213,6 +213,7 @@ fun PostDetailScreen(
                      onShowReactions = { showReactionPickerForComment = it },
                      onShowOptions = { showCommentOptions = it },
                      onUserClick = onNavigateToProfile,
+                     onLoadReplies = { commentId -> viewModel.loadReplies(commentId) },
                      modifier = Modifier.padding(paddingValues),
                      headerContent = {
                          Column {
