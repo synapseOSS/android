@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.settings.ApiKeySettingsService
+import com.synapse.social.studioasinc.settings.ApiKeyInfo
+import com.synapse.social.studioasinc.settings.ProviderSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject

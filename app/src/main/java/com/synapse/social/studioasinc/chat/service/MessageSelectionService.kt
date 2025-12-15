@@ -4,6 +4,7 @@ import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -140,8 +141,8 @@ class MessageSelectionService {
                 filter {
                     eq("user_id", userId)
                 }
-                order("created_at", ascending = false)
-                limit(limit)
+                order("created_at", Order.DESCENDING)
+                limit(limit.toLong())
             }
             .decodeList<MessageActionHistoryDto>()
         

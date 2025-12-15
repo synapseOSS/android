@@ -2,6 +2,9 @@ package com.synapse.social.studioasinc.sync
 
 import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.realtime
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
@@ -169,7 +172,7 @@ class EnhancedMessageSyncService(private val scope: CoroutineScope) {
     suspend fun getUnreadCount(userId: String): Int {
         return try {
             val response = supabase.from("messages")
-                .select("id") {
+                .select(columns = Columns.list("id")) {
                     filter {
                         neq("sender_id", userId)
                         eq("message_state", "delivered")
@@ -189,12 +192,12 @@ class EnhancedMessageSyncService(private val scope: CoroutineScope) {
     suspend fun syncConversationHistory(chatId: String, lastSyncTimestamp: Long = 0): List<SyncedMessage> {
         return try {
             val response = supabase.from("messages")
-                .select("*") {
+                .select(columns = Columns.ALL) {
                     filter {
                         eq("chat_id", chatId)
                         gt("created_at", lastSyncTimestamp)
                     }
-                    order("created_at", ascending = true)
+                    order("created_at", Order.ASCENDING)
                 }
                 .decodeList<MessageDto>()
             

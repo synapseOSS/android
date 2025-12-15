@@ -207,7 +207,7 @@ class ApiKeySettingsService @Inject constructor(
     }
 
     suspend fun addApiKey(provider: String, keyName: String, apiKey: String) {
-        addApiKey(provider, keyName, apiKey, null)
+        storeApiKey(provider, apiKey, keyName, null)
     }
 
     suspend fun updatePreferredProvider(provider: String) {

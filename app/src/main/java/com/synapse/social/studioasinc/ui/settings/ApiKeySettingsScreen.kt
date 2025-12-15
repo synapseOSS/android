@@ -209,6 +209,7 @@ fun ApiKeyItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddApiKeyDialog(
     onDismiss: () -> Unit,
