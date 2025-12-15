@@ -5,6 +5,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.SupabaseClient
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Contextual
@@ -101,7 +102,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
             val settingsResponse = supabaseClient.from("ai_provider_settings")
                 .select(columns = Columns.list("preferred_provider")) {
                     filter {
-                        eq("user_id", supabaseClient.auth.currentUserOrNull()?.id ?: "")
+                        FilterOperator.eq("user_id", supabaseClient.auth.currentUserOrNull()?.id ?: "")
                     }
                 }
                 .decodeSingleOrNull<Map<String, Any>>()
@@ -121,7 +122,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
             val keyResult = Json.decodeFromString<Map<String, @Contextual Any>>(keyResponse)
             
             if (keyResult["has_key"] == true && keyResult["use_platform_key"] == false) {
-                keyResult["api_key"]?.toString() ?: "" to preferredProvider
+                return keyResult["api_key"]?.toString() ?: "" to preferredProvider
             } else {
                 null to "platform"
             }
@@ -138,9 +139,9 @@ class SyraAiChatServiceUpdated @Inject constructor(
             supabaseClient.from("user_api_keys")
                 .update(mapOf("usage_count" to "usage_count + $tokensUsed")) {
                     filter {
-                        eq("user_id", userId)
-                        eq("provider", provider)
-                        eq("is_active", true)
+                        FilterOperator.eq("user_id", userId)
+                        FilterOperator.eq("provider", provider)
+                        FilterOperator.eq("is_active", true)
                     }
                 }
         } catch (e: Exception) {

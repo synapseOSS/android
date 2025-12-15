@@ -5,7 +5,6 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator.eq
 import io.github.jan.supabase.realtime.realtime
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
@@ -121,7 +120,7 @@ class EnhancedMessageSyncService(private val scope: CoroutineScope) {
             supabase.from("messages")
                 .update(mapOf("message_state" to status.name.lowercase())) {
                     filter {
-                        eq("id", messageId)
+                        FilterOperator.eq("id", messageId)
                     }
                 }
             
@@ -149,7 +148,7 @@ class EnhancedMessageSyncService(private val scope: CoroutineScope) {
                         "message_state" to "read"
                     )) {
                         filter {
-                            eq("id", messageId)
+                            FilterOperator.eq("id", messageId)
                         }
                     }
             }
@@ -161,7 +160,7 @@ class EnhancedMessageSyncService(private val scope: CoroutineScope) {
                     "last_read_at" to readTimestamp
                 )) {
                     filter {
-                        eq("user_id", userId)
+                        FilterOperator.eq("user_id", userId)
                     }
                 }
                 
@@ -178,8 +177,8 @@ class EnhancedMessageSyncService(private val scope: CoroutineScope) {
             val response = supabase.from("messages")
                 .select(columns = Columns.list("id")) {
                     filter {
-                        neq("sender_id", userId)
-                        eq("message_state", "delivered")
+                        FilterOperator.neq("sender_id", userId)
+                        FilterOperator.eq("message_state", "delivered")
                     }
                 }
                 .decodeList<Map<String, Any>>()
@@ -198,8 +197,8 @@ class EnhancedMessageSyncService(private val scope: CoroutineScope) {
             val response = supabase.from("messages")
                 .select(columns = Columns.ALL) {
                     filter {
-                        eq("chat_id", chatId)
-                        gt("created_at", lastSyncTimestamp)
+                        FilterOperator.eq("chat_id", chatId)
+                        FilterOperator.gt("created_at", lastSyncTimestamp)
                     }
                     order("created_at", Order.ASCENDING)
                 }

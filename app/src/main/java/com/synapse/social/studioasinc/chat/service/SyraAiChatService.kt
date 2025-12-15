@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc.chat.service
 import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

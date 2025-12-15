@@ -4,6 +4,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.SupabaseClient
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
