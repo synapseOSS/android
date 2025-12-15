@@ -44,7 +44,7 @@ class AiModerationService {
             val response = supabase.functions.invoke(
                 function = "ai-content-moderator",
                 body = request
-            )
+            ).bodyAsText()
             
             val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             
@@ -124,7 +124,7 @@ class AiModerationService {
         return try {
             val response = supabase.functions.invoke(
                 function = "moderation-dashboard/stats"
-            )
+            ).bodyAsText()
             
             val jsonResponse = Json.parseToJsonElement(response ?: "{}").jsonObject
             

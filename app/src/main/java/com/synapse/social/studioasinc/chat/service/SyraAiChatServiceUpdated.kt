@@ -61,10 +61,10 @@ class SyraAiChatServiceUpdated @Inject constructor(
                 context = context
             )
 
-            val response = supabaseClient.functions.invoke<AiChatRequest, String>(
+            val response = supabaseClient.functions.invoke(
                 function = "ai-chat-assistant",
                 body = request
-            )
+            ).bodyAsText()
 
             val result = Json.decodeFromString<Map<String, @Contextual Any>>(response)
             
@@ -104,7 +104,7 @@ class SyraAiChatServiceUpdated @Inject constructor(
                         eq("user_id", supabaseClient.auth.currentUserOrNull()?.id ?: "")
                     }
                 }
-                .decodeSingleOrNull<Map<String, @Contextual Any>>()
+                .decodeSingleOrNull<Map<String, Any>>()
             
             val preferredProvider = settingsResponse?.get("preferred_provider") as? String ?: "platform"
             
@@ -113,10 +113,10 @@ class SyraAiChatServiceUpdated @Inject constructor(
             }
 
             // Get user's API key for the preferred provider
-            val keyResponse = supabaseClient.functions.invoke<Map<String, @Contextual Any>, String>(
+            val keyResponse = supabaseClient.functions.invoke(
                 function = "api-key-manager",
-                body = emptyMap<String, @Contextual Any>()
-            )
+                body = emptyMap<String, Any>()
+            ).bodyAsText()
 
             val keyResult = Json.decodeFromString<Map<String, @Contextual Any>>(keyResponse)
             
@@ -165,12 +165,12 @@ class SyraAiChatServiceUpdated @Inject constructor(
                 "provider" to provider
             )
 
-            val response = supabaseClient.functions.invoke<Map<String, @Contextual Any>, String>(
+            val response = supabaseClient.functions.invoke(
                 function = "smart-replies",
                 body = request
-            )
+            ).bodyAsText()
 
-            val result = Json.decodeFromString<Map<String, @Contextual Any>>(response)
+            val result = Json.decodeFromString<Map<String, Any>>(response)
             
             if (result["success"] == true) {
                 val suggestions = result["suggestions"] as? List<*> ?: emptyList<String>()

@@ -53,10 +53,10 @@ class ApiKeySettingsService @Inject constructor(
             val token = supabaseClient.auth.currentAccessTokenOrNull()
                 ?: return Result.failure(Exception("Not authenticated"))
 
-            val response = supabaseClient.functions.invoke<Map<String, Any>, String>(
+            val response = supabaseClient.functions.invoke(
                 function = "api-key-manager",
                 body = emptyMap<String, Any>()
-            )
+            ).bodyAsText()
 
             val result = Json.decodeFromString<Map<String, Any>>(response)
             if (result["success"] == true) {
@@ -90,10 +90,10 @@ class ApiKeySettingsService @Inject constructor(
                 usage_limit = usageLimit
             )
 
-            val response = supabaseClient.functions.invoke<ApiKeyRequest, String>(
+            val response = supabaseClient.functions.invoke(
                 function = "api-key-manager",
                 body = request
-            )
+            ).bodyAsText()
 
             val result = Json.decodeFromString<Map<String, Any>>(response)
             if (result["success"] == true) {
@@ -112,10 +112,10 @@ class ApiKeySettingsService @Inject constructor(
             val token = supabaseClient.auth.currentAccessTokenOrNull()
                 ?: return Result.failure(Exception("Not authenticated"))
 
-            val response = supabaseClient.functions.invoke<Map<String, String>, String>(
+            val response = supabaseClient.functions.invoke(
                 function = "api-key-manager",
                 body = mapOf("key_id" to keyId)
-            )
+            ).bodyAsText()
 
             val result = Json.decodeFromString<Map<String, Any>>(response)
             if (result["success"] == true) {

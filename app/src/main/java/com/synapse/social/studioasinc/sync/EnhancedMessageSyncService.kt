@@ -119,8 +119,11 @@ class EnhancedMessageSyncService(private val scope: CoroutineScope) {
     suspend fun updateMessageStatus(messageId: String, status: MessageStatus) {
         try {
             supabase.from("messages")
-                .update(mapOf("message_state" to status.name.lowercase()))
-                .eq("id", messageId)
+                .update(mapOf("message_state" to status.name.lowercase())) {
+                    filter {
+                        eq("id", messageId)
+                    }
+                }
             
             // Update local tracking
             pendingMessages[messageId]?.let { message ->
