@@ -113,14 +113,24 @@ class ChatRepository(private val chatDao: ChatDao) {
             // Extract mentions from the message
             val mentionedUsers = com.synapse.social.studioasinc.util.MentionParser.extractMentions(messageText)
             
-            if (mentionedUsers.contains("syra")) {
-                android.util.Log.d("ChatRepository", "Syra mentioned - calling mention handler")
+            // Check if this is a DM with Syra or if Syra is mentioned
+            val isDmWithSyra = chatId.contains("syra-ai-uid", ignoreCase = true)
+            val shouldRespond = isDmWithSyra || mentionedUsers.contains("syra")
+            
+            if (shouldRespond) {
+                android.util.Log.d("ChatRepository", "Syra should respond - DM: $isDmWithSyra, Mentioned: ${mentionedUsers.contains("syra")}")
                 
                 // Call the syra-mention-handler function
+                val finalMentionedUsers = if (isDmWithSyra && !mentionedUsers.contains("syra")) {
+                    mentionedUsers + "syra"
+                } else {
+                    mentionedUsers
+                }
+                
                 val mentionRequest = mapOf(
                     "chatId" to chatId,
                     "messageText" to messageText,
-                    "mentionedUsers" to mentionedUsers,
+                    "mentionedUsers" to finalMentionedUsers,
                     "senderId" to senderId,
                     "mentionType" to "chat"
                 )

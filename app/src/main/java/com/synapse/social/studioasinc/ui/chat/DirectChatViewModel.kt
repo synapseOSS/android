@@ -29,12 +29,18 @@ import io.github.jan.supabase.realtime.PostgresAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.TextRange
 import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
+import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
 
 /**
  * ViewModel for DirectChatScreen
  * Adapter for existing ChatRepository to Compose UI State
+ * Integrates with MessageDeletionViewModel for deletion status synchronization
+ * Requirements: 2.4
  */
-class DirectChatViewModel(application: Application) : AndroidViewModel(application) {
+class DirectChatViewModel(
+    application: Application,
+    private val messageDeletionViewModel: MessageDeletionViewModel
+) : AndroidViewModel(application) {
 
     // Dependencies
     private val chatDao = AppDatabase.getDatabase(application).chatDao()
@@ -140,6 +146,58 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     init {
         loadCurrentUser()
         observeConnectionState()
+        observeDeletionStatus()
+    }
+    
+    /**
+     * Observe deletion status from MessageDeletionViewModel
+     * Updates UI state when chat deletion operations affect current chat
+     * Requirements: 2.4
+     */
+    private fun observeDeletionStatus() {
+        viewModelScope.launch {
+            messageDeletionViewModel.deletionEvents.collect { event ->
+                when (event) {
+                    is com.synapse.social.studioasinc.ui.deletion.DeletionEvent.Success -> {
+                        // Check if current chat was affected by deletion
+                        val currentChatId = this@DirectChatViewModel.currentChatId
+                        val selectedChatIds = messageDeletionViewModel.uiState.value.selectedChatIds
+                        
+                        if (currentChatId != null && selectedChatIds.contains(currentChatId)) {
+                            // Current chat was deleted, clear messages
+                            _dbMessages.value = emptyList()
+                            _optimisticMessages.value = emptyList()
+                            
+                            _uiState.update { 
+                                it.copy(error = "Chat history has been deleted")
+                            }
+                        }
+                    }
+                    is com.synapse.social.studioasinc.ui.deletion.DeletionEvent.PartialSuccess -> {
+                        // Handle partial deletion - may need to refresh messages
+                        val currentChatId = this@DirectChatViewModel.currentChatId
+                        val selectedChatIds = messageDeletionViewModel.uiState.value.selectedChatIds
+                        
+                        if (currentChatId != null && selectedChatIds.contains(currentChatId)) {
+                            // Reload messages to reflect partial deletion
+                            loadChat(currentChatId)
+                        }
+                    }
+                    is com.synapse.social.studioasinc.ui.deletion.DeletionEvent.Error -> {
+                        // Show deletion error in chat UI if relevant
+                        val currentChatId = this@DirectChatViewModel.currentChatId
+                        val selectedChatIds = messageDeletionViewModel.uiState.value.selectedChatIds
+                        
+                        if (currentChatId != null && selectedChatIds.contains(currentChatId)) {
+                            _uiState.update { 
+                                it.copy(error = "Failed to delete chat history: ${event.message}")
+                            }
+                        }
+                    }
+                    else -> { /* Handle other events if needed */ }
+                }
+            }
+        }
     }
 
     private fun observeConnectionState() {
@@ -165,6 +223,17 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     fun loadChat(chatId: String) {
         // Only skip full reload if already observing this chat with active realtime
         if (currentChatId == chatId && realtimeJob?.isActive == true) return
+        
+        // Clean up previous chat's realtime connection
+        if (currentChatId != null && currentChatId != chatId) {
+            realtimeJob?.cancel()
+            viewModelScope.launch {
+                currentChatId?.let { oldChatId ->
+                    realtimeService.unsubscribeFromChat(oldChatId)
+                }
+            }
+        }
+        
         currentChatId = chatId
         
         viewModelScope.launch {
@@ -216,78 +285,92 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private fun observeRealtimeMessages(chatId: String) {
         realtimeJob?.cancel()
         realtimeJob = viewModelScope.launch {
-            // 1. Get or create channel for postgres changes flow
-            val channel = realtimeService.getOrCreateChannelForMessages(chatId)
-            val changesFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
-                table = "messages"
-                filter("chat_id", FilterOperator.EQ, chatId)
-            }
+            try {
+                // 1. Get channel (not subscribed yet)
+                val channel = realtimeService.getOrCreateChannelForMessages(chatId)
+                
+                // 2. Set up postgres changes flow BEFORE subscribing
+                val changesFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                    table = "messages"
+                    filter("chat_id", FilterOperator.EQ, chatId)
+                }
+                
+                // 3. Set up broadcast flow BEFORE subscribing
+                val typingFlow = channel.broadcastFlow<JsonObject>(event = "typing")
+                
+                // 4. Now subscribe to the channel
+                channel.subscribe()
 
-            // 2. Observe Messages (Insert/Update/Delete)
-            launch {
-                try {
-
-                    changesFlow.collect { action ->
-                        when (action) {
-                            is PostgresAction.Insert -> {
-                                val message = action.decodeRecord<Message>()
-                                // Double check chat_id just in case
-                                if (message.chatId == chatId) handleMessageInsert(message)
+                // 5. Observe Messages (Insert/Update/Delete)
+                launch {
+                    try {
+                        changesFlow.collect { action ->
+                            when (action) {
+                                is PostgresAction.Insert -> {
+                                    val message = action.decodeRecord<Message>()
+                                    // Double check chat_id just in case
+                                    if (message.chatId == chatId) handleMessageInsert(message)
+                                }
+                                is PostgresAction.Update -> {
+                                    val message = action.decodeRecord<Message>()
+                                    if (message.chatId == chatId) handleMessageUpdate(message)
+                                }
+                                is PostgresAction.Delete -> {
+                                    val oldRecord = action.oldRecord
+                                    val recChatId = oldRecord["chat_id"]?.toString()?.replace("\"", "")
+                                    if (recChatId == chatId || (recChatId == null)) { 
+                                         val id = oldRecord["id"]?.toString()?.replace("\"", "")
+                                         if (id != null) handleMessageDelete(id)
+                                    }
+                                }
+                                else -> {}
                             }
-                            is PostgresAction.Update -> {
-                                val message = action.decodeRecord<Message>()
-                                if (message.chatId == chatId) handleMessageUpdate(message)
+                        }
+                    } catch (e: Exception) {
+                        _uiState.update { it.copy(error = "Realtime message error: ${e.message}") }
+                    }
+                }
+                
+                // 6. Observe Typing Events
+                launch {
+                    try {
+                        typingFlow.collect { event ->
+                            val payload = event
+                            val userId = payload["user_id"]?.toString()?.replace("\"", "") ?: return@collect
+                            val isTyping = payload["is_typing"]?.toString()?.toBoolean() ?: false
+                            
+                            // Ignore self
+                            if (userId == currentUserId) return@collect
+                            
+                            _uiState.update { state ->
+                                val currentTyping = state.typingUsers.toMutableSet()
+                                if (isTyping) {
+                                    // Add user
+                                    currentTyping.add(state.otherUser?.username ?: "User")
+                                } else {
+                                    currentTyping.remove(state.otherUser?.username ?: "User")
+                                }
+                                state.copy(typingUsers = currentTyping.toList())
                             }
-                            is PostgresAction.Delete -> {
-                                val oldRecord = action.oldRecord
-                                val recChatId = oldRecord["chat_id"]?.toString()?.replace("\"", "")
-                                if (recChatId == chatId || (recChatId == null)) { 
-                                     val id = oldRecord["id"]?.toString()?.replace("\"", "")
-                                     if (id != null) handleMessageDelete(id)
+                            
+                            // Auto-remove typing status after 3 seconds (debounce safety)
+                            if (isTyping) {
+                                launch {
+                                    kotlinx.coroutines.delay(3000)
+                                    _uiState.update { state ->
+                                        val currentTyping = state.typingUsers.toMutableSet()
+                                        currentTyping.remove(state.otherUser?.username ?: "User")
+                                        state.copy(typingUsers = currentTyping.toList())
+                                    }
                                 }
                             }
-                            else -> {}
                         }
+                    } catch (e: Exception) {
+                        _uiState.update { it.copy(error = "Realtime typing error: ${e.message}") }
                     }
-                } catch (e: Exception) {
-                    _uiState.update { it.copy(error = "Realtime message error: ${e.message}") }
                 }
-            }
-            
-            // 3. Observe Typing Events
-            launch {
-                 channel.broadcastFlow<JsonObject>(event = "typing")
-                     .collect { event ->
-                         val payload = event
-                         val userId = payload["user_id"]?.toString()?.replace("\"", "") ?: return@collect
-                         val isTyping = payload["is_typing"]?.toString()?.toBoolean() ?: false
-                         
-                         // Ignore self
-                         if (userId == currentUserId) return@collect
-                         
-                         _uiState.update { state ->
-                             val currentTyping = state.typingUsers.toMutableSet()
-                             if (isTyping) {
-                                 // Add user
-                                 currentTyping.add(state.otherUser?.username ?: "User")
-                             } else {
-                                 currentTyping.remove(state.otherUser?.username ?: "User")
-                             }
-                             state.copy(typingUsers = currentTyping.toList())
-                         }
-                         
-                         // Auto-remove typing status after 3 seconds (debounce safety)
-                         if (isTyping) {
-                             launch {
-                                 kotlinx.coroutines.delay(3000)
-                                 _uiState.update { state ->
-                                     val currentTyping = state.typingUsers.toMutableSet()
-                                     currentTyping.remove(state.otherUser?.username ?: "User")
-                                     state.copy(typingUsers = currentTyping.toList())
-                                 }
-                             }
-                         }
-                     }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "Failed to set up realtime: ${e.message}") }
             }
         }
     }
@@ -993,6 +1076,28 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
         
         viewModelScope.launch {
             realtimeService.broadcastTyping(chatId, userId, isTyping)
+        }
+    }
+
+    /**
+     * Delete current chat history using MessageDeletionViewModel
+     * Requirements: 2.4
+     */
+    fun deleteCurrentChatHistory() {
+        val chatId = currentChatId ?: return
+        val userId = currentUserId ?: return
+        
+        viewModelScope.launch {
+            val validationResult = messageDeletionViewModel.validateDeletionRequest(userId, listOf(chatId))
+            
+            when (validationResult) {
+                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Valid -> {
+                    messageDeletionViewModel.deleteSpecificChats(userId, listOf(chatId))
+                }
+                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Invalid -> {
+                    _uiState.update { it.copy(error = validationResult.reason) }
+                }
+            }
         }
     }
 

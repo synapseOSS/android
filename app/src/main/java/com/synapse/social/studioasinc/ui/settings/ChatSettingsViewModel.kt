@@ -210,6 +210,15 @@ class ChatSettingsViewModel(
         // Navigation will be handled by the screen composable
     }
 
+    /**
+     * Handles navigation to chat history deletion screen.
+     * This allows users to delete their chat history from all devices.
+     */
+    fun navigateToChatHistoryDeletion() {
+        android.util.Log.d("ChatSettingsViewModel", "Navigate to chat history deletion")
+        // Navigation will be handled by the screen composable
+    }
+
     // ========================================================================
     // Chat Font Size
     // ========================================================================

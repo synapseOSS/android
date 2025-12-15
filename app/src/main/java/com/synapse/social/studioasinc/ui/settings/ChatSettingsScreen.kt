@@ -27,7 +27,8 @@ import com.synapse.social.studioasinc.R
 fun ChatSettingsScreen(
     viewModel: ChatSettingsViewModel,
     onBackClick: () -> Unit,
-    onNavigateToChatPrivacy: () -> Unit
+    onNavigateToChatPrivacy: () -> Unit,
+    onNavigateToChatHistoryDeletion: () -> Unit = {}
 ) {
     val chatSettings by viewModel.chatSettings.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -211,6 +212,24 @@ fun ChatSettingsScreen(
                         },
                         enabled = !isLoading,
                         position = SettingsItemPosition.Bottom
+                    )
+                }
+            }
+
+            // Data Management Section
+            item {
+                SettingsSection(title = "Data Management") {
+                    // Chat History Deletion
+                    SettingsNavigationItem(
+                        title = "Chat History Deletion",
+                        subtitle = "Delete chat history from all devices",
+                        icon = R.drawable.auto_delete_24px,
+                        onClick = { 
+                            viewModel.navigateToChatHistoryDeletion()
+                            onNavigateToChatHistoryDeletion()
+                        },
+                        enabled = !isLoading,
+                        position = SettingsItemPosition.Single
                     )
                 }
             }

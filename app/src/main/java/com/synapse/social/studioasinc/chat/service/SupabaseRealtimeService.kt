@@ -129,19 +129,28 @@ class SupabaseRealtimeService {
     suspend fun getOrCreateChannelForMessages(chatId: String): RealtimeChannel {
         Log.d(TAG, "Getting channel for messages: $chatId")
         
-        // If channel exists and is joined, create a new one for messages
+        // If channel exists and is joined, we need to recreate it
         channels[chatId]?.let { existingChannel ->
             if (existingChannel.status.toString() == "JOINED") {
-                Log.d(TAG, "Existing channel is joined, creating new channel for messages")
-                val channelName = "chat:$chatId:messages"
-                val newChannel = SupabaseClient.client.realtime.channel(channelName)
-                newChannel.subscribe()
-                return newChannel
+                Log.w(TAG, "Channel already joined for chat: $chatId. Recreating channel for new flows.")
+                // Remove the existing channel
+                channels.remove(chatId)
+                try {
+                    SupabaseClient.client.realtime.removeChannel(existingChannel)
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error removing existing channel", e)
+                }
+            } else {
+                // If channel exists but not joined, return it so flows can be added
+                return existingChannel
             }
         }
         
-        // Otherwise use the regular subscribe method
-        return subscribeToChat(chatId)
+        // Create new channel but don't subscribe yet - let the caller set up flows first
+        val channelName = "chat:$chatId"
+        val newChannel = SupabaseClient.client.realtime.channel(channelName)
+        channels[chatId] = newChannel
+        return newChannel
     }
     
     /**

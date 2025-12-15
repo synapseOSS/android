@@ -50,6 +50,7 @@ class SettingsHubViewModel(application: Application) : AndroidViewModel(applicat
                         ?: currentUser.username?.takeIf { it.isNotBlank() }
                         ?: "User"
                     
+                    android.util.Log.d("SettingsHubViewModel", "Profile loaded - avatarUrl: ${currentUser.profileImageUrl}")
                     _userProfileSummary.value = UserProfileSummary(
                         id = currentUser.uid,
                         displayName = displayName,
@@ -184,6 +185,31 @@ class SettingsHubViewModel(application: Application) : AndroidViewModel(applicat
      * Refreshes the user profile data.
      */
     fun refreshUserProfile() {
+        // Clear cache to force fresh data
+        UserProfileManager.clearCache()
         loadUserProfile()
+    }
+    
+    /**
+     * Force refresh with cache clearing
+     */
+    fun forceRefreshProfile() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                // Clear cache first
+                UserProfileManager.clearCache()
+                
+                // Wait a bit to ensure cache is cleared
+                kotlinx.coroutines.delay(100)
+                
+                // Reload profile
+                loadUserProfile()
+            } catch (e: Exception) {
+                android.util.Log.e("SettingsHubViewModel", "Failed to force refresh profile", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 }

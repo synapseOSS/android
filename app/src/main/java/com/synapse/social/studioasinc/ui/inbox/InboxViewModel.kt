@@ -6,6 +6,8 @@ import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.backend.SupabaseChatService
 import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import com.synapse.social.studioasinc.ui.inbox.models.*
+import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
+import com.synapse.social.studioasinc.data.model.deletion.DeletionType
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
@@ -15,11 +17,14 @@ import kotlinx.coroutines.coroutineScope
 /**
  * ViewModel for the Inbox screen.
  * Manages chat list state, search, and actions.
+ * Integrates with MessageDeletionViewModel for chat deletion operations.
+ * Requirements: 2.4
  */
 class InboxViewModel(
     private val chatService: SupabaseChatService = SupabaseChatService(),
     private val authService: SupabaseAuthenticationService = SupabaseAuthenticationService(),
-    private val databaseService: SupabaseDatabaseService = SupabaseDatabaseService()
+    private val databaseService: SupabaseDatabaseService = SupabaseDatabaseService(),
+    private val messageDeletionViewModel: MessageDeletionViewModel
 ) : ViewModel() {
     
     // UI State
@@ -65,8 +70,49 @@ class InboxViewModel(
     private val currentUserId: String?
         get() = authService.getCurrentUser()?.id
     
+    // Deletion status tracking
+    private val _deletionStatus = MutableStateFlow<DeletionStatus?>(null)
+    val deletionStatus: StateFlow<DeletionStatus?> = _deletionStatus.asStateFlow()
+    
     init {
         loadChats()
+        observeDeletionStatus()
+    }
+    
+    /**
+     * Observe deletion status from MessageDeletionViewModel
+     * Requirements: 2.4
+     */
+    private fun observeDeletionStatus() {
+        viewModelScope.launch {
+            messageDeletionViewModel.uiState.collect { deletionState ->
+                _deletionStatus.value = when {
+                    deletionState.isDeleting -> DeletionStatus.InProgress(
+                        deletionState.deletionProgress?.completedOperations ?: 0,
+                        deletionState.deletionProgress?.totalOperations ?: 0
+                    )
+                    deletionState.lastDeletionResult?.success == true -> DeletionStatus.Success
+                    deletionState.error != null -> DeletionStatus.Error(deletionState.error)
+                    else -> null
+                }
+            }
+        }
+        
+        viewModelScope.launch {
+            messageDeletionViewModel.deletionEvents.collect { event ->
+                when (event) {
+                    is com.synapse.social.studioasinc.ui.deletion.DeletionEvent.Success -> {
+                        // Refresh chat list after successful deletion
+                        loadChats()
+                    }
+                    is com.synapse.social.studioasinc.ui.deletion.DeletionEvent.PartialSuccess -> {
+                        // Refresh chat list after partial deletion
+                        loadChats()
+                    }
+                    else -> { /* Handle other events if needed */ }
+                }
+            }
+        }
     }
     
     /**
@@ -176,8 +222,112 @@ class InboxViewModel(
             is InboxAction.ArchiveSelected -> {
                 archiveSelectedChats()
             }
+            is InboxAction.DeleteChatHistory -> {
+                deleteChatHistory(action.chatId)
+            }
+            is InboxAction.DeleteSelectedChatHistory -> {
+                deleteSelectedChatHistory()
+            }
             else -> {
                 // Navigation actions handled by the UI
+            }
+        }
+    }
+    
+    /**
+     * Delete chat history for a specific chat using MessageDeletionViewModel
+     * Requirements: 2.4
+     */
+    private fun deleteChatHistory(chatId: String) {
+        val userId = currentUserId ?: return
+        
+        viewModelScope.launch {
+            val validationResult = messageDeletionViewModel.validateDeletionRequest(userId, listOf(chatId))
+            
+            when (validationResult) {
+                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Valid -> {
+                    messageDeletionViewModel.deleteSpecificChats(userId, listOf(chatId))
+                }
+                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Invalid -> {
+                    _uiState.update { currentState ->
+                        if (currentState is InboxUiState.Success) {
+                            currentState.copy(error = validationResult.reason)
+                        } else {
+                            currentState
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Delete chat history for selected chats using MessageDeletionViewModel
+     * Requirements: 2.4
+     */
+    private fun deleteSelectedChatHistory() {
+        val userId = currentUserId ?: return
+        val currentState = _uiState.value
+        val selectedItems = if (currentState is InboxUiState.Success) currentState.selectedItems else emptySet()
+        
+        if (selectedItems.isEmpty()) return
+        
+        viewModelScope.launch {
+            val chatIds = selectedItems.toList()
+            val validationResult = messageDeletionViewModel.validateDeletionRequest(userId, chatIds)
+            
+            when (validationResult) {
+                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Valid -> {
+                    messageDeletionViewModel.deleteSpecificChats(userId, chatIds)
+                    
+                    // Clear selection after initiating deletion
+                    _uiState.update { state ->
+                        if (state is InboxUiState.Success) {
+                            state.copy(
+                                selectionMode = false,
+                                selectedItems = emptySet()
+                            )
+                        } else {
+                            state
+                        }
+                    }
+                }
+                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Invalid -> {
+                    _uiState.update { state ->
+                        if (state is InboxUiState.Success) {
+                            state.copy(error = validationResult.reason)
+                        } else {
+                            state
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Delete all chat history using MessageDeletionViewModel
+     * Requirements: 2.4
+     */
+    fun deleteAllChatHistory() {
+        val userId = currentUserId ?: return
+        
+        viewModelScope.launch {
+            val validationResult = messageDeletionViewModel.validateDeletionRequest(userId)
+            
+            when (validationResult) {
+                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Valid -> {
+                    messageDeletionViewModel.deleteAllHistory(userId)
+                }
+                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Invalid -> {
+                    _uiState.update { currentState ->
+                        if (currentState is InboxUiState.Success) {
+                            currentState.copy(error = validationResult.reason)
+                        } else {
+                            currentState
+                        }
+                    }
+                }
             }
         }
     }

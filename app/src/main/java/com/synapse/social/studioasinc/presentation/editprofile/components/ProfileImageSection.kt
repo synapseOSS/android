@@ -54,12 +54,21 @@ fun ProfileImageSection(
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .clickable(onClick = onCoverClick)
             ) {
-                 if (coverUrl != null) {
+                 if (coverUrl != null && coverUrl.isNotBlank()) {
                     GlideImage(
                         model = coverUrl,
                         contentDescription = "Cover photo",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        failure = {
+                            // Fallback to default cover photo when image fails to load
+                            GlideImage(
+                                model = R.drawable.user_null_cover_photo,
+                                contentDescription = "Cover photo placeholder",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
                     )
                 } else {
                      GlideImage(
@@ -98,12 +107,40 @@ fun ProfileImageSection(
                     color = MaterialTheme.colorScheme.surface,
                     modifier = Modifier.fillMaxSize()
                  ) {
-                     if (avatarUrl != null) {
+                     if (avatarUrl != null && avatarUrl.isNotBlank()) {
+                        android.util.Log.d("ProfileImageSection", "Loading avatar from URL: $avatarUrl")
                         GlideImage(
                             model = avatarUrl,
                             contentDescription = "Profile photo",
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            loading = {
+                                // Show loading indicator
+                                Box(
+                                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            },
+                            failure = {
+                                // Fallback to placeholder when image fails to load
+                                android.util.Log.w("ProfileImageSection", "Failed to load avatar from URL: $avatarUrl")
+                                Box(
+                                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_person),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(48.dp)
+                                    )
+                                }
+                            }
                         )
                      } else {
                          Box(

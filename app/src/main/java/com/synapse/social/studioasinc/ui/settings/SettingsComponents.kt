@@ -650,6 +650,13 @@ fun ProfileHeaderCard(
 ) {
     val profileAvatarDescription = stringResource(R.string.settings_profile_avatar_description)
     
+    // Debug logging
+    android.util.Log.d("ProfileHeaderCard", "Rendering profile card - avatarUrl: $avatarUrl, displayName: $displayName")
+    
+    // Validate image URL
+    val validation = com.synapse.social.studioasinc.util.ImageLoadingDebugger.validateImageUrl(avatarUrl)
+    android.util.Log.d("ProfileHeaderCard", "Image URL validation result: $validation")
+    
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = SettingsShapes.cardShape,
@@ -687,14 +694,54 @@ fun ProfileHeaderCard(
             Box(
                 modifier = Modifier.size(SettingsSpacing.avatarSize)
             ) {
-                if (avatarUrl != null) {
+                if (avatarUrl != null && avatarUrl.isNotBlank()) {
+                    android.util.Log.d("ProfileHeaderCard", "Loading image from URL: $avatarUrl")
                     GlideImage(
                         model = avatarUrl,
                         contentDescription = "$profileAvatarDescription, $displayName",
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(CircleShape),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        loading = {
+                            // Show loading indicator
+                            Surface(
+                                modifier = Modifier.fillMaxSize(),
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            }
+                        },
+                        failure = {
+                            // Fallback to placeholder when image fails to load
+                            android.util.Log.w("ProfileHeaderCard", "Failed to load image from URL: $avatarUrl")
+                            Surface(
+                                modifier = Modifier.fillMaxSize(),
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primaryContainer
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_person),
+                                        contentDescription = "$profileAvatarDescription, $displayName",
+                                        modifier = Modifier.size(32.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
+                            }
+                        }
                     )
                 } else {
                     // Placeholder avatar

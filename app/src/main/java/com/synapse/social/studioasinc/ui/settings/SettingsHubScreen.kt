@@ -12,6 +12,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.R
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 /**
  * Settings Hub screen - the main entry point for all settings.
@@ -70,14 +72,18 @@ fun SettingsHubScreen(
                 ExpressiveLoadingIndicator()
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = SettingsSpacing.screenPadding),
-                verticalArrangement = Arrangement.spacedBy(SettingsSpacing.sectionSpacing),
-                contentPadding = PaddingValues(vertical = 8.dp)
+            SwipeRefresh(
+                state = rememberSwipeRefreshState(isLoading),
+                onRefresh = { viewModel.forceRefreshProfile() }
             ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(horizontal = SettingsSpacing.screenPadding),
+                    verticalArrangement = Arrangement.spacedBy(SettingsSpacing.sectionSpacing),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
                 // Profile Header Card
                 item {
                     userProfile?.let { profile ->
@@ -120,9 +126,10 @@ fun SettingsHubScreen(
                     }
                 }
 
-                // Bottom spacing
-                item {
-                    Spacer(modifier = Modifier.height(32.dp))
+                    // Bottom spacing
+                    item {
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
                 }
             }
         }
