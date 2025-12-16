@@ -69,22 +69,24 @@ class EditProfileRepository {
     suspend fun updateProfile(userId: String, updateData: Map<String, Any?>): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                // Convert Any? values to serializable types
-                val serializedData = updateData.mapValues { (_, value) ->
+                // Convert Any? values to serializable types and filter out nulls
+                val serializedData = updateData.mapNotNull { (key, value) ->
                     when (value) {
-                        is String -> value
-                        is Int -> value
-                        is Boolean -> value
-                        is Long -> value
-                        is Double -> value
-                        is Float -> value
-                        null -> null
-                        else -> value.toString()
+                        is String -> key to value
+                        is Int -> key to value
+                        is Boolean -> key to value
+                        is Long -> key to value
+                        is Double -> key to value
+                        is Float -> key to value
+                        null -> null // Skip null values
+                        else -> key to value.toString()
                     }
-                }
+                }.toMap()
                 
-                client.from("users").update(serializedData) {
-                    filter { eq("uid", userId) }
+                if (serializedData.isNotEmpty()) {
+                    client.from("users").update(serializedData) {
+                        filter { eq("uid", userId) }
+                    }
                 }
                 Result.success(Unit)
             } catch (e: Exception) {

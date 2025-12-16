@@ -2,6 +2,7 @@ package com.synapse.social.studioasinc.presentation.editprofile
 
 import android.net.Uri
 import com.synapse.social.studioasinc.model.UserProfile
+import kotlinx.serialization.Serializable
 
 data class EditProfileUiState(
     val isLoading: Boolean = true,
@@ -23,6 +24,7 @@ data class EditProfileUiState(
     val error: String? = null
 )
 
+@Serializable
 enum class Gender {
     Male, Female, Hidden
 }

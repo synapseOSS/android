@@ -334,47 +334,66 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true) }
-            val userId = repository.getCurrentUserId() ?: return@launch
+            _uiState.update { it.copy(isSaving = true, error = null) }
+            val userId = repository.getCurrentUserId() 
+            
+            if (userId == null) {
+                _uiState.update { it.copy(isSaving = false, error = "User not logged in") }
+                return@launch
+            }
 
-            val updateData = mutableMapOf<String, Any?>(
-                "username" to state.username,
-                "nickname" to state.nickname.ifEmpty { null },
-                "bio" to state.bio.ifEmpty { null },
-                "gender" to state.selectedGender.name.lowercase(),
-                "region" to state.selectedRegion
-            )
-
-            // Add images if changed? No, they are updated immediately on upload.
-            // But we should ensure consistency.
-            if (state.avatarUrl != null) updateData["avatar"] = state.avatarUrl
-            if (state.coverUrl != null) updateData["profile_cover_image"] = state.coverUrl
-
-            val result = repository.updateProfile(userId, updateData)
-
-            result.fold(
-                onSuccess = {
-                     val originalUsername = state.profile?.username
-                     if (originalUsername != null && originalUsername != state.username) {
-                         val syncResult = repository.syncUsernameChange(originalUsername, state.username, userId)
-                         syncResult.fold(
-                             onSuccess = {
-                                 _uiState.update { it.copy(isSaving = false) }
-                                 _navigationEvents.emit(EditProfileNavigation.NavigateBack)
-                             },
-                             onFailure = { error ->
-                                 _uiState.update { it.copy(isSaving = false, error = "Profile saved but username sync failed: ${error.message}. Please try again.") }
-                             }
-                         )
-                     } else {
-                         _uiState.update { it.copy(isSaving = false) }
-                         _navigationEvents.emit(EditProfileNavigation.NavigateBack)
-                     }
-                },
-                onFailure = { error ->
-                    _uiState.update { it.copy(isSaving = false, error = "Failed to save: ${error.message}") }
+            try {
+                val updateData = mutableMapOf<String, Any?>()
+                
+                // Only add non-empty values to avoid null serialization issues
+                updateData["username"] = state.username
+                
+                if (state.nickname.isNotEmpty()) {
+                    updateData["nickname"] = state.nickname
                 }
-            )
+                
+                if (state.bio.isNotEmpty()) {
+                    updateData["bio"] = state.bio
+                }
+                
+                updateData["gender"] = state.selectedGender.name.lowercase()
+                
+                if (state.selectedRegion != null) {
+                    updateData["region"] = state.selectedRegion
+                }
+
+                // Add images if changed
+                if (state.avatarUrl != null) updateData["avatar"] = state.avatarUrl
+                if (state.coverUrl != null) updateData["profile_cover_image"] = state.coverUrl
+
+                val result = repository.updateProfile(userId, updateData)
+
+                result.fold(
+                    onSuccess = {
+                         val originalUsername = state.profile?.username
+                         if (originalUsername != null && originalUsername != state.username) {
+                             val syncResult = repository.syncUsernameChange(originalUsername, state.username, userId)
+                             syncResult.fold(
+                                 onSuccess = {
+                                     _uiState.update { it.copy(isSaving = false, hasChanges = false) }
+                                     _navigationEvents.emit(EditProfileNavigation.NavigateBack)
+                                 },
+                                 onFailure = { error ->
+                                     _uiState.update { it.copy(isSaving = false, error = "Profile saved but username sync failed: ${error.message}. Please try again.") }
+                                 }
+                             )
+                         } else {
+                             _uiState.update { it.copy(isSaving = false, hasChanges = false) }
+                             _navigationEvents.emit(EditProfileNavigation.NavigateBack)
+                         }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(isSaving = false, error = "Failed to save: ${error.message}") }
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSaving = false, error = "Unexpected error: ${e.message}") }
+            }
         }
     }
 }
