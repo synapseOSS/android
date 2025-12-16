@@ -75,13 +75,13 @@ fun HomeScreen(
         if (currentUser != null) {
             try {
                 val result = com.synapse.social.studioasinc.SupabaseClient.client.from("users")
-                    .select(columns = Columns.raw("profile_image_url")) {
+                    .select(columns = Columns.raw("avatar")) {
                         filter {
                             eq("uid", currentUser.id)
                         }
                     }.decodeSingleOrNull<JsonObject>()
 
-                userAvatarUrl = result?.get("profile_image_url")?.toString()?.replace("\"", "")
+                userAvatarUrl = result?.get("avatar")?.toString()?.replace("\"", "")
             } catch (e: Exception) {
                 e.printStackTrace()
             }

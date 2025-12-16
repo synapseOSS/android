@@ -13,7 +13,7 @@ class UserDataPusher {
     fun pushData(
         username: String,
         nickname: String,
-        biography: String,
+        bio: String,
         thedpurl: String,
         googleLoginAvatarUri: String?,
         email: String,
@@ -25,8 +25,8 @@ class UserDataPusher {
                 val userData = mapOf(
                     "username" to username,
                     "nickname" to nickname,
-                    "biography" to biography,
-                    "profile_image_url" to thedpurl,
+                    "bio" to bio,
+                    "avatar" to thedpurl,
                     "google_avatar_url" to googleLoginAvatarUri,
                     "email" to email
                 )

@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 data class UserUpdateRequest(
     val username: String? = null,
     val nickname: String? = null,
-    val biography: String? = null,
+    val bio: String? = null,
     val gender: String? = null,
     val region: String? = null,
     val avatar: String? = null,
@@ -19,8 +19,5 @@ data class UserUpdateRequest(
     val profileCoverImage: String? = null,
     @SerialName("display_name")
     val displayName: String? = null,
-    val bio: String? = null,
-    @SerialName("profile_image_url")
-    val profileImageUrl: String? = null,
     val status: String? = null
 )
