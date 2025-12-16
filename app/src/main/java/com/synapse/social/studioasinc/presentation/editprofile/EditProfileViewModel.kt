@@ -50,7 +50,7 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                                 profile = profile,
                                 username = profile.username,
                                 nickname = profile.displayName ?: "",
-                                biography = profile.bio ?: "",
+                                bio = profile.bio ?: "",
                                 avatarUrl = profile.profileImageUrl,
                                 coverUrl = profile.profileCoverImage,
                                 selectedGender = parseGender(profile.gender),
@@ -96,8 +96,8 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                 validateNickname(event.nickname)
             }
             is EditProfileEvent.BiographyChanged -> {
-                _uiState.update { it.copy(biography = event.biography, hasChanges = true) }
-                validateBiography(event.biography)
+                _uiState.update { it.copy(bio = event.bio, hasChanges = true) }
+                validateBiography(event.bio)
             }
             is EditProfileEvent.GenderSelected -> {
                 _uiState.update { it.copy(selectedGender = event.gender, hasChanges = true) }
@@ -190,9 +190,9 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun validateBiography(bio: String) {
         if (bio.length > 250) {
-            _uiState.update { it.copy(biographyError = "Bio must be 250 characters or less") }
+            _uiState.update { it.copy(bioError = "Bio must be 250 characters or less") }
         } else {
-            _uiState.update { it.copy(biographyError = null) }
+            _uiState.update { it.copy(bioError = null) }
         }
     }
 
@@ -270,7 +270,7 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
     private fun saveProfile() {
         val state = _uiState.value
 
-        if (state.usernameValidation is UsernameValidation.Error || state.nicknameError != null || state.biographyError != null) {
+        if (state.usernameValidation is UsernameValidation.Error || state.nicknameError != null || state.bioError != null) {
             return
         }
 
@@ -281,7 +281,7 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
             val updateData = mutableMapOf<String, Any?>(
                 "username" to state.username,
                 "nickname" to state.nickname.ifEmpty { null },
-                "biography" to state.biography.ifEmpty { null },
+                "bio" to state.bio.ifEmpty { null },
                 "gender" to state.selectedGender.name.lowercase(),
                 "region" to state.selectedRegion
             )

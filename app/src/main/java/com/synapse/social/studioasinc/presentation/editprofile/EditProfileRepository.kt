@@ -45,9 +45,9 @@ class EditProfileRepository {
                         ?: result["nickname"]?.toString()?.removeSurrounding("\""),
                     email = result["email"]?.toString()?.removeSurrounding("\""),
                     bio = result["bio"]?.toString()?.removeSurrounding("\"")
-                        ?: result["biography"]?.toString()?.removeSurrounding("\""),
+                        ?: result["bio"]?.toString()?.removeSurrounding("\""),
                     profileImageUrl = result["avatar"]?.toString()?.removeSurrounding("\"")
-                        ?: result["profile_image_url"]?.toString()?.removeSurrounding("\""),
+                        ?: result["avatar"]?.toString()?.removeSurrounding("\""),
                     profileCoverImage = result["profile_cover_image"]?.toString()?.removeSurrounding("\""),
                     gender = result["gender"]?.toString()?.removeSurrounding("\""),
                     region = result["region"]?.toString()?.removeSurrounding("\""),

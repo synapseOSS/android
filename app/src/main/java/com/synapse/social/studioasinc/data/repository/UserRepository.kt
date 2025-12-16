@@ -85,7 +85,7 @@ class UserRepository(private val userDao: UserDao) {
                 "display_name" to user.displayName,
                 "email" to user.email,
                 "bio" to user.bio,
-                "profile_image_url" to user.profileImageUrl,
+                "avatar" to user.profileImageUrl,
                 "followers_count" to user.followersCount,
                 "following_count" to user.followingCount,
                 "posts_count" to user.postsCount,

@@ -127,7 +127,7 @@ fun EditProfileScreen(
                                 enabled = uiState.hasChanges &&
                                           uiState.usernameValidation !is UsernameValidation.Error &&
                                           uiState.nicknameError == null &&
-                                          uiState.biographyError == null,
+                                          uiState.bioError == null,
                                 modifier = Modifier.padding(end = 8.dp)
                             ) {
                                 Text("Save")
@@ -181,9 +181,9 @@ fun EditProfileScreen(
                             nickname = uiState.nickname,
                             onNicknameChange = { viewModel.onEvent(EditProfileEvent.NicknameChanged(it)) },
                             nicknameError = uiState.nicknameError,
-                            biography = uiState.biography,
+                            bio = uiState.bio,
                             onBiographyChange = { viewModel.onEvent(EditProfileEvent.BiographyChanged(it)) },
-                            biographyError = uiState.biographyError
+                            bioError = uiState.bioError
                         )
                     }
 

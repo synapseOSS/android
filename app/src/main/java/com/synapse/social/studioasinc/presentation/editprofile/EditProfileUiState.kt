@@ -13,8 +13,8 @@ data class EditProfileUiState(
     val usernameValidation: UsernameValidation = UsernameValidation.Valid,
     val nickname: String = "",
     val nicknameError: String? = null,
-    val biography: String = "",
-    val biographyError: String? = null,
+    val bio: String = "",
+    val bioError: String? = null,
     val selectedGender: Gender = Gender.Hidden,
     val selectedRegion: String? = null,
     val hasChanges: Boolean = false,
@@ -34,7 +34,7 @@ sealed class UsernameValidation {
 sealed class EditProfileEvent {
     data class UsernameChanged(val username: String) : EditProfileEvent()
     data class NicknameChanged(val nickname: String) : EditProfileEvent()
-    data class BiographyChanged(val biography: String) : EditProfileEvent()
+    data class BiographyChanged(val bio: String) : EditProfileEvent()
     data class GenderSelected(val gender: Gender) : EditProfileEvent()
     data class RegionSelected(val region: String) : EditProfileEvent()
     data class AvatarSelected(val uri: Uri) : EditProfileEvent()
