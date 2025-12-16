@@ -180,7 +180,7 @@ class DirectChatViewModel @Inject constructor(
                 
                 // 3. Cancel existing connection completely
                 realtimeJob?.cancel()
-                realtimeService.disconnect()
+                realtimeService.cleanup()
                 
                 // 4. Wait for cleanup
                 delay(1000)
