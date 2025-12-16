@@ -92,9 +92,90 @@ class ChatAdapter(
     var onToggleMessageSelection: ((String) -> Unit)? = null
     var isMessageSelected: ((String) -> Boolean)? = null
     
+    // Scroll state tracking for performance optimization
+    private var isScrolling = false
+    private var scrollStartTime = 0L
+    
     // Supabase services
     private val authService = SupabaseAuthenticationService()
     private val databaseService = SupabaseDatabaseService()
+    
+    // Performance optimization: Track scroll state
+    fun setScrolling(scrolling: Boolean) {
+        if (scrolling && !isScrolling) {
+            scrollStartTime = System.currentTimeMillis()
+        }
+        isScrolling = scrolling
+    }
+    
+    /**
+     * Minimal binding for fast scroll performance
+     * Only binds essential elements during scroll
+     */
+    private fun bindMinimalViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val messageData = data[position]
+        
+        if (holder is BaseMessageViewHolder) {
+            // Only bind essential message properties during scroll
+            val currentUser = authService.getCurrentUser()
+            val myUid = currentUser?.id ?: ""
+            val msgUid = messageData["sender_id"]?.toString() 
+                ?: messageData["uid"]?.toString() 
+                ?: ""
+            val isMyMessage = msgUid == myUid
+            
+            // Set basic layout alignment
+            holder.bodyLayout?.let { body ->
+                val layoutParams = body.layoutParams as? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+                layoutParams?.let { params ->
+                    if (isMyMessage) {
+                        params.startToStart = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
+                        params.endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+                    } else {
+                        params.startToStart = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+                        params.endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
+                    }
+                    body.layoutParams = params
+                }
+            }
+            
+            // Apply basic bubble background (always use SINGLE for performance)
+            applyMessageBubbleBackground(holder, MessagePosition.SINGLE, isMyMessage)
+            
+            // Hide optional elements during scroll
+            holder.senderUsername?.visibility = View.GONE
+            holder.messageTime?.visibility = View.GONE
+            holder.editedIndicator?.visibility = View.GONE
+            holder.forwardedIndicator?.visibility = View.GONE
+            holder.replyLayout?.visibility = View.GONE
+        }
+        
+        // Bind minimal content based on type
+        when (holder) {
+            is TextViewHolder -> {
+                val messageText = messageData["content"]?.toString() 
+                    ?: messageData["message_text"]?.toString() 
+                    ?: ""
+                holder.messageText.text = messageText
+            }
+            is MediaViewHolder -> {
+                // Skip image loading during scroll for performance
+                holder.mediaGrid.removeAllViews()
+                val attachments = messageData["attachments"] as? ArrayList<HashMap<String, Any?>>
+                val caption = messageData["content"]?.toString() 
+                    ?: messageData["message_text"]?.toString() 
+                    ?: ""
+                holder.mediaCaption?.text = caption
+            }
+            is VideoViewHolder -> {
+                // Skip thumbnail loading during scroll
+                val caption = messageData["content"]?.toString() 
+                    ?: messageData["message_text"]?.toString() 
+                    ?: ""
+                holder.videoCaption?.text = caption
+            }
+        }
+    }
     
     // Link preview cache to avoid refetching
     private val linkPreviewCache = HashMap<String, LinkPreviewUtil.LinkData>()
@@ -181,6 +262,12 @@ class ChatAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        // Performance optimization: Skip heavy operations during fast scroll
+        if (isScrolling && position > 0 && position < data.size - 1) {
+            bindMinimalViewHolder(holder, position)
+            return
+        }
+        
         when (holder.itemViewType) {
             VIEW_TYPE_TEXT -> bindTextViewHolder(holder as TextViewHolder, position)
             VIEW_TYPE_MEDIA_GRID -> bindMediaViewHolder(holder as MediaViewHolder, position)
