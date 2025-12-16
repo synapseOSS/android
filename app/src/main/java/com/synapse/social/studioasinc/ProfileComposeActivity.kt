@@ -113,16 +113,16 @@ class ProfileComposeActivity : ComponentActivity() {
     }
     
     private fun navigateToFollowers(userId: String) {
-        val intent = Intent(this, UserFollowsListActivity::class.java)
-        intent.putExtra("uid", userId)
-        intent.putExtra("tab", "followers")
+        val intent = Intent(this, FollowListComposeActivity::class.java)
+        intent.putExtra(FollowListComposeActivity.EXTRA_USER_ID, userId)
+        intent.putExtra(FollowListComposeActivity.EXTRA_LIST_TYPE, FollowListComposeActivity.TYPE_FOLLOWERS)
         startActivity(intent)
     }
     
     private fun navigateToFollowing(userId: String) {
-        val intent = Intent(this, UserFollowsListActivity::class.java)
-        intent.putExtra("uid", userId)
-        intent.putExtra("tab", "following")
+        val intent = Intent(this, FollowListComposeActivity::class.java)
+        intent.putExtra(FollowListComposeActivity.EXTRA_USER_ID, userId)
+        intent.putExtra(FollowListComposeActivity.EXTRA_LIST_TYPE, FollowListComposeActivity.TYPE_FOLLOWING)
         startActivity(intent)
     }
     

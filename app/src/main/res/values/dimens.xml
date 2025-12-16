@@ -9,6 +9,9 @@
     <dimen name="chat_padding_vertical">2dp</dimen>
     <dimen name="chat_padding_inner">8dp</dimen>
     
+    <!-- Active Status Dimensions -->
+    <dimen name="active_status_indicator_size">12dp</dimen>
+    
     <!-- Image Gallery Dimensions -->
     <dimen name="gallery_image_corner_radius">16dp</dimen>
     <dimen name="reply_preview_corner_radius">20dp</dimen>

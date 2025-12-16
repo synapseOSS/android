@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,9 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,8 +39,12 @@ import com.synapse.social.studioasinc.ui.settings.SettingsShapes
 fun ProfileImageSection(
     coverUrl: String?,
     avatarUrl: String?,
+    avatarUploadState: com.synapse.social.studioasinc.presentation.editprofile.UploadState,
+    coverUploadState: com.synapse.social.studioasinc.presentation.editprofile.UploadState,
     onCoverClick: () -> Unit,
     onAvatarClick: () -> Unit,
+    onRetryAvatarUpload: () -> Unit,
+    onRetryCoverUpload: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -54,34 +63,71 @@ fun ProfileImageSection(
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .clickable(onClick = onCoverClick)
             ) {
-                 if (coverUrl != null) {
-                    GlideImage(
-                        model = coverUrl,
-                        contentDescription = "Cover photo",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                     GlideImage(
-                        model = R.drawable.user_null_cover_photo,
-                        contentDescription = "Cover photo placeholder",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+                 GlideImage(
+                    model = if (coverUrl != null && coverUrl.isNotBlank()) coverUrl else R.drawable.user_null_cover_photo,
+                    contentDescription = "Cover photo",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_edit),
-                        contentDescription = "Edit cover photo",
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
+                // Upload state overlay for cover
+                when (coverUploadState) {
+                    is com.synapse.social.studioasinc.presentation.editprofile.UploadState.Uploading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.6f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                    is com.synapse.social.studioasinc.presentation.editprofile.UploadState.Error -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.6f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_error),
+                                    contentDescription = "Upload failed",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                if (coverUploadState.canRetry) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    androidx.compose.material3.TextButton(
+                                        onClick = onRetryCoverUpload,
+                                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                                            contentColor = Color.White
+                                        )
+                                    ) {
+                                        Text("Retry")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_edit),
+                                contentDescription = "Edit cover photo",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -98,7 +144,8 @@ fun ProfileImageSection(
                     color = MaterialTheme.colorScheme.surface,
                     modifier = Modifier.fillMaxSize()
                  ) {
-                     if (avatarUrl != null) {
+                     if (avatarUrl != null && avatarUrl.isNotBlank()) {
+                        android.util.Log.d("ProfileImageSection", "Loading avatar from URL: $avatarUrl")
                         GlideImage(
                             model = avatarUrl,
                             contentDescription = "Profile photo",
@@ -117,6 +164,52 @@ fun ProfileImageSection(
                                  modifier = Modifier.size(48.dp)
                              )
                          }
+                     }
+                 }
+
+                 // Upload state overlay for avatar
+                 when (avatarUploadState) {
+                     is com.synapse.social.studioasinc.presentation.editprofile.UploadState.Uploading -> {
+                         Box(
+                             modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)),
+                             contentAlignment = Alignment.Center
+                         ) {
+                             CircularProgressIndicator(
+                                 color = Color.White,
+                                 modifier = Modifier.size(24.dp),
+                                 strokeWidth = 2.dp
+                             )
+                         }
+                     }
+                     is com.synapse.social.studioasinc.presentation.editprofile.UploadState.Error -> {
+                         Box(
+                             modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)),
+                             contentAlignment = Alignment.Center
+                         ) {
+                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                 Icon(
+                                     painter = painterResource(R.drawable.ic_error),
+                                     contentDescription = "Upload failed",
+                                     tint = Color.White,
+                                     modifier = Modifier.size(20.dp)
+                                 )
+                                 if (avatarUploadState.canRetry) {
+                                     Spacer(modifier = Modifier.height(4.dp))
+                                     androidx.compose.material3.TextButton(
+                                         onClick = onRetryAvatarUpload,
+                                         colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                                             contentColor = Color.White
+                                         ),
+                                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                                     ) {
+                                         Text("Retry", style = MaterialTheme.typography.labelSmall)
+                                     }
+                                 }
+                             }
+                         }
+                     }
+                     else -> {
+                         // No overlay for success or idle state
                      }
                  }
 

@@ -650,6 +650,13 @@ fun ProfileHeaderCard(
 ) {
     val profileAvatarDescription = stringResource(R.string.settings_profile_avatar_description)
     
+    // Debug logging
+    android.util.Log.d("ProfileHeaderCard", "Rendering profile card - avatarUrl: $avatarUrl, displayName: $displayName")
+    
+    // Validate image URL
+    val validation = com.synapse.social.studioasinc.util.ImageLoadingDebugger.validateImageUrl(avatarUrl)
+    android.util.Log.d("ProfileHeaderCard", "Image URL validation result: $validation")
+    
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = SettingsShapes.cardShape,
@@ -687,7 +694,8 @@ fun ProfileHeaderCard(
             Box(
                 modifier = Modifier.size(SettingsSpacing.avatarSize)
             ) {
-                if (avatarUrl != null) {
+                if (avatarUrl != null && avatarUrl.isNotBlank()) {
+                    android.util.Log.d("ProfileHeaderCard", "Loading image from URL: $avatarUrl")
                     GlideImage(
                         model = avatarUrl,
                         contentDescription = "$profileAvatarDescription, $displayName",

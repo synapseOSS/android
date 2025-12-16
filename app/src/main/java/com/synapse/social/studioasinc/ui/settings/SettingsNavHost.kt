@@ -131,7 +131,21 @@ fun SettingsNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onNavigateToChatPrivacy = onNavigateToChatPrivacy
+                onNavigateToChatPrivacy = onNavigateToChatPrivacy,
+                onNavigateToChatHistoryDeletion = {
+                    navController.navigate(SettingsDestination.ROUTE_CHAT_HISTORY_DELETION)
+                }
+            )
+        }
+
+        // Chat History Deletion Screen
+        composable(route = SettingsDestination.ROUTE_CHAT_HISTORY_DELETION) {
+            val viewModel: com.synapse.social.studioasinc.ui.deletion.ChatHistoryDeletionViewModel = viewModel()
+            com.synapse.social.studioasinc.ui.deletion.ChatHistoryDeletionScreen(
+                viewModel = viewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                }
             )
         }
 

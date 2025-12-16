@@ -7,7 +7,9 @@ import com.synapse.social.studioasinc.data.local.ChatDao
 import com.synapse.social.studioasinc.data.local.ChatEntity
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.model.Message
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
+import io.ktor.client.statement.bodyAsText
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.PostgresAction
@@ -90,12 +92,59 @@ class ChatRepository(private val chatDao: ChatDao) {
         result.onSuccess { messageId ->
             android.util.Log.d("ChatRepository", "✓ Message sent successfully, messageId: $messageId")
             refreshUserChats(senderId)
+            
+            // Check for Syra mentions and trigger AI response
+            processMentions(chatId, content, senderId, messageType)
         }.onFailure { error ->
             android.util.Log.e("ChatRepository", "✗ Failed to send message: ${error.message}", error)
         }
         
         android.util.Log.d("ChatRepository", "=== sendMessage END ===")
         return result
+    }
+    
+    private suspend fun processMentions(
+        chatId: String,
+        messageText: String,
+        senderId: String,
+        mentionType: String
+    ) {
+        try {
+            // Extract mentions from the message
+            val mentionedUsers = com.synapse.social.studioasinc.util.MentionParser.extractMentions(messageText)
+            
+            // Check if this is a DM with Syra or if Syra is mentioned
+            val isDmWithSyra = chatId.contains("syra-ai-uid", ignoreCase = true)
+            val shouldRespond = isDmWithSyra || mentionedUsers.contains("syra")
+            
+            if (shouldRespond) {
+                android.util.Log.d("ChatRepository", "Syra should respond - DM: $isDmWithSyra, Mentioned: ${mentionedUsers.contains("syra")}")
+                
+                // Call the syra-mention-handler function
+                val finalMentionedUsers = if (isDmWithSyra && !mentionedUsers.contains("syra")) {
+                    mentionedUsers + "syra"
+                } else {
+                    mentionedUsers
+                }
+                
+                val mentionRequest = mapOf(
+                    "chatId" to chatId,
+                    "messageText" to messageText,
+                    "mentionedUsers" to finalMentionedUsers,
+                    "senderId" to senderId,
+                    "mentionType" to "chat"
+                )
+                
+                val response = client.functions.invoke(
+                    function = "syra-mention-handler",
+                    body = mentionRequest
+                )
+                
+                android.util.Log.d("ChatRepository", "Syra mention handler response: ${response.bodyAsText()}")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ChatRepository", "Failed to process mentions: ${e.message}", e)
+        }
     }
 
     suspend fun getMessages(

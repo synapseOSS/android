@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,11 +24,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -57,6 +60,7 @@ fun ChatTopBar(
     onCallClick: () -> Unit,
     onVideoCallClick: () -> Unit,
     onMenuClick: () -> Unit,
+    onRetryConnection: (() -> Unit)? = null,
     isMenuExpanded: Boolean = false,
     onDismissMenu: () -> Unit = {},
     menuContent: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit = {},
@@ -116,7 +120,10 @@ fun ChatTopBar(
         )
         
         // Connection status banner
-        ConnectionStatusBanner(state = connectionState)
+        ConnectionStatusBanner(
+            state = connectionState,
+            onRetryClick = onRetryConnection
+        )
     }
 }
 
@@ -196,7 +203,8 @@ private fun ChatUserHeader(
  */
 @Composable
 fun ConnectionStatusBanner(
-    state: RealtimeConnectionState
+    state: RealtimeConnectionState,
+    onRetryClick: (() -> Unit)? = null
 ) {
     val (visible, text, color) = when (state) {
         RealtimeConnectionState.Connected -> Triple(false, "", Color.Transparent)
@@ -214,14 +222,35 @@ fun ConnectionStatusBanner(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(color)
-                .padding(vertical = 4.dp),
+                .padding(vertical = 4.dp, horizontal = 16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White
+                )
+                
+                // Show retry button only when disconnected
+                if (state == RealtimeConnectionState.Disconnected && onRetryClick != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(
+                        onClick = onRetryClick,
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            text = "Retry",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+            }
         }
     }
 }

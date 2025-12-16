@@ -76,7 +76,10 @@ class PostDetailActivity : BaseActivity() {
             onLikeClick = { comment -> viewModel.toggleCommentReaction(comment.id, ReactionType.LIKE) },
             onUserClick = { userId -> navigateToProfile(userId) },
             onOptionsClick = { comment -> showCommentOptions(comment) },
-            onReactionPickerClick = { comment -> showCommentReactionPicker(comment) }
+            onReactionPickerClick = { comment -> showCommentReactionPicker(comment) },
+            onLoadReplies = { commentId, callback -> 
+                viewModel.loadReplies(commentId)
+            }
         )
         binding.rvComments.apply {
             layoutManager = LinearLayoutManager(this@PostDetailActivity)
@@ -169,7 +172,7 @@ class PostDetailActivity : BaseActivity() {
         val author = postDetail.author
 
         // Author info
-        Glide.with(this).load(author?.profileImageUrl).placeholder(R.drawable.avatar)
+        Glide.with(this).load(author?.avatar).placeholder(R.drawable.avatar)
             .into(binding.ivAuthorAvatar)
         binding.tvAuthorName.text = author?.displayName ?: author?.username
         binding.ivVerifiedBadge.isVisible = author?.isVerified ?: false

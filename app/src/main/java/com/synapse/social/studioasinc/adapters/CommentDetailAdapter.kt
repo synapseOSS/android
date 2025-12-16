@@ -19,7 +19,8 @@ class CommentDetailAdapter(
     private val onLikeClick: (CommentWithUser) -> Unit,
     private val onUserClick: (String) -> Unit,
     private val onOptionsClick: (CommentWithUser) -> Unit,
-    private val onReactionPickerClick: (CommentWithUser) -> Unit
+    private val onReactionPickerClick: (CommentWithUser) -> Unit,
+    private val onLoadReplies: (String, (List<CommentWithUser>) -> Unit) -> Unit
 ) : ListAdapter<CommentWithUser, CommentDetailAdapter.ViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -40,9 +41,14 @@ class CommentDetailAdapter(
         private var repliesExpanded = false
 
         fun bind(comment: CommentWithUser) {
+            // Reset state for ViewHolder reuse
+            repliesExpanded = false
+            repliesAdapter = null
+            binding.rvReplies.isVisible = false
+            
             // Avatar
             Glide.with(binding.root.context)
-                .load(comment.user?.profileImageUrl)
+                .load(comment.user?.avatar)
                 .placeholder(R.drawable.avatar)
                 .into(binding.ivAvatar)
 
@@ -118,17 +124,55 @@ class CommentDetailAdapter(
 
         private fun toggleReplies(comment: CommentWithUser) {
             repliesExpanded = !repliesExpanded
-            binding.rvReplies.isVisible = repliesExpanded
 
             if (repliesExpanded) {
                 binding.tvViewReplies.text = binding.root.context.getString(R.string.hide_replies)
-                // Load replies - in real implementation, fetch from repository
+                
+                // Initialize replies adapter if not already done
                 if (repliesAdapter == null) {
                     repliesAdapter = NestedRepliesAdapter(onUserClick, onLikeClick, onOptionsClick, onReactionPickerClick)
                     binding.rvReplies.layoutManager = LinearLayoutManager(binding.root.context)
                     binding.rvReplies.adapter = repliesAdapter
                 }
+                
+                // Show the RecyclerView first
+                binding.rvReplies.isVisible = true
+                
+                // Load replies from the repository
+                onLoadReplies(comment.id) { replies ->
+                    // Ensure UI update happens on main thread
+                    if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+                        // Already on main thread
+                        android.util.Log.d("CommentDetailAdapter", "Loaded ${replies.size} replies for comment ${comment.id}")
+                        repliesAdapter?.submitList(replies) {
+                            // Force RecyclerView to refresh after list is submitted
+                            binding.rvReplies.invalidate()
+                            binding.rvReplies.requestLayout()
+                        }
+                        // Only hide if we actually have no replies
+                        if (replies.isEmpty()) {
+                            binding.rvReplies.isVisible = false
+                            binding.tvViewReplies.text = binding.root.context.getString(R.string.no_replies_yet)
+                        }
+                    } else {
+                        // Switch to main thread
+                        binding.root.post {
+                            android.util.Log.d("CommentDetailAdapter", "Loaded ${replies.size} replies for comment ${comment.id}")
+                            repliesAdapter?.submitList(replies) {
+                                // Force RecyclerView to refresh after list is submitted
+                                binding.rvReplies.invalidate()
+                                binding.rvReplies.requestLayout()
+                            }
+                            // Only hide if we actually have no replies
+                            if (replies.isEmpty()) {
+                                binding.rvReplies.isVisible = false
+                                binding.tvViewReplies.text = binding.root.context.getString(R.string.no_replies_yet)
+                            }
+                        }
+                    }
+                }
             } else {
+                binding.rvReplies.isVisible = false
                 binding.tvViewReplies.text = binding.root.context.getString(
                     R.string.view_replies, comment.repliesCount
                 )
@@ -139,43 +183,5 @@ class CommentDetailAdapter(
     class DiffCallback : DiffUtil.ItemCallback<CommentWithUser>() {
         override fun areItemsTheSame(old: CommentWithUser, new: CommentWithUser) = old.id == new.id
         override fun areContentsTheSame(old: CommentWithUser, new: CommentWithUser) = old == new
-    }
-}
-
-private class NestedRepliesAdapter(
-    private val onUserClick: (String) -> Unit,
-    private val onLikeClick: (CommentWithUser) -> Unit,
-    private val onOptionsClick: (CommentWithUser) -> Unit,
-    private val onReactionPickerClick: (CommentWithUser) -> Unit
-) : ListAdapter<CommentWithUser, NestedRepliesAdapter.ViewHolder>(
-    object : DiffUtil.ItemCallback<CommentWithUser>() {
-        override fun areItemsTheSame(old: CommentWithUser, new: CommentWithUser) = old.id == new.id
-        override fun areContentsTheSame(old: CommentWithUser, new: CommentWithUser) = old == new
-    }
-) {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemCommentDetailBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
-    }
-
-    inner class ViewHolder(private val binding: ItemCommentDetailBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(reply: CommentWithUser) {
-            Glide.with(binding.root.context).load(reply.user?.profileImageUrl).placeholder(R.drawable.avatar).into(binding.ivAvatar)
-            binding.tvUsername.text = reply.user?.displayName ?: reply.user?.username ?: "Unknown"
-            binding.tvContent.text = reply.content
-            binding.tvTime.text = TimeUtils.formatTimestamp(reply.createdAt?.toLongOrNull() ?: System.currentTimeMillis())
-            binding.reactionBadge.isVisible = reply.reactionSummary.values.sum() > 0
-            binding.viewRepliesContainer.isVisible = false
-            binding.ivAvatar.setOnClickListener { reply.userId?.let { onUserClick(it) } }
-            binding.tvLikeAction.setOnClickListener { onLikeClick(reply) }
-            binding.tvLikeAction.setOnLongClickListener { 
-                onReactionPickerClick(reply)
-                true 
-            }
-        }
     }
 }

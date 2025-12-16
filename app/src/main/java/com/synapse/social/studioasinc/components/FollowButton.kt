@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.backend.SupabaseFollowService
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Reusable Follow Button Component
@@ -30,6 +31,8 @@ class FollowButton @JvmOverloads constructor(
     private var targetUserId: String? = null
     private var isFollowing: Boolean = false
     private var isLoading: Boolean = false
+    private var lastClickTime: Long = 0L
+    private val isOperationInProgress = AtomicBoolean(false)
     
     var onFollowStateChanged: ((Boolean) -> Unit)? = null
 
@@ -40,7 +43,11 @@ class FollowButton @JvmOverloads constructor(
         progressBar = findViewById(R.id.progressBarInternal)
         
         followButton.setOnClickListener {
-            toggleFollow()
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastClickTime > 1000) { // 1 second debounce
+                lastClickTime = currentTime
+                toggleFollow()
+            }
         }
         
         updateButtonState()
@@ -79,35 +86,39 @@ class FollowButton @JvmOverloads constructor(
     private var lifecycleScope: LifecycleCoroutineScope? = null
     
     private fun toggleFollow() {
-        if (currentUserId == null || targetUserId == null || isLoading) return
+        if (currentUserId == null || targetUserId == null || !isOperationInProgress.compareAndSet(false, true)) return
         
+        val currentFollowState = isFollowing
         setLoading(true)
         
         lifecycleScope?.launch {
-            val result = if (isFollowing) {
-                followService.unfollowUser(currentUserId!!, targetUserId!!)
-            } else {
-                followService.followUser(currentUserId!!, targetUserId!!)
-            }
-            
-            result.fold(
-                onSuccess = {
-                    isFollowing = !isFollowing
-                    updateButtonState()
-                    onFollowStateChanged?.invoke(isFollowing)
-                },
-                onFailure = { error ->
-                    android.util.Log.e("FollowButton", "Failed to toggle follow", error)
-                    // Show error message
-                    android.widget.Toast.makeText(
-                        context, 
-                        "Failed to ${if (isFollowing) "unfollow" else "follow"} user", 
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
+            try {
+                val result = if (currentFollowState) {
+                    followService.unfollowUser(currentUserId!!, targetUserId!!)
+                } else {
+                    followService.followUser(currentUserId!!, targetUserId!!)
                 }
-            )
-            
-            setLoading(false)
+                
+                result.fold(
+                    onSuccess = {
+                        isFollowing = !currentFollowState
+                        updateButtonState()
+                        onFollowStateChanged?.invoke(isFollowing)
+                    },
+                    onFailure = { error ->
+                        android.util.Log.e("FollowButton", "Failed to toggle follow", error)
+                        // Show error message
+                        android.widget.Toast.makeText(
+                            context, 
+                            "Failed to ${if (currentFollowState) "unfollow" else "follow"} user", 
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+            } finally {
+                setLoading(false)
+                isOperationInProgress.set(false)
+            }
         }
     }
 

@@ -50,8 +50,8 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                                 profile = profile,
                                 username = profile.username,
                                 nickname = profile.displayName ?: "",
-                                biography = profile.bio ?: "",
-                                avatarUrl = profile.profileImageUrl,
+                                bio = profile.bio ?: "",
+                                avatarUrl = profile.avatar,
                                 coverUrl = profile.profileCoverImage,
                                 selectedGender = parseGender(profile.gender),
                                 selectedRegion = profile.region.takeIf { it != "null" } // Handle "null" string from DB sometimes
@@ -96,8 +96,8 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                 validateNickname(event.nickname)
             }
             is EditProfileEvent.BiographyChanged -> {
-                _uiState.update { it.copy(biography = event.biography, hasChanges = true) }
-                validateBiography(event.biography)
+                _uiState.update { it.copy(bio = event.bio, hasChanges = true) }
+                validateBiography(event.bio)
             }
             is EditProfileEvent.GenderSelected -> {
                 _uiState.update { it.copy(selectedGender = event.gender, hasChanges = true) }
@@ -110,6 +110,12 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
             }
             is EditProfileEvent.CoverSelected -> {
                 handleCoverSelection(event.uri)
+            }
+            EditProfileEvent.RetryAvatarUpload -> {
+                retryAvatarUpload()
+            }
+            EditProfileEvent.RetryCoverUpload -> {
+                retryCoverUpload()
             }
             EditProfileEvent.SaveClicked -> {
                 saveProfile()
@@ -190,132 +196,315 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun validateBiography(bio: String) {
         if (bio.length > 250) {
-            _uiState.update { it.copy(biographyError = "Bio must be 250 characters or less") }
+            _uiState.update { it.copy(bioError = "Bio must be 250 characters or less") }
         } else {
-            _uiState.update { it.copy(biographyError = null) }
+            _uiState.update { it.copy(bioError = null) }
         }
     }
 
-    private fun handleAvatarSelection(uri: Uri) {
-        viewModelScope.launch {
-            val context = getApplication<Application>()
-            val realFilePath = FileUtil.convertUriToFilePath(context, uri)
+    private var lastAvatarUri: Uri? = null
+    private var lastCoverUri: Uri? = null
 
-            if (realFilePath != null) {
-                // Compress
+    private fun handleAvatarSelection(uri: Uri) {
+        lastAvatarUri = uri
+        _uiState.update { it.copy(avatarUploadState = UploadState.Uploading()) }
+        
+        viewModelScope.launch {
+            try {
+                val context = getApplication<Application>()
+                android.util.Log.d("EditProfile", "Processing avatar URI: $uri")
+                
+                // Try to convert URI to file path
+                var realFilePath = FileUtil.convertUriToFilePath(context, uri)
+                android.util.Log.d("EditProfile", "Converted file path: $realFilePath")
+                
+                // If conversion failed, try to copy content to temp file
+                if (realFilePath == null) {
+                    android.util.Log.d("EditProfile", "URI conversion failed, copying content to temp file")
+                    val tempInputFile = File(context.cacheDir, "temp_input_avatar_${System.currentTimeMillis()}.jpg")
+                    
+                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        tempInputFile.outputStream().use { outputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+                    
+                    if (tempInputFile.exists() && tempInputFile.length() > 0) {
+                        realFilePath = tempInputFile.absolutePath
+                        android.util.Log.d("EditProfile", "Successfully copied to temp file: $realFilePath")
+                    } else {
+                        throw Exception("Failed to copy image content from URI")
+                    }
+                }
+
+                // Validate file exists and is not empty
+                val sourceFile = File(realFilePath)
+                if (!sourceFile.exists()) {
+                    throw Exception("Source file does not exist: $realFilePath")
+                }
+                if (sourceFile.length() == 0L) {
+                    throw Exception("Source file is empty: $realFilePath")
+                }
+
+                // Create compressed version
                 val tempFile = File(context.cacheDir, "temp_avatar_${System.currentTimeMillis()}.jpg")
+                android.util.Log.d("EditProfile", "Compressing image to: ${tempFile.absolutePath}")
+                
                 FileUtil.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
+                
+                // Validate compressed file
+                if (!tempFile.exists() || tempFile.length() == 0L) {
+                    throw Exception("Image compression failed")
+                }
+                
+                android.util.Log.d("EditProfile", "Image compressed successfully, size: ${tempFile.length()} bytes")
 
                 // Upload
                 uploadAvatar(tempFile.absolutePath)
-            } else {
-                 _uiState.update { it.copy(error = "Failed to process image") }
+                
+            } catch (e: Exception) {
+                android.util.Log.e("EditProfile", "Avatar processing failed", e)
+                _uiState.update { 
+                    it.copy(avatarUploadState = UploadState.Error("Failed to process image: ${e.message}")) 
+                }
             }
         }
     }
 
     private fun uploadAvatar(filePath: String) {
         viewModelScope.launch {
-            val userId = repository.getCurrentUserId() ?: return@launch
-
-            // Optimistic update or show loading?
-            // Specs: Loading State: Circular progress indicator overlay
-            // I should probably track upload status. For now I rely on repository suspension.
-
-            val result = repository.uploadAvatar(userId, filePath)
-            result.fold(
-                onSuccess = { url ->
-                     _uiState.update { it.copy(avatarUrl = url) }
-                     repository.addToProfileHistory(userId, url)
-                },
-                onFailure = { error ->
-                    _uiState.update { it.copy(error = "Avatar upload failed: ${error.message}") }
+            try {
+                val userId = repository.getCurrentUserId()
+                if (userId == null) {
+                    _uiState.update { 
+                        it.copy(avatarUploadState = UploadState.Error("User not logged in")) 
+                    }
+                    return@launch
                 }
-            )
+
+                android.util.Log.d("EditProfile", "Starting avatar upload for user: $userId, file: $filePath")
+                _uiState.update { it.copy(avatarUploadState = UploadState.Uploading()) }
+
+                val result = repository.uploadAvatar(userId, filePath)
+                result.fold(
+                    onSuccess = { url ->
+                        android.util.Log.d("EditProfile", "Avatar upload successful: $url")
+                        _uiState.update { 
+                            it.copy(
+                                avatarUrl = url,
+                                avatarUploadState = UploadState.Success,
+                                hasChanges = true
+                            ) 
+                        }
+                        // Add to history in background
+                        viewModelScope.launch {
+                            try {
+                                repository.addToProfileHistory(userId, url)
+                            } catch (e: Exception) {
+                                android.util.Log.w("EditProfile", "Failed to add to profile history", e)
+                            }
+                        }
+                    },
+                    onFailure = { error ->
+                        android.util.Log.e("EditProfile", "Avatar upload failed", error)
+                        _uiState.update { 
+                            it.copy(avatarUploadState = UploadState.Error("Avatar upload failed: ${error.message}")) 
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("EditProfile", "Unexpected error during avatar upload", e)
+                _uiState.update { 
+                    it.copy(avatarUploadState = UploadState.Error("Unexpected error: ${e.message}")) 
+                }
+            }
         }
     }
 
     private fun handleCoverSelection(uri: Uri) {
+        lastCoverUri = uri
+        _uiState.update { it.copy(coverUploadState = UploadState.Uploading()) }
+        
         viewModelScope.launch {
-            val context = getApplication<Application>()
-            val realFilePath = FileUtil.convertUriToFilePath(context, uri)
+            try {
+                val context = getApplication<Application>()
+                android.util.Log.d("EditProfile", "Processing cover URI: $uri")
+                
+                // Try to convert URI to file path
+                var realFilePath = FileUtil.convertUriToFilePath(context, uri)
+                android.util.Log.d("EditProfile", "Converted file path: $realFilePath")
+                
+                // If conversion failed, try to copy content to temp file
+                if (realFilePath == null) {
+                    android.util.Log.d("EditProfile", "URI conversion failed, copying content to temp file")
+                    val tempInputFile = File(context.cacheDir, "temp_input_cover_${System.currentTimeMillis()}.jpg")
+                    
+                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        tempInputFile.outputStream().use { outputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+                    
+                    if (tempInputFile.exists() && tempInputFile.length() > 0) {
+                        realFilePath = tempInputFile.absolutePath
+                        android.util.Log.d("EditProfile", "Successfully copied to temp file: $realFilePath")
+                    } else {
+                        throw Exception("Failed to copy image content from URI")
+                    }
+                }
 
-            if (realFilePath != null) {
+                // Validate file exists and is not empty
+                val sourceFile = File(realFilePath)
+                if (!sourceFile.exists()) {
+                    throw Exception("Source file does not exist: $realFilePath")
+                }
+                if (sourceFile.length() == 0L) {
+                    throw Exception("Source file is empty: $realFilePath")
+                }
+
+                // Create compressed version
                 val tempFile = File(context.cacheDir, "temp_cover_${System.currentTimeMillis()}.jpg")
+                android.util.Log.d("EditProfile", "Compressing image to: ${tempFile.absolutePath}")
+                
                 FileUtil.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
+                
+                // Validate compressed file
+                if (!tempFile.exists() || tempFile.length() == 0L) {
+                    throw Exception("Image compression failed")
+                }
+                
+                android.util.Log.d("EditProfile", "Image compressed successfully, size: ${tempFile.length()} bytes")
+
+                // Upload
                 uploadCover(tempFile.absolutePath)
-            } else {
-                 _uiState.update { it.copy(error = "Failed to process image") }
+                
+            } catch (e: Exception) {
+                android.util.Log.e("EditProfile", "Cover processing failed", e)
+                _uiState.update { 
+                    it.copy(coverUploadState = UploadState.Error("Failed to process image: ${e.message}")) 
+                }
             }
         }
     }
 
     private fun uploadCover(filePath: String) {
         viewModelScope.launch {
-            val userId = repository.getCurrentUserId() ?: return@launch
-
-            val result = repository.uploadCover(userId, filePath)
-            result.fold(
-                onSuccess = { url ->
-                     _uiState.update { it.copy(coverUrl = url) }
-                     repository.addToCoverHistory(userId, url)
-                },
-                onFailure = { error ->
-                    _uiState.update { it.copy(error = "Cover upload failed: ${error.message}") }
+            try {
+                val userId = repository.getCurrentUserId()
+                if (userId == null) {
+                    _uiState.update { 
+                        it.copy(coverUploadState = UploadState.Error("User not logged in")) 
+                    }
+                    return@launch
                 }
-            )
+
+                android.util.Log.d("EditProfile", "Starting cover upload for user: $userId, file: $filePath")
+                _uiState.update { it.copy(coverUploadState = UploadState.Uploading()) }
+
+                val result = repository.uploadCover(userId, filePath)
+                result.fold(
+                    onSuccess = { url ->
+                        android.util.Log.d("EditProfile", "Cover upload successful: $url")
+                        _uiState.update { 
+                            it.copy(
+                                coverUrl = url,
+                                coverUploadState = UploadState.Success,
+                                hasChanges = true
+                            ) 
+                        }
+                        // Add to history in background
+                        viewModelScope.launch {
+                            try {
+                                repository.addToCoverHistory(userId, url)
+                            } catch (e: Exception) {
+                                android.util.Log.w("EditProfile", "Failed to add to cover history", e)
+                            }
+                        }
+                    },
+                    onFailure = { error ->
+                        android.util.Log.e("EditProfile", "Cover upload failed", error)
+                        _uiState.update { 
+                            it.copy(coverUploadState = UploadState.Error("Cover upload failed: ${error.message}")) 
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("EditProfile", "Unexpected error during cover upload", e)
+                _uiState.update { 
+                    it.copy(coverUploadState = UploadState.Error("Unexpected error: ${e.message}")) 
+                }
+            }
+        }
+    }
+
+    private fun retryAvatarUpload() {
+        lastAvatarUri?.let { uri ->
+            handleAvatarSelection(uri)
+        }
+    }
+
+    private fun retryCoverUpload() {
+        lastCoverUri?.let { uri ->
+            handleCoverSelection(uri)
         }
     }
 
     private fun saveProfile() {
         val state = _uiState.value
 
-        if (state.usernameValidation is UsernameValidation.Error || state.nicknameError != null || state.biographyError != null) {
+        if (state.usernameValidation is UsernameValidation.Error || state.nicknameError != null || state.bioError != null) {
             return
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true) }
-            val userId = repository.getCurrentUserId() ?: return@launch
+            _uiState.update { it.copy(isSaving = true, error = null) }
+            val userId = repository.getCurrentUserId() 
+            
+            if (userId == null) {
+                _uiState.update { it.copy(isSaving = false, error = "User not logged in") }
+                return@launch
+            }
 
-            val updateData = mutableMapOf<String, Any?>(
-                "username" to state.username,
-                "nickname" to state.nickname.ifEmpty { null },
-                "biography" to state.biography.ifEmpty { null },
-                "gender" to state.selectedGender.name.lowercase(),
-                "region" to state.selectedRegion
-            )
+            try {
+                val updateData = mutableMapOf<String, String>()
+                
+                updateData["username"] = state.username
+                updateData["display_name"] = state.nickname
+                updateData["bio"] = state.bio
+                updateData["gender"] = state.selectedGender.name.lowercase()
+                
+                state.selectedRegion?.let { updateData["region"] = it }
+                state.avatarUrl?.let { updateData["avatar"] = it }
+                state.coverUrl?.let { updateData["profile_cover_image"] = it }
 
-            // Add images if changed? No, they are updated immediately on upload.
-            // But we should ensure consistency.
-            if (state.avatarUrl != null) updateData["avatar"] = state.avatarUrl
-            if (state.coverUrl != null) updateData["profile_cover_image"] = state.coverUrl
+                val result = repository.updateProfile(userId, updateData)
 
-            val result = repository.updateProfile(userId, updateData)
-
-            result.fold(
-                onSuccess = {
-                     val originalUsername = state.profile?.username
-                     if (originalUsername != null && originalUsername != state.username) {
-                         val syncResult = repository.syncUsernameChange(originalUsername, state.username, userId)
-                         syncResult.fold(
-                             onSuccess = {
-                                 _uiState.update { it.copy(isSaving = false) }
-                                 _navigationEvents.emit(EditProfileNavigation.NavigateBack)
-                             },
-                             onFailure = { error ->
-                                 _uiState.update { it.copy(isSaving = false, error = "Profile saved but username sync failed: ${error.message}. Please try again.") }
-                             }
-                         )
-                     } else {
-                         _uiState.update { it.copy(isSaving = false) }
-                         _navigationEvents.emit(EditProfileNavigation.NavigateBack)
-                     }
-                },
-                onFailure = { error ->
-                    _uiState.update { it.copy(isSaving = false, error = "Failed to save: ${error.message}") }
-                }
-            )
+                result.fold(
+                    onSuccess = {
+                         val originalUsername = state.profile?.username
+                         if (originalUsername != null && originalUsername != state.username) {
+                             val syncResult = repository.syncUsernameChange(originalUsername, state.username, userId)
+                             syncResult.fold(
+                                 onSuccess = {
+                                     _uiState.update { it.copy(isSaving = false, hasChanges = false) }
+                                     _navigationEvents.emit(EditProfileNavigation.NavigateBack)
+                                 },
+                                 onFailure = { error ->
+                                     _uiState.update { it.copy(isSaving = false, error = "Profile saved but username sync failed: ${error.message}. Please try again.") }
+                                 }
+                             )
+                         } else {
+                             _uiState.update { it.copy(isSaving = false, hasChanges = false) }
+                             _navigationEvents.emit(EditProfileNavigation.NavigateBack)
+                         }
+                    },
+                    onFailure = { error ->
+                        _uiState.update { it.copy(isSaving = false, error = "Failed to save: ${error.message}") }
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSaving = false, error = "Unexpected error: ${e.message}") }
+            }
         }
     }
 }

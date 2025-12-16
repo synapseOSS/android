@@ -15,11 +15,8 @@ data class User(
     val nickname: String? = null,
     @SerialName("display_name")
     val displayName: String? = null,
-    val biography: String? = null,
     val bio: String? = null,
     val avatar: String? = null,
-    @SerialName("profile_image_url")
-    val profileImageUrl: String? = null,
     @SerialName("avatar_history_type")
     val avatarHistoryType: String = "local",
     @SerialName("profile_cover_image")

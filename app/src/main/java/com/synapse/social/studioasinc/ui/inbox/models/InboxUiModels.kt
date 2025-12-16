@@ -70,7 +70,8 @@ sealed interface InboxUiState {
         val archivedChats: List<ChatItemUiModel> = emptyList(),
         val isRefreshing: Boolean = false,
         val selectionMode: Boolean = false,
-        val selectedItems: Set<String> = emptySet()
+        val selectedItems: Set<String> = emptySet(),
+        val error: String? = null // For deletion operation errors - Requirements: 2.4
     ) : InboxUiState
     
     /**
@@ -124,6 +125,16 @@ enum class MuteDuration(val displayName: String, val durationMs: Long) {
 }
 
 /**
+ * Deletion status for chat history operations
+ * Requirements: 2.4
+ */
+sealed class DeletionStatus {
+    data class InProgress(val completed: Int, val total: Int) : DeletionStatus()
+    object Success : DeletionStatus()
+    data class Error(val message: String) : DeletionStatus()
+}
+
+/**
  * User action events from inbox screen
  */
 sealed interface InboxAction {
@@ -144,4 +155,9 @@ sealed interface InboxAction {
     data object ClearSelection : InboxAction
     data object DeleteSelected : InboxAction
     data object ArchiveSelected : InboxAction
+    
+    // Chat History Deletion Actions - Requirements: 2.4
+    data class DeleteChatHistory(val chatId: String) : InboxAction
+    data object DeleteSelectedChatHistory : InboxAction
+    data object DeleteAllChatHistory : InboxAction
 }

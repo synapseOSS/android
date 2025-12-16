@@ -84,7 +84,7 @@ fun CommentItem(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             CircularAvatar(
-                imageUrl = comment.user?.profileImageUrl,
+                imageUrl = comment.user?.avatar,
                 contentDescription = "Avatar",
                 size = 32.dp,
                 onClick = { comment.userId?.let { onUserClick(it) } }

@@ -38,7 +38,8 @@ class SupabaseFollowService {
                     .decodeList<JsonObject>()
                 
                 if (existingFollow.isNotEmpty()) {
-                    return@withContext Result.failure(Exception("Already following this user"))
+                    // Already following - return success instead of failure
+                    return@withContext Result.success(Unit)
                 }
                 
                 // Create follow relationship

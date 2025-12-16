@@ -13,5 +13,6 @@ data class CommentEntity(
     val timestamp: Long,
     var username: String?,
     var avatarUrl: String?,
+    @androidx.room.ColumnInfo(name = "parent_comment_id")
     val parentCommentId: String? = null
 )

@@ -26,13 +26,14 @@ object UserProfileManager {
         
         return try {
             val result = dbService.getSingle("users", "uid", uid).getOrNull()
+            android.util.Log.d("UserProfileManager", "Database result for uid $uid: $result")
             if (result != null) {
                 val user = User(
                     uid = result["uid"] as? String ?: "",
                     username = result["username"] as? String ?: "",
                     email = result["email"] as? String ?: "",
                     displayName = result["display_name"] as? String ?: "",
-                    profileImageUrl = result["profile_image_url"] as? String,
+                    avatar = result["avatar"] as? String,
                     bio = result["bio"] as? String,
                     followersCount = (result["followers_count"] as? String)?.toIntOrNull() ?: 0,
                     followingCount = (result["following_count"] as? String)?.toIntOrNull() ?: 0,
@@ -93,7 +94,7 @@ object UserProfileManager {
                         username = result["username"] as? String ?: "",
                         email = result["email"] as? String ?: "",
                         displayName = result["display_name"] as? String ?: "",
-                        profileImageUrl = result["profile_image_url"] as? String,
+                        avatar = result["avatar"] as? String,
                         bio = result["bio"] as? String,
                         followersCount = (result["followers_count"] as? String)?.toIntOrNull() ?: 0,
                         followingCount = (result["following_count"] as? String)?.toIntOrNull() ?: 0,
@@ -133,7 +134,7 @@ object UserProfileManager {
                         username = result["username"] as? String ?: "",
                         email = result["email"] as? String ?: "",
                         displayName = result["display_name"] as? String ?: "",
-                        profileImageUrl = result["profile_image_url"] as? String,
+                        avatar = result["avatar"] as? String,
                         bio = result["bio"] as? String,
                         followersCount = (result["followers_count"] as? String)?.toIntOrNull() ?: 0,
                         followingCount = (result["following_count"] as? String)?.toIntOrNull() ?: 0,

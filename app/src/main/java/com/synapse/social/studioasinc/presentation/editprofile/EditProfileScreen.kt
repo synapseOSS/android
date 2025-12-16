@@ -127,7 +127,7 @@ fun EditProfileScreen(
                                 enabled = uiState.hasChanges &&
                                           uiState.usernameValidation !is UsernameValidation.Error &&
                                           uiState.nicknameError == null &&
-                                          uiState.biographyError == null,
+                                          uiState.bioError == null,
                                 modifier = Modifier.padding(end = 8.dp)
                             ) {
                                 Text("Save")
@@ -163,11 +163,19 @@ fun EditProfileScreen(
                         ProfileImageSection(
                             coverUrl = uiState.coverUrl,
                             avatarUrl = uiState.avatarUrl,
+                            avatarUploadState = uiState.avatarUploadState,
+                            coverUploadState = uiState.coverUploadState,
                             onCoverClick = {
                                 coverPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                             },
                             onAvatarClick = {
                                 avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            },
+                            onRetryAvatarUpload = {
+                                viewModel.onEvent(EditProfileEvent.RetryAvatarUpload)
+                            },
+                            onRetryCoverUpload = {
+                                viewModel.onEvent(EditProfileEvent.RetryCoverUpload)
                             }
                         )
                     }
@@ -181,9 +189,9 @@ fun EditProfileScreen(
                             nickname = uiState.nickname,
                             onNicknameChange = { viewModel.onEvent(EditProfileEvent.NicknameChanged(it)) },
                             nicknameError = uiState.nicknameError,
-                            biography = uiState.biography,
+                            bio = uiState.bio,
                             onBiographyChange = { viewModel.onEvent(EditProfileEvent.BiographyChanged(it)) },
-                            biographyError = uiState.biographyError
+                            bioError = uiState.bioError
                         )
                     }
 

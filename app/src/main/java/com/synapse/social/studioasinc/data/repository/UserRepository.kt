@@ -30,8 +30,7 @@ class UserRepository(private val userDao: UserDao) {
                         uid = it.uid,
                         username = it.username,
                         email = it.email,
-                        avatar = it.profileImageUrl,
-                        profileImageUrl = it.profileImageUrl,
+                        avatar = it.avatar,
                         verify = it.verify
                     )
                     userDao.insertAll(listOf(UserMapper.toEntity(user!!)))
@@ -85,7 +84,7 @@ class UserRepository(private val userDao: UserDao) {
                 "display_name" to user.displayName,
                 "email" to user.email,
                 "bio" to user.bio,
-                "profile_image_url" to user.profileImageUrl,
+                "avatar" to user.avatar,
                 "followers_count" to user.followersCount,
                 "following_count" to user.followingCount,
                 "posts_count" to user.postsCount,

@@ -13,6 +13,8 @@
 	<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 	<uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 	<uses-permission android:name="android.permission.WRITE_MEDIA_STORAGE" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 	<application
 		android:allowBackup="true"
 		android:icon="@mipmap/ic_launcher"
@@ -128,6 +130,13 @@
 			android:windowSoftInputMode="stateHidden" />
 		<activity
 			android:name=".FollowListActivity"
+			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+			android:hardwareAccelerated="true"
+			android:supportsPictureInPicture="true"
+			android:screenOrientation="portrait"
+			android:windowSoftInputMode="stateHidden" />
+		<activity
+			android:name=".FollowListComposeActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
 			android:hardwareAccelerated="true"
 			android:supportsPictureInPicture="true"
@@ -280,6 +289,12 @@
 			android:name="org.apache.http.legacy"
 			android:required="false" />
 
+		<!-- Background Deletion Service -->
+		<service
+			android:name=".data.repository.deletion.BackgroundDeletionService"
+			android:enabled="true"
+			android:exported="false"
+			android:foregroundServiceType="dataSync" />
 
 <provider
   android:name="androidx.core.content.FileProvider"

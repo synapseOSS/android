@@ -95,7 +95,7 @@ fun SettingsScreen(
                             icon = R.drawable.ic_person,
                             title = stringResource(R.string.settings_account),
                             subtitle = stringResource(R.string.settings_account_subtitle),
-                            imageUrl = currentUser?.profileImageUrl,
+                            imageUrl = currentUser?.avatar,
                             onClick = onAccountClick,
                             position = SettingsItemPosition.Top
                         )

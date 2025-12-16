@@ -123,6 +123,37 @@ class SupabaseRealtimeService {
     }
     
     /**
+     * Get or create a channel specifically for message observation.
+     * This ensures postgres change flows can be set up before joining.
+     */
+    suspend fun getOrCreateChannelForMessages(chatId: String): RealtimeChannel {
+        Log.d(TAG, "Getting channel for messages: $chatId")
+        
+        // If channel exists and is joined, we need to recreate it
+        channels[chatId]?.let { existingChannel ->
+            if (existingChannel.status.toString() == "JOINED") {
+                Log.w(TAG, "Channel already joined for chat: $chatId. Recreating channel for new flows.")
+                // Remove the existing channel
+                channels.remove(chatId)
+                try {
+                    SupabaseClient.client.realtime.removeChannel(existingChannel)
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error removing existing channel", e)
+                }
+            } else {
+                // If channel exists but not joined, return it so flows can be added
+                return existingChannel
+            }
+        }
+        
+        // Create new channel but don't subscribe yet - let the caller set up flows first
+        val channelName = "chat:$chatId"
+        val newChannel = SupabaseClient.client.realtime.channel(channelName)
+        channels[chatId] = newChannel
+        return newChannel
+    }
+    
+    /**
      * Broadcast a typing event to the chat room.
      * Falls back to queuing if WebSocket is unavailable.
      * 
@@ -316,6 +347,17 @@ class SupabaseRealtimeService {
         queuedReadReceiptEvents.clear()
         
         _connectionState.value = RealtimeState.Disconnected
+    }
+    
+    /**
+     * Reset connection state to allow fresh reconnection attempts
+     */
+    fun resetConnectionState() {
+        Log.d(TAG, "Resetting connection state")
+        chatReconnectAttempts.clear()
+        chatPollingFallback.clear()
+        _connectionState.value = RealtimeState.Disconnected
+        metrics.recordConnectionReset()
     }
     
     /**

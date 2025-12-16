@@ -18,6 +18,13 @@
     <string name="please_enter_password">Please enter Password</string>
     <string name="skyline_create_account">Create Account 🎉</string>
     <string name="join_skyline_community">Join the Synapse community by creating your account now 😊</string>
+    
+    <!-- Follow List Screen -->
+    <string name="users">Users</string>
+    <string name="back">Back</string>
+    <string name="no_followers">No followers yet</string>
+    <string name="no_following">Not following anyone yet</string>
+    <string name="no_users_found">No users found</string>
     <string name="complete_profile_title">Complete your profile</string>
     <string name="complete_profile_subtitle">Now finish account creation by completing your profile or skip profile completion step using skip button.</string>
     <string name="primary_details_title">Primary details</string>
@@ -214,10 +221,10 @@
     <string name="profile_cover_history_subtitle">You can manage all your previously added cover photos here.</string>
     <string name="profile_cover_history_empty_title">No Cover Photo</string>
     <string name="profile_cover_history_empty_subtitle">There is no cover photo you have previously uploaded! Every time you change your cover photo it is added here.</string>
-    <string name="no_followers">There is no one following this user.</string>
     <string name="no_followed">This user does not follow anyone</string>
     <string name="show_replies">Show Replies</string>
     <string name="hide_replies">Hide Replies</string>
+    <string name="no_replies_yet">No replies yet</string>
     <string name="reply_to_user_hint">Reply to %1$s</string>
     <string name="status_text_seconds">seconds ago</string>
     <string name="status_text_minutes">minute ago</string>
@@ -961,4 +968,15 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="cd_message_options">Message options</string>
     <string name="cd_deleted_message">Deleted message icon</string>
     <string name="cd_typing_indicator">User is typing</string>
+    
+    <!-- Active Status Strings -->
+    <string name="status_online">Online</string>
+    <string name="status_away">Away</string>
+    <string name="status_typing">Typing</string>
+    <string name="status_recently_active">Recently active</string>
+    <string name="status_offline">Offline</string>
+    <string name="last_seen_just_now">Last seen just now</string>
+    <string name="last_seen_minutes_ago">Last seen %d minutes ago</string>
+    <string name="last_seen_hours_ago">Last seen %d hours ago</string>
+    <string name="last_seen_days_ago">Last seen %d days ago</string>
 </resources>

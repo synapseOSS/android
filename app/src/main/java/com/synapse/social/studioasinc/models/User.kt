@@ -13,7 +13,7 @@ data class User(
     val email: String,
     val username: String,
     val nickname: String? = null,
-    val biography: String? = null,
+    val bio: String? = null,
     val avatar: String? = null,
     @SerialName("avatar_history_type")
     val avatarHistoryType: String = "local",
@@ -53,7 +53,7 @@ fun HashMap<String, Any?>.toUser(): User {
         email = this["email"] as? String ?: "",
         username = this["username"] as? String ?: "",
         nickname = this["nickname"] as? String,
-        biography = this["biography"] as? String,
+        bio = this["bio"] as? String,
         avatar = this["avatar"] as? String,
         avatarHistoryType = this["avatar_history_type"] as? String ?: "local",
         profileCoverImage = this["profile_cover_image"] as? String,

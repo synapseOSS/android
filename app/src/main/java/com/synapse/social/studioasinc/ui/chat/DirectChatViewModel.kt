@@ -4,6 +4,8 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.backend.LinkPreviewService
 import com.synapse.social.studioasinc.backend.SupabaseStorageService
@@ -33,14 +35,22 @@ import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
 /**
  * ViewModel for DirectChatScreen
  * Adapter for existing ChatRepository to Compose UI State
+ * Requirements: 2.4
  */
-class DirectChatViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class DirectChatViewModel @Inject constructor(
+    application: Application
+) : AndroidViewModel(application) {
 
     // Dependencies
     private val chatDao = AppDatabase.getDatabase(application).chatDao()
     private val chatRepository = ChatRepository(chatDao)
     private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
+    
+    // Enhanced typing and presence managers
+    private val typingIndicatorManager = com.synapse.social.studioasinc.chat.TypingIndicatorManager.getInstance()
+    private val activeStatusManager = com.synapse.social.studioasinc.chat.ActiveStatusManager.getInstance()
     
     // UI State
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -141,7 +151,8 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
         loadCurrentUser()
         observeConnectionState()
     }
-
+    
+    
     private fun observeConnectionState() {
         viewModelScope.launch {
             realtimeService.connectionState.collect { state ->
@@ -155,6 +166,42 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
+
+    /**
+     * Retry realtime connection manually
+     */
+    fun retryConnection() {
+        val chatId = currentChatId ?: return
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("DirectChatViewModel", "Retrying connection for chat: $chatId")
+                
+                // 1. Force connection state to connecting
+                _uiState.update { it.copy(connectionState = RealtimeConnectionState.Connecting) }
+                
+                // 2. Run diagnostics
+                com.synapse.social.studioasinc.util.ConnectionDiagnostics.runDiagnostics(getApplication())
+                
+                // 3. Cancel existing connection completely
+                realtimeJob?.cancel()
+                realtimeService.cleanup()
+                
+                // 4. Wait for cleanup
+                delay(1000)
+                
+                // 5. Reset connection state in service
+                realtimeService.resetConnectionState()
+                
+                // 6. Restart realtime observation
+                observeRealtimeMessages(chatId)
+                
+                android.util.Log.d("DirectChatViewModel", "Connection retry initiated")
+            } catch (e: Exception) {
+                android.util.Log.e("DirectChatViewModel", "Failed to retry connection", e)
+                _uiState.update { it.copy(connectionState = RealtimeConnectionState.Disconnected) }
+            }
+        }
+    }
     
     private fun loadCurrentUser() {
         viewModelScope.launch {
@@ -165,6 +212,17 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     fun loadChat(chatId: String) {
         // Only skip full reload if already observing this chat with active realtime
         if (currentChatId == chatId && realtimeJob?.isActive == true) return
+        
+        // Clean up previous chat's realtime connection
+        if (currentChatId != null && currentChatId != chatId) {
+            realtimeJob?.cancel()
+            viewModelScope.launch {
+                currentChatId?.let { oldChatId ->
+                    realtimeService.unsubscribeFromChat(oldChatId)
+                }
+            }
+        }
+        
         currentChatId = chatId
         
         viewModelScope.launch {
@@ -198,9 +256,12 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                                  id = otherId,
                                  username = userProfile?.username ?: "User",
                                  displayName = userProfile?.displayName,
-                                 avatarUrl = userProfile?.profileImageUrl
+                                 avatarUrl = userProfile?.avatar
                              ))
                          }
+                         
+                         // Initialize presence tracking after user info is loaded
+                         initializePresenceTracking()
                      }
                  }
                 
@@ -216,78 +277,118 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
     private fun observeRealtimeMessages(chatId: String) {
         realtimeJob?.cancel()
         realtimeJob = viewModelScope.launch {
-            // 1. Subscribe to channel and get postgres changes flow
-            val channel = realtimeService.subscribeToChat(chatId)
-            val changesFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
-                table = "messages"
-                filter("chat_id", FilterOperator.EQ, chatId)
-            }
+            try {
+                // 1. Get channel (not subscribed yet)
+                val channel = realtimeService.getOrCreateChannelForMessages(chatId)
+                
+                // 2. Set up postgres changes flow BEFORE subscribing
+                val changesFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                    table = "messages"
+                    filter("chat_id", FilterOperator.EQ, chatId)
+                }
+                
+                // 3. Set up broadcast flow BEFORE subscribing
+                val typingFlow = channel.broadcastFlow<JsonObject>(event = "typing")
+                
+                // 4. Now subscribe to the channel
+                channel.subscribe()
 
-            // 2. Observe Messages (Insert/Update/Delete)
-            launch {
-                try {
-
-                    changesFlow.collect { action ->
-                        when (action) {
-                            is PostgresAction.Insert -> {
-                                val message = action.decodeRecord<Message>()
-                                // Double check chat_id just in case
-                                if (message.chatId == chatId) handleMessageInsert(message)
-                            }
-                            is PostgresAction.Update -> {
-                                val message = action.decodeRecord<Message>()
-                                if (message.chatId == chatId) handleMessageUpdate(message)
-                            }
-                            is PostgresAction.Delete -> {
-                                val oldRecord = action.oldRecord
-                                val recChatId = oldRecord["chat_id"]?.toString()?.replace("\"", "")
-                                if (recChatId == chatId || (recChatId == null)) { 
-                                     val id = oldRecord["id"]?.toString()?.replace("\"", "")
-                                     if (id != null) handleMessageDelete(id)
+                // 5. Observe Messages (Insert/Update/Delete)
+                launch {
+                    try {
+                        changesFlow.collect { action ->
+                            when (action) {
+                                is PostgresAction.Insert -> {
+                                    val message = action.decodeRecord<Message>()
+                                    // Double check chat_id just in case
+                                    if (message.chatId == chatId) handleMessageInsert(message)
                                 }
+                                is PostgresAction.Update -> {
+                                    val message = action.decodeRecord<Message>()
+                                    if (message.chatId == chatId) handleMessageUpdate(message)
+                                }
+                                is PostgresAction.Delete -> {
+                                    val oldRecord = action.oldRecord
+                                    val recChatId = oldRecord["chat_id"]?.toString()?.replace("\"", "")
+                                    if (recChatId == chatId || (recChatId == null)) { 
+                                         val id = oldRecord["id"]?.toString()?.replace("\"", "")
+                                         if (id != null) handleMessageDelete(id)
+                                    }
+                                }
+                                else -> {}
                             }
-                            else -> {}
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("DirectChatViewModel", "Realtime message error", e)
+                        _uiState.update { it.copy(connectionState = RealtimeConnectionState.Disconnected) }
+                        
+                        // Auto-retry after a delay if this is a connection issue
+                        if (e.message?.contains("connection", ignoreCase = true) == true ||
+                            e.message?.contains("network", ignoreCase = true) == true) {
+                            delay(3000) // Wait 3 seconds before retry
+                            if (currentChatId == chatId) { // Only retry if still on same chat
+                                android.util.Log.d("DirectChatViewModel", "Auto-retrying connection after error")
+                                observeRealtimeMessages(chatId)
+                            }
                         }
                     }
-                } catch (e: Exception) {
-                    _uiState.update { it.copy(error = "Realtime message error: ${e.message}") }
                 }
-            }
-            
-            // 3. Observe Typing Events
-            launch {
-                 channel.broadcastFlow<JsonObject>(event = "typing")
-                     .collect { event ->
-                         val payload = event
-                         val userId = payload["user_id"]?.toString()?.replace("\"", "") ?: return@collect
-                         val isTyping = payload["is_typing"]?.toString()?.toBoolean() ?: false
-                         
-                         // Ignore self
-                         if (userId == currentUserId) return@collect
-                         
-                         _uiState.update { state ->
-                             val currentTyping = state.typingUsers.toMutableSet()
-                             if (isTyping) {
-                                 // Add user
-                                 currentTyping.add(state.otherUser?.username ?: "User")
-                             } else {
-                                 currentTyping.remove(state.otherUser?.username ?: "User")
-                             }
-                             state.copy(typingUsers = currentTyping.toList())
-                         }
-                         
-                         // Auto-remove typing status after 3 seconds (debounce safety)
-                         if (isTyping) {
-                             launch {
-                                 kotlinx.coroutines.delay(3000)
-                                 _uiState.update { state ->
-                                     val currentTyping = state.typingUsers.toMutableSet()
-                                     currentTyping.remove(state.otherUser?.username ?: "User")
-                                     state.copy(typingUsers = currentTyping.toList())
-                                 }
-                             }
-                         }
-                     }
+                
+                // 6. Observe Typing Events
+                launch {
+                    try {
+                        typingFlow.collect { event ->
+                            val payload = event
+                            val userId = payload["user_id"]?.toString()?.replace("\"", "") ?: return@collect
+                            val isTyping = payload["is_typing"]?.toString()?.toBoolean() ?: false
+                            
+                            // Ignore self
+                            if (userId == currentUserId) return@collect
+                            
+                            _uiState.update { state ->
+                                val currentTyping = state.typingUsers.toMutableSet()
+                                if (isTyping) {
+                                    // Add user
+                                    currentTyping.add(state.otherUser?.username ?: "User")
+                                } else {
+                                    currentTyping.remove(state.otherUser?.username ?: "User")
+                                }
+                                state.copy(typingUsers = currentTyping.toList())
+                            }
+                            
+                            // Auto-remove typing status after 3 seconds (debounce safety)
+                            if (isTyping) {
+                                launch {
+                                    kotlinx.coroutines.delay(3000)
+                                    _uiState.update { state ->
+                                        val currentTyping = state.typingUsers.toMutableSet()
+                                        currentTyping.remove(state.otherUser?.username ?: "User")
+                                        state.copy(typingUsers = currentTyping.toList())
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        _uiState.update { it.copy(error = "Realtime typing error: ${e.message}") }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("DirectChatViewModel", "Failed to set up realtime connection", e)
+                _uiState.update { it.copy(connectionState = RealtimeConnectionState.Disconnected) }
+                
+                // Auto-retry for connection-related errors
+                if (e.message?.contains("connection", ignoreCase = true) == true ||
+                    e.message?.contains("network", ignoreCase = true) == true ||
+                    e.message?.contains("timeout", ignoreCase = true) == true) {
+                    
+                    delay(5000) // Wait 5 seconds before retry
+                    if (currentChatId == chatId) { // Only retry if still on same chat
+                        android.util.Log.d("DirectChatViewModel", "Auto-retrying realtime setup after error")
+                        observeRealtimeMessages(chatId)
+                    }
+                } else {
+                    _uiState.update { it.copy(error = "Connection failed: ${e.message}") }
+                }
             }
         }
     }
@@ -655,7 +756,7 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
                                              // Should hit cache now
                                              val profile = UserProfileManager.getUserProfile(otherUserId)
                                              displayName = profile?.displayName ?: profile?.username ?: "User"
-                                             avatarUrl = profile?.profileImageUrl
+                                             avatarUrl = profile?.avatar
                                          }
                                      } catch (e: Exception) {
                                          // Ignore errors
@@ -985,19 +1086,99 @@ class DirectChatViewModel(application: Application) : AndroidViewModel(applicati
 
     /**
      * Set Typing Status
-     * Backend: Broadcasts 'typing' event to 'chat:{id}' channel
+     * Enhanced with TypingIndicatorManager for debouncing and lifecycle management
      */
     fun setTypingStatus(isTyping: Boolean) {
         val chatId = currentChatId ?: return
         val userId = currentUserId ?: return
         
+        if (isTyping) {
+            typingIndicatorManager.startTyping(chatId, userId)
+        } else {
+            typingIndicatorManager.stopTyping(chatId, userId)
+        }
+        
+        // Also broadcast via realtime service for immediate feedback
         viewModelScope.launch {
             realtimeService.broadcastTyping(chatId, userId, isTyping)
+        }
+    }
+    
+    /**
+     * Initialize presence tracking for the current chat
+     */
+    fun initializePresenceTracking() {
+        val chatId = currentChatId ?: return
+        val userId = currentUserId ?: return
+        val otherUserId = _uiState.value.otherUser?.id ?: return
+        
+        viewModelScope.launch {
+            // Set user as online and in this chat
+            activeStatusManager.setOnline(userId)
+            activeStatusManager.setActivityStatus(userId, "chatting", chatId)
+            
+            // Start heartbeat to maintain online status
+            activeStatusManager.startHeartbeat(userId)
+            
+            // Monitor other user's presence
+            activeStatusManager.addPresenceListener(otherUserId, object : 
+                com.synapse.social.studioasinc.chat.ActiveStatusManager.PresenceListener {
+                override fun onPresenceChanged(userId: String, presence: com.synapse.social.studioasinc.chat.ActiveStatusManager.UserPresence) {
+                    _uiState.update { state ->
+                        state.copy(
+                            otherUserOnline = presence.isOnline,
+                            otherUserLastSeen = presence.lastSeen,
+                            otherUserActivity = presence.activityStatus
+                        )
+                    }
+                }
+            })
+            
+            // Start monitoring presence for other user
+            activeStatusManager.startMonitoring(listOf(otherUserId))
+            
+            // Set up typing indicator listener
+            typingIndicatorManager.addTypingListener(chatId, object :
+                com.synapse.social.studioasinc.chat.TypingIndicatorManager.TypingListener {
+                override fun onTypingUsersChanged(chatId: String, typingUsers: List<String>) {
+                    _uiState.update { state ->
+                        val displayNames = typingUsers.mapNotNull { userId ->
+                            if (userId == otherUserId) state.otherUser?.username else null
+                        }
+                        state.copy(typingUsers = displayNames)
+                    }
+                }
+            })
+            
+            // Start monitoring typing status
+            typingIndicatorManager.startMonitoring(chatId, userId)
+        }
+    }
+    
+    /**
+     * Clean up presence tracking
+     */
+    fun cleanupPresenceTracking() {
+        val chatId = currentChatId ?: return
+        val userId = currentUserId ?: return
+        val otherUserId = _uiState.value.otherUser?.id ?: return
+        
+        viewModelScope.launch {
+            // Set user as online but not in chat
+            activeStatusManager.setActivityStatus(userId, "online")
+            
+            // Clean up managers
+            typingIndicatorManager.cleanup(chatId, userId)
+            activeStatusManager.removePresenceListener(otherUserId, object : 
+                com.synapse.social.studioasinc.chat.ActiveStatusManager.PresenceListener {
+                override fun onPresenceChanged(userId: String, presence: com.synapse.social.studioasinc.chat.ActiveStatusManager.UserPresence) {}
+            })
         }
     }
 
     override fun onCleared() {
         super.onCleared()
+        cleanupPresenceTracking()
         viewModelScope.launch {
             realtimeService.cleanup()
         }

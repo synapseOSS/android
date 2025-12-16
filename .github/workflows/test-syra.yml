@@ -1,0 +1,111 @@
+name: Test Syra Functions
+
+on:
+  # Manual trigger - can be run from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      test_message:
+        description: 'Message to test with Syra'
+        required: false
+        default: 'Hello Syra, how are you doing today?'
+      test_type:
+        description: 'Type of test to run'
+        required: false
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - debug-only
+          - mention-only
+  # Also trigger on push to this workflow file for testing
+  push:
+    paths:
+      - '.github/workflows/test-syra.yml'
+
+jobs:
+  test-syra:
+    name: Test Syra Edge Functions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test Syra Debug Function
+        if: ${{ github.event.inputs.test_type == 'both' || github.event.inputs.test_type == 'debug-only' || github.event.inputs.test_type == '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_SYNAPSE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SYNAPSE_ANON_KEY }}
+        run: |
+          echo "Testing Syra Debug Function..."
+          echo "Supabase URL: $SUPABASE_URL"
+          echo "Anon Key Length: ${#SUPABASE_ANON_KEY}"
+          
+          # Test syra-debug function
+          response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST "$SUPABASE_URL/functions/v1/syra-debug" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"messageText\": \"${{ github.event.inputs.test_message }}\"}")
+          
+          echo "Response:"
+          echo "$response"
+          
+          # Extract HTTP status
+          http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+          echo "HTTP Status: $http_status"
+          
+          if [ "$http_status" = "200" ]; then
+            echo "✅ Syra Debug Function Test PASSED"
+          else
+            echo "❌ Syra Debug Function Test FAILED"
+            exit 1
+          fi
+
+      - name: Test Syra Mention Handler Function
+        if: ${{ github.event.inputs.test_type == 'both' || github.event.inputs.test_type == 'mention-only' || github.event.inputs.test_type == '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_SYNAPSE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SYNAPSE_ANON_KEY }}
+        run: |
+          echo "Testing Syra Mention Handler Function..."
+          
+          # Test syra-mention-handler function with a mock chat mention
+          response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST "$SUPABASE_URL/functions/v1/syra-mention-handler" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chatId": "test-chat-id",
+              "messageText": "${{ github.event.inputs.test_message }} @syra",
+              "mentionedUsers": ["syra"],
+              "senderId": "test-user-id",
+              "mentionType": "chat"
+            }')
+          
+          echo "Response:"
+          echo "$response"
+          
+          # Extract HTTP status
+          http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+          echo "HTTP Status: $http_status"
+          
+          if [ "$http_status" = "200" ]; then
+            echo "✅ Syra Mention Handler Test PASSED"
+          else
+            echo "❌ Syra Mention Handler Test FAILED"
+            exit 1
+          fi
+
+      - name: Test Environment Variables
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_SYNAPSE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SYNAPSE_ANON_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "Environment Variables Check:"
+          echo "SUPABASE_URL is set: $([ -n "$SUPABASE_URL" ] && echo "✅ YES" || echo "❌ NO")"
+          echo "SUPABASE_ANON_KEY is set: $([ -n "$SUPABASE_ANON_KEY" ] && echo "✅ YES" || echo "❌ NO")"
+          echo "GEMINI_API_KEY is set: $([ -n "$GEMINI_API_KEY" ] && echo "✅ YES" || echo "❌ NO")"
+          
+          echo "SUPABASE_URL: $SUPABASE_URL"
+          echo "SUPABASE_ANON_KEY length: ${#SUPABASE_ANON_KEY}"
+          echo "GEMINI_API_KEY length: ${#GEMINI_API_KEY}"

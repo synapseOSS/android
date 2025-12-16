@@ -80,7 +80,7 @@ class PhotoHistoryViewModel(application: Application) : AndroidViewModel(applica
              result.fold(
                  onSuccess = { profile ->
                      val currentUrl = when (type) {
-                         PhotoType.PROFILE -> profile.profileImageUrl
+                         PhotoType.PROFILE -> profile.avatar
                          PhotoType.COVER -> profile.profileCoverImage
                      }
                      _uiState.update { it.copy(isLoading = false, currentPhotoUrl = currentUrl) }
@@ -102,7 +102,7 @@ class PhotoHistoryViewModel(application: Application) : AndroidViewModel(applica
             val isCurrent = item.imageUrl == _uiState.value.currentPhotoUrl
             val newUrl = if (isCurrent) "null" else item.imageUrl
 
-            val updateData = mutableMapOf<String, Any?>()
+            val updateData = mutableMapOf<String, String>()
             when (type) {
                 PhotoType.PROFILE -> updateData["avatar"] = newUrl
                 PhotoType.COVER -> updateData["profile_cover_image"] = newUrl
@@ -137,7 +137,7 @@ class PhotoHistoryViewModel(application: Application) : AndroidViewModel(applica
 
             // If deleting current, reset current first
             if (item.imageUrl == _uiState.value.currentPhotoUrl) {
-                 val updateData = mutableMapOf<String, Any?>()
+                 val updateData = mutableMapOf<String, String>()
                  when (type) {
                     PhotoType.PROFILE -> updateData["avatar"] = "null"
                     PhotoType.COVER -> updateData["profile_cover_image"] = "null"

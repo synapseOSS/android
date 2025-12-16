@@ -25,18 +25,20 @@ data class PostInsertDto(
     @SerialName("likes_count") val likesCount: Int = 0,
     @SerialName("comments_count") val commentsCount: Int = 0,
     @SerialName("views_count") val viewsCount: Int = 0,
+    @SerialName("reshares_count") val resharesCount: Int = 0,
     @SerialName("media_items") val mediaItems: List<MediaItem>? = null,
     @SerialName("has_poll") val hasPoll: Boolean? = null,
     @SerialName("poll_question") val pollQuestion: String? = null,
     @SerialName("poll_options") val pollOptions: List<PollOption>? = null,
     @SerialName("poll_end_time") val pollEndTime: String? = null,
+    @SerialName("poll_allow_multiple") val pollAllowMultiple: Boolean? = null,
     @SerialName("has_location") val hasLocation: Boolean? = null,
     @SerialName("location_name") val locationName: String? = null,
     @SerialName("location_address") val locationAddress: String? = null,
     @SerialName("location_latitude") val locationLatitude: Double? = null,
     @SerialName("location_longitude") val locationLongitude: Double? = null,
-    @SerialName("youtube_url") val youtubeUrl: String? = null,
-    @SerialName("updated_at") val updatedAt: Long? = null
+    @SerialName("location_place_id") val locationPlaceId: String? = null,
+    @SerialName("youtube_url") val youtubeUrl: String? = null
 )
 
 @Serializable
@@ -71,11 +73,13 @@ data class PostSelectDto(
     @SerialName("poll_question") val pollQuestion: String? = null,
     @SerialName("poll_options") val pollOptions: List<PollOption>? = null,
     @SerialName("poll_end_time") val pollEndTime: String? = null,
+    @SerialName("poll_allow_multiple") val pollAllowMultiple: Boolean? = null,
     @SerialName("has_location") val hasLocation: Boolean? = null,
     @SerialName("location_name") val locationName: String? = null,
     @SerialName("location_address") val locationAddress: String? = null,
     @SerialName("location_latitude") val locationLatitude: Double? = null,
     @SerialName("location_longitude") val locationLongitude: Double? = null,
+    @SerialName("location_place_id") val locationPlaceId: String? = null,
     @SerialName("youtube_url") val youtubeUrl: String? = null,
 
     // Nested user data from join
@@ -102,23 +106,25 @@ fun Post.toInsertDto(): PostInsertDto {
         likesCount = 0, // Reset counts for new post
         commentsCount = 0,
         viewsCount = 0,
+        resharesCount = 0,
         mediaItems = this.mediaItems,
         hasPoll = this.hasPoll,
         pollQuestion = this.pollQuestion,
         pollOptions = this.pollOptions,
         pollEndTime = this.pollEndTime,
+        pollAllowMultiple = this.pollAllowMultiple,
         hasLocation = this.hasLocation,
         locationName = this.locationName,
         locationAddress = this.locationAddress,
         locationLatitude = this.locationLatitude,
         locationLongitude = this.locationLongitude,
+        locationPlaceId = this.locationPlaceId,
         youtubeUrl = this.youtubeUrl
     )
 }
 
 fun Post.toUpdateDto(): PostInsertDto {
-    // For update, we use the same DTO but include updated_at
-    // Ideally we might want a separate PartialUpdate DTO but PostInsertDto works if we send all fields
+    // For update, we use the same DTO but include all current values
     return PostInsertDto(
         id = this.id,
         key = this.key,
@@ -136,18 +142,20 @@ fun Post.toUpdateDto(): PostInsertDto {
         likesCount = this.likesCount,
         commentsCount = this.commentsCount,
         viewsCount = this.viewsCount,
+        resharesCount = this.resharesCount,
         mediaItems = this.mediaItems,
         hasPoll = this.hasPoll,
         pollQuestion = this.pollQuestion,
         pollOptions = this.pollOptions,
         pollEndTime = this.pollEndTime,
+        pollAllowMultiple = this.pollAllowMultiple,
         hasLocation = this.hasLocation,
         locationName = this.locationName,
         locationAddress = this.locationAddress,
         locationLatitude = this.locationLatitude,
         locationLongitude = this.locationLongitude,
-        youtubeUrl = this.youtubeUrl,
-        updatedAt = System.currentTimeMillis()
+        locationPlaceId = this.locationPlaceId,
+        youtubeUrl = this.youtubeUrl
     )
 }
 
@@ -180,11 +188,13 @@ fun PostSelectDto.toDomain(constructMediaUrl: (String) -> String, constructAvata
         pollQuestion = this.pollQuestion,
         pollOptions = this.pollOptions,
         pollEndTime = this.pollEndTime,
+        pollAllowMultiple = this.pollAllowMultiple,
         hasLocation = this.hasLocation,
         locationName = this.locationName,
         locationAddress = this.locationAddress,
         locationLatitude = this.locationLatitude,
         locationLongitude = this.locationLongitude,
+        locationPlaceId = this.locationPlaceId,
         youtubeUrl = this.youtubeUrl
     )
 

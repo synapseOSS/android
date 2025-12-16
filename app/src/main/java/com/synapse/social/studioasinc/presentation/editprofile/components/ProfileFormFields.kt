@@ -34,9 +34,9 @@ fun ProfileFormFields(
     nickname: String,
     onNicknameChange: (String) -> Unit,
     nicknameError: String?,
-    biography: String,
+    bio: String,
     onBiographyChange: (String) -> Unit,
-    biographyError: String?,
+    bioError: String?,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -87,18 +87,18 @@ fun ProfileFormFields(
 
             // Biography Field
             OutlinedTextField(
-                value = biography,
+                value = bio,
                 onValueChange = onBiographyChange,
                 label = { Text("Bio") },
                 placeholder = { Text("Tell us about yourself (optional)") },
                 supportingText = {
-                    val currentLength = biography.length
+                    val currentLength = bio.length
                     Text(
-                        text = if (biographyError != null) biographyError else "$currentLength/250",
-                        color = if (biographyError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                        text = if (bioError != null) bioError else "$currentLength/250",
+                        color = if (bioError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
-                isError = biographyError != null,
+                isError = bioError != null,
                 modifier = Modifier.fillMaxWidth(),
                 shape = SettingsShapes.inputShape,
                 minLines = 3,

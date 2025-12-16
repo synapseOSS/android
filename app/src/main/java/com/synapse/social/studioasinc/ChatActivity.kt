@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dagger.hilt.android.AndroidEntryPoint
 import com.synapse.social.studioasinc.ui.chat.DirectChatScreen
 import com.synapse.social.studioasinc.ui.chat.DirectChatViewModel
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
@@ -26,6 +27,7 @@ import kotlinx.coroutines.runBlocking
  * ChatActivity migrated to Jetpack Compose.
  * Use DirectChatScreen as the UI implementation.
  */
+@AndroidEntryPoint
 class ChatActivity : ComponentActivity() {
 
     private val viewModel: DirectChatViewModel by viewModels()

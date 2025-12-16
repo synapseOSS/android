@@ -21,7 +21,7 @@ object PostMapper {
 
         val resolvedAvatar = when {
             !post.avatarUrl.isNullOrBlank() -> post.avatarUrl
-            currentProfile?.id == post.authorUid -> currentProfile?.profileImageUrl
+            currentProfile?.id == post.authorUid -> currentProfile?.avatar
             else -> null
         }
 

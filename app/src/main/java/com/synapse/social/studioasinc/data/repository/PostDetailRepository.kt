@@ -220,7 +220,7 @@ class PostDetailRepository {
                 displayName = userData["display_name"]?.jsonPrimitive?.contentOrNull ?: "",
                 email = userData["email"]?.jsonPrimitive?.contentOrNull ?: "",
                 bio = userData["bio"]?.jsonPrimitive?.contentOrNull,
-                profileImageUrl = userData["avatar"]?.jsonPrimitive?.contentOrNull,
+                avatar = userData["avatar"]?.jsonPrimitive?.contentOrNull,
                 followersCount = userData["followers_count"]?.jsonPrimitive?.intOrNull ?: 0,
                 followingCount = userData["following_count"]?.jsonPrimitive?.intOrNull ?: 0,
                 postsCount = userData["posts_count"]?.jsonPrimitive?.intOrNull ?: 0,

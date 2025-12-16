@@ -78,5 +78,5 @@ data class CommentWithUser(
     /**
      * Get avatar URL for the commenter
      */
-    fun getAvatarUrl(): String? = user?.profileImageUrl
+    fun getAvatarUrl(): String? = user?.avatar
 }

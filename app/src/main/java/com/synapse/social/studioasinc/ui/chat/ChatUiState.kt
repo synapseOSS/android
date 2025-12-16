@@ -39,7 +39,11 @@ data class ChatUiState(
     val isUploadingMedia: Boolean = false,
     val showMediaPicker: Boolean = false,
     // Animation trigger for coordinated message send animation
-    val isSendingAnimation: Boolean = false
+    val isSendingAnimation: Boolean = false,
+    // Enhanced presence tracking
+    val otherUserOnline: Boolean = false,
+    val otherUserLastSeen: Long = 0L,
+    val otherUserActivity: String = "offline"
 )
 
 /**
@@ -62,7 +66,9 @@ data class ChatUserInfo(
     val avatarUrl: String?,
     val isOnline: Boolean = false,
     val lastSeen: Long? = null,
-    val isVerified: Boolean = false
+    val isVerified: Boolean = false,
+    val activityStatus: String = "offline", // online, away, typing, offline
+    val currentChatId: String? = null
 )
 
 /**

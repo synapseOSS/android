@@ -53,39 +53,85 @@ fun GenderSelector(
                 color = SettingsColors.sectionTitle
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CompactGenderOption(
+                    label = "Male",
+                    iconRes = R.drawable.icon_male_round,
+                    selected = selectedGender == Gender.Male,
+                    onClick = { onGenderSelected(Gender.Male) },
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                CompactGenderOption(
+                    label = "Female",
+                    iconRes = R.drawable.icon_female_round,
+                    selected = selectedGender == Gender.Female,
+                    onClick = { onGenderSelected(Gender.Female) },
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                CompactGenderOption(
+                    label = "Other",
+                    iconRes = R.drawable.icon_transgender_round,
+                    selected = selectedGender == Gender.Hidden,
+                    onClick = { onGenderSelected(Gender.Hidden) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CompactGenderOption(
+    label: String,
+    iconRes: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor by animateColorAsState(
+        if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        label = "bgColor"
+    )
+    val borderColor by animateColorAsState(
+        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        label = "borderColor"
+    )
+
+    Surface(
+        onClick = onClick,
+        shape = SettingsShapes.itemShape,
+        color = backgroundColor,
+        border = BorderStroke(if (selected) 2.dp else 1.dp, borderColor),
+        modifier = modifier
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "Choose how you'd like to be identified",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            GenderOption(
-                label = "Male",
-                iconRes = R.drawable.icon_male_round,
-                selected = selectedGender == Gender.Male,
-                onClick = { onGenderSelected(Gender.Male) }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            GenderOption(
-                label = "Female",
-                iconRes = R.drawable.icon_female_round,
-                selected = selectedGender == Gender.Female,
-                onClick = { onGenderSelected(Gender.Female) }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            GenderOption(
-                label = "Prefer not to say",
-                iconRes = R.drawable.icon_transgender_round,
-                selected = selectedGender == Gender.Hidden,
-                onClick = { onGenderSelected(Gender.Hidden) }
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

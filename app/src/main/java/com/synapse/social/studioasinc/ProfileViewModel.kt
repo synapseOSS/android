@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import com.synapse.social.studioasinc.util.ProfileDebugHelper
 
 /**
  * ViewModel for managing profile data and operations
@@ -54,20 +54,37 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             
             android.util.Log.d("ProfileViewModel", "Auth ID: $authId")
             
-            // In this app, the auth ID IS the UID (stored in users.uid column)
-            // Verify the user exists in the database
-            val userCheck = client.from("users")
+            // First try to find user by auth ID in the uid column
+            val userByAuthId = client.from("users")
                 .select(columns = Columns.raw("uid")) {
                     filter { eq("uid", authId) }
                 }
                 .decodeSingleOrNull<JsonObject>()
             
-            if (userCheck != null) {
-                android.util.Log.d("ProfileViewModel", "User found in database with UID: $authId")
+            if (userByAuthId != null) {
+                android.util.Log.d("ProfileViewModel", "User found with auth ID as UID: $authId")
                 return authId
             }
             
-            android.util.Log.e("ProfileViewModel", "User not found in database with UID: $authId")
+            // If not found, try to find by email (fallback for existing users)
+            val authUser = client.auth.currentUserOrNull()
+            val email = authUser?.email
+            if (email != null) {
+                android.util.Log.d("ProfileViewModel", "Trying to find user by email: $email")
+                val userByEmail = client.from("users")
+                    .select(columns = Columns.raw("uid")) {
+                        filter { eq("email", email) }
+                    }
+                    .decodeSingleOrNull<JsonObject>()
+                
+                if (userByEmail != null) {
+                    val uid = userByEmail["uid"]?.toString()?.removeSurrounding("\"")
+                    android.util.Log.d("ProfileViewModel", "User found by email with UID: $uid")
+                    return uid
+                }
+            }
+            
+            android.util.Log.e("ProfileViewModel", "User not found in database with auth ID: $authId or email: $email")
             null
         } catch (e: Exception) {
             android.util.Log.e("ProfileViewModel", "Failed to get user UID: ${e.message}", e)
@@ -82,6 +99,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 _userProfile.value = State.Loading
+                android.util.Log.d("ProfileViewModel", "Loading profile for UID: $uid")
                 
                 val result = client.from("users")
                     .select(columns = Columns.raw("*")) {
@@ -89,18 +107,18 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     }
                     .decodeSingleOrNull<JsonObject>()
                 
+                android.util.Log.d("ProfileViewModel", "Query result: $result")
+                
                 if (result != null) {
                     val user = User(
                         uid = result["uid"]?.toString()?.removeSurrounding("\"") ?: uid,
-                        username = result["username"]?.toString()?.removeSurrounding("\""),
+                        username = result["username"]?.toString()?.removeSurrounding("\"") ?: "",
                         email = result["email"]?.toString()?.removeSurrounding("\""),
                         displayName = result["display_name"]?.toString()?.removeSurrounding("\"") 
                             ?: result["nickname"]?.toString()?.removeSurrounding("\""),
-                        profileImageUrl = result["avatar"]?.toString()?.removeSurrounding("\"") 
-                            ?: result["profile_image_url"]?.toString()?.removeSurrounding("\""),
+                        avatar = result["avatar"]?.toString()?.removeSurrounding("\""),
                         profileCoverImage = result["profile_cover_image"]?.toString()?.removeSurrounding("\""),
-                        bio = result["bio"]?.toString()?.removeSurrounding("\"") 
-                            ?: result["biography"]?.toString()?.removeSurrounding("\""),
+                        bio = result["bio"]?.toString()?.removeSurrounding("\""),
                         joinDate = result["join_date"]?.toString()?.removeSurrounding("\""),
                         createdAt = result["created_at"]?.toString()?.removeSurrounding("\""),
                         followersCount = result["followers_count"]?.toString()?.toIntOrNull() ?: 0,
@@ -108,13 +126,18 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         postsCount = result["posts_count"]?.toString()?.toIntOrNull() ?: 0,
                         status = result["status"]?.toString()?.removeSurrounding("\"") ?: "offline"
                     )
+                    android.util.Log.d("ProfileViewModel", "Profile loaded successfully: ${user.username}")
                     _userProfile.value = State.Success(user)
                 } else {
+                    android.util.Log.w("ProfileViewModel", "No user found with UID: $uid")
+                    // Debug the issue
+                    ProfileDebugHelper.debugUserProfile(uid)
+                    ProfileDebugHelper.debugCurrentUser()
                     _userProfile.value = State.Error("User not found")
                 }
             } catch (e: Exception) {
-                android.util.Log.e("ProfileViewModel", "Failed to load profile", e)
-                _userProfile.value = State.Error(e.message ?: "Unknown error")
+                android.util.Log.e("ProfileViewModel", "Failed to load profile for UID: $uid", e)
+                _userProfile.value = State.Error("Failed to load profile: ${e.message}")
             }
         }
     }
@@ -174,8 +197,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     // Follow
                     android.util.Log.d("ProfileViewModel", "Attempting to follow...")
                     val followData = buildJsonObject {
-                        put("follower_id", currentUid)
-                        put("following_id", targetUid)
+                        put("follower_id", JsonPrimitive(currentUid))
+                        put("following_id", JsonPrimitive(targetUid))
                         // Don't set created_at - let database handle it with default value
                     }
                     client.from("follows").insert(followData)
@@ -212,9 +235,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     android.util.Log.d("ProfileViewModel", "Profile unliked successfully")
                 } else {
                     // Like profile - use JsonObject to avoid serialization issues
-                    val likeData = kotlinx.serialization.json.buildJsonObject {
-                        put("liker_uid", kotlinx.serialization.json.JsonPrimitive(currentUid))
-                        put("profile_uid", kotlinx.serialization.json.JsonPrimitive(targetUid))
+                    val likeData = buildJsonObject {
+                        put("liker_uid", JsonPrimitive(currentUid))
+                        put("profile_uid", JsonPrimitive(targetUid))
                     }
                     client.from("profile_likes").insert(likeData)
                     _isProfileLiked.value = true

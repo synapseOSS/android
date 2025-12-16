@@ -45,9 +45,9 @@ class EditProfileRepository {
                         ?: result["nickname"]?.toString()?.removeSurrounding("\""),
                     email = result["email"]?.toString()?.removeSurrounding("\""),
                     bio = result["bio"]?.toString()?.removeSurrounding("\"")
-                        ?: result["biography"]?.toString()?.removeSurrounding("\""),
-                    profileImageUrl = result["avatar"]?.toString()?.removeSurrounding("\"")
-                        ?: result["profile_image_url"]?.toString()?.removeSurrounding("\""),
+                        ?: result["bio"]?.toString()?.removeSurrounding("\""),
+                    avatar = result["avatar"]?.toString()?.removeSurrounding("\"")
+                        ?: result["avatar"]?.toString()?.removeSurrounding("\""),
                     profileCoverImage = result["profile_cover_image"]?.toString()?.removeSurrounding("\""),
                     gender = result["gender"]?.toString()?.removeSurrounding("\""),
                     region = result["region"]?.toString()?.removeSurrounding("\""),
@@ -66,7 +66,7 @@ class EditProfileRepository {
         }
     }.flowOn(Dispatchers.IO)
 
-    suspend fun updateProfile(userId: String, updateData: Map<String, Any?>): Result<Unit> {
+    suspend fun updateProfile(userId: String, updateData: Map<String, String>): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 client.from("users").update(updateData) {

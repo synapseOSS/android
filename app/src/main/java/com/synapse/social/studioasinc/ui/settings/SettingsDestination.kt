@@ -61,6 +61,11 @@ sealed class SettingsDestination(val route: String) {
      */
     object StorageProvider : SettingsDestination(ROUTE_STORAGE_PROVIDER)
     
+    /**
+     * Chat History Deletion screen for managing chat history deletion operations.
+     */
+    object ChatHistoryDeletion : SettingsDestination(ROUTE_CHAT_HISTORY_DELETION)
+    
     companion object {
         // Route constants for navigation
         const val ROUTE_HUB = "settings_hub"
@@ -73,6 +78,7 @@ sealed class SettingsDestination(val route: String) {
         const val ROUTE_STORAGE_PROVIDER = "settings_storage_provider"
         const val ROUTE_LANGUAGE = "settings_language"
         const val ROUTE_ABOUT = "settings_about"
+        const val ROUTE_CHAT_HISTORY_DELETION = "settings_chat_history_deletion"
         
         /**
          * Returns all available settings destinations.
@@ -87,7 +93,8 @@ sealed class SettingsDestination(val route: String) {
             Storage,
             StorageProvider,
             Language,
-            About
+            About,
+            ChatHistoryDeletion
         )
         
         /**
@@ -106,6 +113,7 @@ sealed class SettingsDestination(val route: String) {
             ROUTE_STORAGE_PROVIDER -> StorageProvider
             ROUTE_LANGUAGE -> Language
             ROUTE_ABOUT -> About
+            ROUTE_CHAT_HISTORY_DELETION -> ChatHistoryDeletion
             else -> null
         }
     }
