@@ -210,6 +210,7 @@ fun OptimizedDirectChatScreen(
                     onCallClick = { /* TODO: Call */ },
                     onVideoCallClick = { /* TODO: Video Call */ },
                     onMenuClick = { showTopBarMenu = true },
+                    onRetryConnection = { viewModel.retryConnection() },
                     isMenuExpanded = showTopBarMenu,
                     onDismissMenu = { showTopBarMenu = false },
                     menuContent = {

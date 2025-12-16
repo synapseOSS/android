@@ -162,6 +162,34 @@ class DirectChatViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Retry realtime connection manually
+     */
+    fun retryConnection() {
+        val chatId = currentChatId ?: return
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("DirectChatViewModel", "Retrying connection for chat: $chatId")
+                
+                // Run diagnostics
+                com.synapse.social.studioasinc.util.ConnectionDiagnostics.runDiagnostics(getApplication())
+                
+                // Cancel existing connection
+                realtimeJob?.cancel()
+                
+                // Wait a moment
+                delay(500)
+                
+                // Restart realtime observation
+                observeRealtimeMessages(chatId)
+                
+                android.util.Log.d("DirectChatViewModel", "Connection retry initiated")
+            } catch (e: Exception) {
+                android.util.Log.e("DirectChatViewModel", "Failed to retry connection", e)
+            }
+        }
+    }
     
     private fun loadCurrentUser() {
         viewModelScope.launch {
