@@ -94,13 +94,20 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    private var isSubmittingComment = false
+    
     fun addComment(content: String) {
+        if (isSubmittingComment) return
         val postId = currentPostId ?: return
         val parentId = _uiState.value.replyToComment?.id
+        
+        isSubmittingComment = true
         viewModelScope.launch {
             commentRepository.createComment(postId, content, null, parentId).onSuccess {
                 refreshComments()
                 setReplyTo(null)
+            }.also {
+                isSubmittingComment = false
             }
         }
     }

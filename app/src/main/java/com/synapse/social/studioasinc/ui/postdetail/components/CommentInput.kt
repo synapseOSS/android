@@ -19,6 +19,7 @@ fun CommentInput(
     focusRequester: FocusRequester = remember { FocusRequester() }
 ) {
     var text by remember(initialValue) { mutableStateOf(initialValue) }
+    var isSending by remember { mutableStateOf(false) }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -38,19 +39,22 @@ fun CommentInput(
                     .focusRequester(focusRequester),
                 placeholder = { Text("Write a comment...") },
                 maxLines = 4,
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                enabled = !isSending
             )
 
             Spacer(modifier = Modifier.width(8.dp))
 
             IconButton(
                 onClick = {
-                    if (text.isNotBlank()) {
+                    if (text.isNotBlank() && !isSending) {
+                        isSending = true
                         onSend(text)
                         text = ""
+                        isSending = false
                     }
                 },
-                enabled = text.isNotBlank()
+                enabled = text.isNotBlank() && !isSending
             ) {
                 Icon(
                     imageVector = Icons.Default.Send,

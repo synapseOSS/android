@@ -243,18 +243,20 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
                 postHideLikeCount = if (currentState.settings.hideLikeCount) "true" else "false",
                 postHideCommentsCount = if (currentState.settings.hideCommentsCount) "true" else "false",
                 postDisableComments = if (currentState.settings.disableComments) "true" else "false",
-                publishDate = publishDate, // Keep original date if edit? usually we update timestamp or have updated_at. For now keep simple.
+                publishDate = publishDate,
                 timestamp = timestamp,
                 youtubeUrl = currentState.youtubeUrl,
                 hasPoll = currentState.pollData != null,
                 pollQuestion = currentState.pollData?.question,
                 pollOptions = currentState.pollData?.options?.map { PollOption(text = it, votes = 0) },
                 pollEndTime = pollEndTime,
+                pollAllowMultiple = false, // Default to false, can be made configurable later
                 hasLocation = currentState.location != null,
                 locationName = currentState.location?.name,
                 locationAddress = currentState.location?.address,
                 locationLatitude = currentState.location?.latitude,
-                locationLongitude = currentState.location?.longitude
+                locationLongitude = currentState.location?.longitude,
+                locationPlaceId = null // Can be added later if needed
             )
 
             // Filter new media that needs uploading

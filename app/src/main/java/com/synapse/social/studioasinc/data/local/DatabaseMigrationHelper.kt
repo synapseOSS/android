@@ -31,7 +31,7 @@ object DatabaseMigrationHelper {
                         // Apply migration if needed
                         if (oldVersion < 2) {
                             try {
-                                db.execSQL("ALTER TABLE comments ADD COLUMN parentCommentId TEXT")
+                                db.execSQL("ALTER TABLE comments ADD COLUMN parent_comment_id TEXT")
                             } catch (e: Exception) {
                                 // Column might already exist, ignore
                             }
@@ -43,13 +43,13 @@ object DatabaseMigrationHelper {
             val helper = FrameworkSQLiteOpenHelperFactory().create(configuration)
             val db = helper.writableDatabase
             
-            // Check if parentCommentId column exists in comments table
+            // Check if parent_comment_id column exists in comments table
             val cursor = db.query("PRAGMA table_info(comments)")
             var hasParentCommentId = false
             
             while (cursor.moveToNext()) {
                 val columnName = cursor.getString(cursor.getColumnIndexOrThrow("name"))
-                if (columnName == "parentCommentId") {
+                if (columnName == "parent_comment_id") {
                     hasParentCommentId = true
                     break
                 }
@@ -58,7 +58,7 @@ object DatabaseMigrationHelper {
             
             // Add the column if it doesn't exist
             if (!hasParentCommentId) {
-                db.execSQL("ALTER TABLE comments ADD COLUMN parentCommentId TEXT")
+                db.execSQL("ALTER TABLE comments ADD COLUMN parent_comment_id TEXT")
             }
             
             db.close()

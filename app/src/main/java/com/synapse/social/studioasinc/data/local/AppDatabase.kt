@@ -69,16 +69,16 @@ abstract class AppDatabase : RoomDatabase() {
                     
                     while (cursor.moveToNext()) {
                         val columnName = cursor.getString(cursor.getColumnIndexOrThrow("name"))
-                        if (columnName == "parentCommentId") {
+                        if (columnName == "parent_comment_id") {
                             hasParentCommentId = true
                             break
                         }
                     }
                     cursor.close()
                     
-                    // Add parentCommentId column to comments table if it doesn't exist
+                    // Add parent_comment_id column to comments table if it doesn't exist
                     if (!hasParentCommentId) {
-                        db.execSQL("ALTER TABLE comments ADD COLUMN parentCommentId TEXT")
+                        db.execSQL("ALTER TABLE comments ADD COLUMN parent_comment_id TEXT")
                     }
                 } catch (e: Exception) {
                     // If migration fails, let Room handle it with destructive migration

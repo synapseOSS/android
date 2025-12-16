@@ -90,12 +90,15 @@ class PostRepository(
             android.util.Log.e(TAG, "Supabase PostgREST error code: ${pgrstMatch.value}")
         }
         android.util.Log.e(TAG, "Supabase error: $message", exception)
+        
+        // Enhanced error mapping for column mismatches
         return when {
             message.contains("PGRST200") -> "Relation/table not found in schema"
-            message.contains("PGRST100") -> "Column does not exist"
+            message.contains("PGRST100") -> "Database column mismatch: ${extractColumnInfo(message)}"
             message.contains("PGRST116") -> "No rows returned (expected single)"
             message.contains("relation", ignoreCase = true) -> "Database table does not exist"
-            message.contains("column", ignoreCase = true) -> "Database column mismatch"
+            message.contains("column", ignoreCase = true) -> "Database column mismatch: ${extractColumnInfo(message)}"
+            message.contains("does not exist", ignoreCase = true) -> "Database column mismatch: ${extractColumnInfo(message)}"
             message.contains("policy", ignoreCase = true) || message.contains("rls", ignoreCase = true) ->
                 "Permission denied. Row-level security policy blocked this operation."
             message.contains("connection", ignoreCase = true) || message.contains("network", ignoreCase = true) ->
@@ -105,6 +108,12 @@ class PostRepository(
             message.contains("serialization", ignoreCase = true) -> "Data format error."
             else -> "Database error: $message"
         }
+    }
+    
+    private fun extractColumnInfo(message: String): String {
+        // Extract column name from error message for better debugging
+        val columnMatch = Regex("column \"([^\"]+)\"").find(message)
+        return columnMatch?.groupValues?.get(1) ?: "unknown column"
     }
 
     suspend fun createPost(post: Post): Result<Post> = withContext(Dispatchers.IO) {
@@ -125,7 +134,10 @@ class PostRepository(
 
             val postDto = post.toInsertDto()
 
-            android.util.Log.d(TAG, "Creating post with DTO")
+            android.util.Log.d(TAG, "Creating post with DTO fields: ${getFieldNames(postDto)}")
+            android.util.Log.d(TAG, "Post author_uid: ${postDto.authorUid}")
+            android.util.Log.d(TAG, "Current auth user: ${client.auth.currentUserOrNull()?.id}")
+            
             client.from("posts").insert(postDto)
             postDao.insertAll(listOf(PostMapper.toEntity(post)))
             invalidateCache()
@@ -133,11 +145,21 @@ class PostRepository(
             // Process mentions for Syra AI
             processMentions(post.id, post.postText ?: "", post.authorUid)
             
+            android.util.Log.d(TAG, "Post created successfully: ${post.id}")
             Result.success(post)
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to create post", e)
             Result.failure(Exception(mapSupabaseError(e)))
         }
+    }
+    
+    private fun getFieldNames(dto: PostInsertDto): String {
+        return "id, key, author_uid, post_text, post_image, post_type, post_visibility, " +
+               "post_hide_views_count, post_hide_like_count, post_hide_comments_count, " +
+               "post_disable_comments, publish_date, timestamp, likes_count, comments_count, " +
+               "views_count, reshares_count, media_items, has_poll, poll_question, poll_options, " +
+               "poll_end_time, poll_allow_multiple, has_location, location_name, location_address, " +
+               "location_latitude, location_longitude, location_place_id, youtube_url"
     }
 
     suspend fun getPost(postId: String): Result<Post?> = withContext(Dispatchers.IO) {
