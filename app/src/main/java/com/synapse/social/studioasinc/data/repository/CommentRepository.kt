@@ -64,7 +64,7 @@ class CommentRepository(private val commentDao: CommentDao) {
             }
             
             commentDao.insertAll(comments.map { 
-                CommentMapper.toEntity(it.toComment(), it.user?.username, it.user?.profileImageUrl) 
+                CommentMapper.toEntity(it.toComment(), it.user?.username, it.user?.avatar) 
             })
             Result.success(Unit)
         } catch (e: Exception) {
@@ -134,7 +134,7 @@ class CommentRepository(private val commentDao: CommentDao) {
             
             // Store replies in local database
             commentDao.insertAll(replies.map { 
-                CommentMapper.toEntity(it.toComment(), it.user?.username, it.user?.profileImageUrl) 
+                CommentMapper.toEntity(it.toComment(), it.user?.username, it.user?.avatar) 
             })
             
             Result.success(replies)
@@ -433,7 +433,7 @@ class CommentRepository(private val commentDao: CommentDao) {
                 displayName = userData["display_name"]?.jsonPrimitive?.contentOrNull ?: "",
                 email = userData["email"]?.jsonPrimitive?.contentOrNull ?: "",
                 bio = userData["bio"]?.jsonPrimitive?.contentOrNull,
-                profileImageUrl = userData["avatar"]?.jsonPrimitive?.contentOrNull,
+                avatar = userData["avatar"]?.jsonPrimitive?.contentOrNull,
                 followersCount = userData["followers_count"]?.jsonPrimitive?.intOrNull ?: 0,
                 followingCount = userData["following_count"]?.jsonPrimitive?.intOrNull ?: 0,
                 postsCount = userData["posts_count"]?.jsonPrimitive?.intOrNull ?: 0,

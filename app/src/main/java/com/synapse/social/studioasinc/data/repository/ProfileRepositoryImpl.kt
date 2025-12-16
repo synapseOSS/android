@@ -121,7 +121,7 @@ class ProfileRepositoryImpl : ProfileRepository {
                 username = response.getString(KEY_USERNAME),
                 name = response.getNullableString(KEY_DISPLAY_NAME),
                 bio = response.getNullableString(KEY_BIO),
-                profileImageUrl = response.getNullableString(KEY_AVATAR)?.let { constructAvatarUrl(it) },
+                avatar = response.getNullableString(KEY_AVATAR)?.let { constructAvatarUrl(it) },
                 coverImageUrl = response.getNullableString(KEY_COVER_IMAGE)?.let { constructMediaUrl(it) },
                 isVerified = response.getBoolean(KEY_VERIFY),
                 isPrivate = response.getBoolean(KEY_IS_PRIVATE),

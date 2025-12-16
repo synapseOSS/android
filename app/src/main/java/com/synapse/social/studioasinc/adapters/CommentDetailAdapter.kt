@@ -48,7 +48,7 @@ class CommentDetailAdapter(
             
             // Avatar
             Glide.with(binding.root.context)
-                .load(comment.user?.profileImageUrl)
+                .load(comment.user?.avatar)
                 .placeholder(R.drawable.avatar)
                 .into(binding.ivAvatar)
 

@@ -223,7 +223,7 @@ fun PostDetailScreen(
                                  val homeUser = HomeUser(
                                      uid = author.uid,
                                      username = author.username ?: "Unknown",
-                                     avatar = author.profileImageUrl,
+                                     avatar = author.avatar,
                                      verify = if (author.isVerified == true) "1" else "0",
                                      // Removed bio, location, website mapping as they don't match Home User definition
                                      // and aren't displayed in PostHeader anyway.

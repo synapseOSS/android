@@ -252,7 +252,7 @@ class DirectChatViewModel @Inject constructor(
                                  id = otherId,
                                  username = userProfile?.username ?: "User",
                                  displayName = userProfile?.displayName,
-                                 avatarUrl = userProfile?.profileImageUrl
+                                 avatarUrl = userProfile?.avatar
                              ))
                          }
                      }
@@ -749,7 +749,7 @@ class DirectChatViewModel @Inject constructor(
                                              // Should hit cache now
                                              val profile = UserProfileManager.getUserProfile(otherUserId)
                                              displayName = profile?.displayName ?: profile?.username ?: "User"
-                                             avatarUrl = profile?.profileImageUrl
+                                             avatarUrl = profile?.avatar
                                          }
                                      } catch (e: Exception) {
                                          // Ignore errors

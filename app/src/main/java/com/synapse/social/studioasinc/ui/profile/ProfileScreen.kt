@@ -291,7 +291,7 @@ private fun ProfileContent(
         // Enhanced Profile Header with Cover Photo
         item {
             ProfileHeader(
-                profileImageUrl = profile.profileImageUrl,
+                avatar = profile.avatar,
                 coverImageUrl = profile.coverImageUrl,
                 name = profile.name,
                 username = profile.username,

@@ -260,7 +260,7 @@ fun CoverPhotoWithProfile(
                 .offset(y = profileImageOffset)
         ) {
             ProfileImageWithRing(
-                profileImageUrl = profileImageUrl,
+                avatar = profileImageUrl,
                 size = profileImageSize,
                 hasStory = hasStory,
                 isOwnProfile = isOwnProfile,
@@ -419,13 +419,13 @@ private fun ProfileImageWithRingPreview() {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             ProfileImageWithRing(
-                profileImageUrl = null,
+                avatar = null,
                 size = 80.dp,
                 hasStory = true,
                 isOwnProfile = false
             )
             ProfileImageWithRing(
-                profileImageUrl = null,
+                avatar = null,
                 size = 80.dp,
                 hasStory = false,
                 isOwnProfile = true
@@ -441,7 +441,7 @@ private fun CoverPhotoWithProfilePreview() {
         Column {
             CoverPhotoWithProfile(
                 coverImageUrl = null,
-                profileImageUrl = null,
+                avatar = null,
                 isOwnProfile = true,
                 hasStory = true
             )

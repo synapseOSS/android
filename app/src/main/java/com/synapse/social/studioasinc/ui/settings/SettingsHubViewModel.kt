@@ -50,12 +50,12 @@ class SettingsHubViewModel(application: Application) : AndroidViewModel(applicat
                         ?: currentUser.username?.takeIf { it.isNotBlank() }
                         ?: "User"
                     
-                    android.util.Log.d("SettingsHubViewModel", "Profile loaded - avatarUrl: ${currentUser.profileImageUrl}")
+                    android.util.Log.d("SettingsHubViewModel", "Profile loaded - avatarUrl: ${currentUser.avatar}")
                     _userProfileSummary.value = UserProfileSummary(
                         id = currentUser.uid,
                         displayName = displayName,
                         email = currentUser.email ?: "",
-                        avatarUrl = currentUser.profileImageUrl
+                        avatarUrl = currentUser.avatar
                     )
                 } else {
                     // Fallback to Auth Service if profile is missing in DB

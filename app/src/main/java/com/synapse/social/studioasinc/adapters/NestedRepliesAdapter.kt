@@ -37,7 +37,7 @@ class NestedRepliesAdapter(
         fun bind(reply: CommentWithUser) {
             // Avatar
             Glide.with(binding.root.context)
-                .load(reply.user?.profileImageUrl)
+                .load(reply.user?.avatar)
                 .placeholder(R.drawable.avatar)
                 .into(binding.ivAvatar)
 

@@ -83,7 +83,7 @@ fun ProfileHeader(
         // Cover Photo with Profile Image Overlay
         CoverPhotoWithProfile(
             coverImageUrl = coverImageUrl,
-            profileImageUrl = profileImageUrl,
+            avatar = profileImageUrl,
             scrollOffset = scrollOffset,
             isOwnProfile = isOwnProfile,
             hasStory = hasStory,
@@ -406,7 +406,7 @@ fun AnimatedFollowButton(
 private fun ProfileHeaderPreview() {
     MaterialTheme {
         ProfileHeader(
-            profileImageUrl = null,
+            avatar = null,
             coverImageUrl = null,
             name = "John Doe",
             username = "johndoe",
@@ -432,7 +432,7 @@ private fun ProfileHeaderPreview() {
 private fun ProfileHeaderOtherUserPreview() {
     MaterialTheme {
         ProfileHeader(
-            profileImageUrl = null,
+            avatar = null,
             coverImageUrl = null,
             name = "Jane Smith",
             username = "janesmith",

@@ -80,7 +80,7 @@ class PhotoHistoryViewModel(application: Application) : AndroidViewModel(applica
              result.fold(
                  onSuccess = { profile ->
                      val currentUrl = when (type) {
-                         PhotoType.PROFILE -> profile.profileImageUrl
+                         PhotoType.PROFILE -> profile.avatar
                          PhotoType.COVER -> profile.profileCoverImage
                      }
                      _uiState.update { it.copy(isLoading = false, currentPhotoUrl = currentUrl) }

@@ -51,7 +51,7 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                                 username = profile.username,
                                 nickname = profile.displayName ?: "",
                                 bio = profile.bio ?: "",
-                                avatarUrl = profile.profileImageUrl,
+                                avatarUrl = profile.avatar,
                                 coverUrl = profile.profileCoverImage,
                                 selectedGender = parseGender(profile.gender),
                                 selectedRegion = profile.region.takeIf { it != "null" } // Handle "null" string from DB sometimes
