@@ -18,6 +18,13 @@
     <string name="please_enter_password">Please enter Password</string>
     <string name="skyline_create_account">Create Account 🎉</string>
     <string name="join_skyline_community">Join the Synapse community by creating your account now 😊</string>
+    
+    <!-- Follow List Screen -->
+    <string name="users">Users</string>
+    <string name="back">Back</string>
+    <string name="no_followers">No followers yet</string>
+    <string name="no_following">Not following anyone yet</string>
+    <string name="no_users_found">No users found</string>
     <string name="complete_profile_title">Complete your profile</string>
     <string name="complete_profile_subtitle">Now finish account creation by completing your profile or skip profile completion step using skip button.</string>
     <string name="primary_details_title">Primary details</string>
@@ -214,7 +221,6 @@
     <string name="profile_cover_history_subtitle">You can manage all your previously added cover photos here.</string>
     <string name="profile_cover_history_empty_title">No Cover Photo</string>
     <string name="profile_cover_history_empty_subtitle">There is no cover photo you have previously uploaded! Every time you change your cover photo it is added here.</string>
-    <string name="no_followers">There is no one following this user.</string>
     <string name="no_followed">This user does not follow anyone</string>
     <string name="show_replies">Show Replies</string>
     <string name="hide_replies">Hide Replies</string>
