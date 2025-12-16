@@ -66,27 +66,11 @@ class EditProfileRepository {
         }
     }.flowOn(Dispatchers.IO)
 
-    suspend fun updateProfile(userId: String, updateData: Map<String, Any?>): Result<Unit> {
+    suspend fun updateProfile(userId: String, updateData: Map<String, String>): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                // Convert Any? values to serializable types and filter out nulls
-                val serializedData = updateData.mapNotNull { (key, value) ->
-                    when (value) {
-                        is String -> key to value
-                        is Int -> key to value
-                        is Boolean -> key to value
-                        is Long -> key to value
-                        is Double -> key to value
-                        is Float -> key to value
-                        null -> null // Skip null values
-                        else -> key to value.toString()
-                    }
-                }.toMap()
-                
-                if (serializedData.isNotEmpty()) {
-                    client.from("users").update(serializedData) {
-                        filter { eq("uid", userId) }
-                    }
+                client.from("users").update(updateData) {
+                    filter { eq("uid", userId) }
                 }
                 Result.success(Unit)
             } catch (e: Exception) {

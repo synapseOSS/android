@@ -69,18 +69,53 @@ class SupabaseStorageService {
                 
                 val file = File(filePath)
                 if (!file.exists()) {
+                    android.util.Log.e("SupabaseStorage", "File not found: $filePath")
                     return@withContext Result.failure(Exception("File not found: $filePath"))
                 }
                 
+                if (file.length() == 0L) {
+                    android.util.Log.e("SupabaseStorage", "File is empty: $filePath")
+                    return@withContext Result.failure(Exception("File is empty: $filePath"))
+                }
+                
                 val fileBytes = file.readBytes()
+                android.util.Log.d("SupabaseStorage", "File size: ${fileBytes.size} bytes")
+                
                 val fileName = "${UUID.randomUUID()}.${file.extension}"
                 val path = "$userId/$fileName"
                 
-                // Upload to Supabase Storage
-                storage.from(bucket).upload(path, fileBytes) { upsert = false }
+                android.util.Log.d("SupabaseStorage", "Uploading to path: $path")
+                
+                // Upload to Supabase Storage with retry logic
+                var uploadSuccess = false
+                var lastException: Exception? = null
+                
+                for (attempt in 1..3) {
+                    try {
+                        storage.from(bucket).upload(path, fileBytes) { upsert = false }
+                        uploadSuccess = true
+                        break
+                    } catch (e: Exception) {
+                        lastException = e
+                        android.util.Log.w("SupabaseStorage", "Upload attempt $attempt failed", e)
+                        if (attempt < 3) {
+                            delay(1000L * attempt) // Exponential backoff
+                        }
+                    }
+                }
+                
+                if (!uploadSuccess) {
+                    android.util.Log.e("SupabaseStorage", "Upload failed after 3 attempts")
+                    return@withContext Result.failure(lastException ?: Exception("Upload failed after retries"))
+                }
                 
                 // Get public URL
                 val publicUrl = storage.from(bucket).publicUrl(path)
+                
+                if (publicUrl.isBlank()) {
+                    android.util.Log.e("SupabaseStorage", "Failed to get public URL")
+                    return@withContext Result.failure(Exception("Failed to get public URL"))
+                }
                 
                 android.util.Log.d("SupabaseStorage", "Upload successful: $publicUrl")
                 Result.success(publicUrl)
