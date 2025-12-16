@@ -968,4 +968,15 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="cd_message_options">Message options</string>
     <string name="cd_deleted_message">Deleted message icon</string>
     <string name="cd_typing_indicator">User is typing</string>
+    
+    <!-- Active Status Strings -->
+    <string name="status_online">Online</string>
+    <string name="status_away">Away</string>
+    <string name="status_typing">Typing</string>
+    <string name="status_recently_active">Recently active</string>
+    <string name="status_offline">Offline</string>
+    <string name="last_seen_just_now">Last seen just now</string>
+    <string name="last_seen_minutes_ago">Last seen %d minutes ago</string>
+    <string name="last_seen_hours_ago">Last seen %d hours ago</string>
+    <string name="last_seen_days_ago">Last seen %d days ago</string>
 </resources>

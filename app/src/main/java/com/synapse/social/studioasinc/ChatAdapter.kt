@@ -385,6 +385,8 @@ class ChatAdapter(
     // Typing Indicator ViewHolder
     class TypingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val typingAnimation: com.airbnb.lottie.LottieAnimationView = itemView.findViewById(R.id.lottie_typing)
+        val typingIndicatorView: com.synapse.social.studioasinc.chat.TypingIndicatorView? = 
+            itemView.findViewById(R.id.typing_animation)
     }
 
     // Link Preview ViewHolder
@@ -1200,7 +1202,24 @@ class ChatAdapter(
     }
 
     private fun bindTypingViewHolder(holder: TypingViewHolder, position: Int) {
-        // Typing animation is handled by Lottie animation
+        val messageData = data[position]
+        
+        // Handle legacy Lottie animation
+        holder.typingAnimation.playAnimation()
+        
+        // Handle new TypingIndicatorView if available
+        holder.typingIndicatorView?.let { typingView ->
+            // Get typing users from message data
+            val typingUsers = messageData["typingUsers"] as? List<String> ?: emptyList()
+            val displayNames = messageData["displayNames"] as? Map<String, String> ?: emptyMap()
+            
+            if (typingUsers.isNotEmpty()) {
+                typingView.updateTypingUsers(typingUsers, displayNames)
+            } else {
+                // Fallback to generic typing message
+                typingView.setCustomTypingMessage("Someone is typing...")
+            }
+        }
     }
 
     private fun bindLinkPreviewViewHolder(holder: LinkPreviewViewHolder, position: Int) {
@@ -1656,6 +1675,60 @@ class ChatAdapter(
         
         // Notify callback with number of items added for scroll position restoration
         onScrollPositionCalculated?.invoke(itemsToAdd)
+    }
+    
+    // Typing indicator management methods
+    
+    /**
+     * Show typing indicator with user information
+     */
+    fun showTypingIndicator(typingUsers: List<String>, displayNames: Map<String, String> = emptyMap()) {
+        // Remove existing typing indicator
+        removeTypingIndicator()
+        
+        // Add new typing indicator
+        val typingData = hashMapOf<String, Any?>(
+            "typingMessageStatus" to true,
+            "typingUsers" to typingUsers,
+            "displayNames" to displayNames,
+            "id" to "typing_indicator",
+            "timestamp" to System.currentTimeMillis()
+        )
+        
+        data.add(typingData)
+        notifyItemInserted(data.size - 1)
+    }
+    
+    /**
+     * Update typing indicator with new user list
+     */
+    fun updateTypingIndicator(typingUsers: List<String>, displayNames: Map<String, String> = emptyMap()) {
+        val typingIndex = data.indexOfFirst { it.containsKey("typingMessageStatus") }
+        if (typingIndex != -1) {
+            data[typingIndex]["typingUsers"] = typingUsers
+            data[typingIndex]["displayNames"] = displayNames
+            notifyItemChanged(typingIndex)
+        } else if (typingUsers.isNotEmpty()) {
+            showTypingIndicator(typingUsers, displayNames)
+        }
+    }
+    
+    /**
+     * Remove typing indicator
+     */
+    fun removeTypingIndicator() {
+        val typingIndex = data.indexOfFirst { it.containsKey("typingMessageStatus") }
+        if (typingIndex != -1) {
+            data.removeAt(typingIndex)
+            notifyItemRemoved(typingIndex)
+        }
+    }
+    
+    /**
+     * Check if typing indicator is currently shown
+     */
+    fun hasTypingIndicator(): Boolean {
+        return data.any { it.containsKey("typingMessageStatus") }
     }
     
 }

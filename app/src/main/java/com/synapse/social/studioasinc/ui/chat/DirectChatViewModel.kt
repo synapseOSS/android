@@ -48,6 +48,10 @@ class DirectChatViewModel @Inject constructor(
     private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
     
+    // Enhanced typing and presence managers
+    private val typingIndicatorManager = com.synapse.social.studioasinc.chat.TypingIndicatorManager.getInstance()
+    private val activeStatusManager = com.synapse.social.studioasinc.chat.ActiveStatusManager.getInstance()
+    
     // UI State
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
@@ -255,6 +259,9 @@ class DirectChatViewModel @Inject constructor(
                                  avatarUrl = userProfile?.avatar
                              ))
                          }
+                         
+                         // Initialize presence tracking after user info is loaded
+                         initializePresenceTracking()
                      }
                  }
                 
@@ -1079,19 +1086,99 @@ class DirectChatViewModel @Inject constructor(
 
     /**
      * Set Typing Status
-     * Backend: Broadcasts 'typing' event to 'chat:{id}' channel
+     * Enhanced with TypingIndicatorManager for debouncing and lifecycle management
      */
     fun setTypingStatus(isTyping: Boolean) {
         val chatId = currentChatId ?: return
         val userId = currentUserId ?: return
         
+        if (isTyping) {
+            typingIndicatorManager.startTyping(chatId, userId)
+        } else {
+            typingIndicatorManager.stopTyping(chatId, userId)
+        }
+        
+        // Also broadcast via realtime service for immediate feedback
         viewModelScope.launch {
             realtimeService.broadcastTyping(chatId, userId, isTyping)
+        }
+    }
+    
+    /**
+     * Initialize presence tracking for the current chat
+     */
+    fun initializePresenceTracking() {
+        val chatId = currentChatId ?: return
+        val userId = currentUserId ?: return
+        val otherUserId = _uiState.value.otherUser?.id ?: return
+        
+        viewModelScope.launch {
+            // Set user as online and in this chat
+            activeStatusManager.setOnline(userId)
+            activeStatusManager.setActivityStatus(userId, "chatting", chatId)
+            
+            // Start heartbeat to maintain online status
+            activeStatusManager.startHeartbeat(userId)
+            
+            // Monitor other user's presence
+            activeStatusManager.addPresenceListener(otherUserId, object : 
+                com.synapse.social.studioasinc.chat.ActiveStatusManager.PresenceListener {
+                override fun onPresenceChanged(userId: String, presence: com.synapse.social.studioasinc.chat.ActiveStatusManager.UserPresence) {
+                    _uiState.update { state ->
+                        state.copy(
+                            otherUserOnline = presence.isOnline,
+                            otherUserLastSeen = presence.lastSeen,
+                            otherUserActivity = presence.activityStatus
+                        )
+                    }
+                }
+            })
+            
+            // Start monitoring presence for other user
+            activeStatusManager.startMonitoring(listOf(otherUserId))
+            
+            // Set up typing indicator listener
+            typingIndicatorManager.addTypingListener(chatId, object :
+                com.synapse.social.studioasinc.chat.TypingIndicatorManager.TypingListener {
+                override fun onTypingUsersChanged(chatId: String, typingUsers: List<String>) {
+                    _uiState.update { state ->
+                        val displayNames = typingUsers.mapNotNull { userId ->
+                            if (userId == otherUserId) state.otherUser?.username else null
+                        }
+                        state.copy(typingUsers = displayNames)
+                    }
+                }
+            })
+            
+            // Start monitoring typing status
+            typingIndicatorManager.startMonitoring(chatId, userId)
+        }
+    }
+    
+    /**
+     * Clean up presence tracking
+     */
+    fun cleanupPresenceTracking() {
+        val chatId = currentChatId ?: return
+        val userId = currentUserId ?: return
+        val otherUserId = _uiState.value.otherUser?.id ?: return
+        
+        viewModelScope.launch {
+            // Set user as online but not in chat
+            activeStatusManager.setActivityStatus(userId, "online")
+            
+            // Clean up managers
+            typingIndicatorManager.cleanup(chatId, userId)
+            activeStatusManager.removePresenceListener(otherUserId, object : 
+                com.synapse.social.studioasinc.chat.ActiveStatusManager.PresenceListener {
+                override fun onPresenceChanged(userId: String, presence: com.synapse.social.studioasinc.chat.ActiveStatusManager.UserPresence) {}
+            })
         }
     }
 
     override fun onCleared() {
         super.onCleared()
+        cleanupPresenceTracking()
         viewModelScope.launch {
             realtimeService.cleanup()
         }

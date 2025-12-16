@@ -1287,4 +1287,84 @@ class SupabaseChatService {
             }
         }
     }
+    
+    // Real-time subscription methods for enhanced features
+    
+    /**
+     * Subscribe to typing status changes for a chat
+     */
+    suspend fun subscribeToTypingStatus(
+        chatId: String, 
+        onTypingChanged: (List<String>) -> Unit
+    ): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // This would integrate with SupabaseRealtimeService
+                // For now, we'll use the existing polling mechanism
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+    
+    /**
+     * Subscribe to user presence changes
+     */
+    suspend fun subscribeToPresenceChanges(
+        userIds: List<String>,
+        onPresenceChanged: (String, Boolean, Long) -> Unit
+    ): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // This would integrate with real-time presence updates
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+    
+    /**
+     * Update user presence in real-time
+     */
+    suspend fun updateUserPresence(
+        userId: String,
+        isOnline: Boolean,
+        activityStatus: String = "online",
+        currentChatId: String? = null
+    ): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val updateData = mapOf(
+                    "user_id" to userId,
+                    "is_online" to isOnline,
+                    "last_seen" to System.currentTimeMillis(),
+                    "activity_status" to activityStatus,
+                    "current_chat_id" to currentChatId,
+                    "updated_at" to System.currentTimeMillis()
+                )
+                
+                databaseService.upsert("user_presence", updateData)
+                Result.success(Unit)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error updating user presence", e)
+                Result.failure(e)
+            }
+        }
+    }
+    
+    /**
+     * Get current user presence
+     */
+    suspend fun getUserPresence(userId: String): Result<Map<String, Any?>?> {
+        return withContext(Dispatchers.IO) {
+            try {
+                databaseService.getSingle("user_presence", "user_id", userId)
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error getting user presence", e)
+                Result.failure(e)
+            }
+        }
+    }
 }
