@@ -10,14 +10,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.first
 import java.io.File
+import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * Local implementation of chat deletion repository
  * Handles deletion of locally cached chat data, SharedPreferences, and temporary files
  * Requirements: 1.1, 2.1, 5.1, 5.4
  */
-class LocalChatRepositoryImpl(
-    private val context: Context,
+class LocalChatRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val chatDao: ChatDao = AppDatabase.getDatabase(context).chatDao()
 ) : LocalChatRepository {
 

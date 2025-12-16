@@ -313,7 +313,7 @@ data class MessageDto(
         messageType = message_type,
         createdAt = created_at?.let { 
             try {
-                Instant.parse(it).toEpochMilliseconds()
+                kotlinx.datetime.Instant.parse(it).toEpochMilliseconds()
             } catch (e: Exception) {
                 System.currentTimeMillis()
             }

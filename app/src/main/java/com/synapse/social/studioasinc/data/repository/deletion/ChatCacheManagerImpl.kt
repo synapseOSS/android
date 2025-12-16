@@ -8,14 +8,16 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.RandomAccessFile
 import java.security.SecureRandom
+import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * Implementation of ChatCacheManager for managing cached chat data
  * Handles cache clearing, secure overwrite, and verification operations
  * Requirements: 1.3, 2.3, 5.3, 5.4
  */
-class ChatCacheManagerImpl(
-    private val context: Context
+class ChatCacheManagerImpl @Inject constructor(
+    @ApplicationContext private val context: Context
 ) : ChatCacheManager {
 
     companion object {

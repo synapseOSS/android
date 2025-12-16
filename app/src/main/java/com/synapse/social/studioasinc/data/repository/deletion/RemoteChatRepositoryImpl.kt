@@ -19,14 +19,16 @@ import kotlinx.serialization.json.put
 import java.util.UUID
 import kotlin.math.min
 import kotlin.math.pow
+import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * Supabase-based implementation of RemoteChatRepository
  * Handles remote database deletion operations with network error handling and retry logic
  * Requirements: 1.2, 2.2, 4.1, 4.2
  */
-class RemoteChatRepositoryImpl(
-    private val context: Context
+class RemoteChatRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context
 ) : RemoteChatRepository {
     
     companion object {
