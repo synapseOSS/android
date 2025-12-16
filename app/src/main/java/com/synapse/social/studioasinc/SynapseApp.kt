@@ -30,9 +30,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
-import dagger.hilt.android.HiltAndroidApp
-
-@HiltAndroidApp
 class SynapseApp : Application(), DefaultLifecycleObserver {
     
     private lateinit var exceptionHandler: Thread.UncaughtExceptionHandler

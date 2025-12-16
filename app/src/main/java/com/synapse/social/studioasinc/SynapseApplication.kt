@@ -1,6 +1,7 @@
 package com.synapse.social.studioasinc
 
 import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.backend.AuthDevelopmentUtils
 import com.synapse.social.studioasinc.util.MediaCacheCleanupManager
@@ -11,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@HiltAndroidApp
 class SynapseApplication : Application() {
     
     private lateinit var mediaCacheCleanupManager: MediaCacheCleanupManager
