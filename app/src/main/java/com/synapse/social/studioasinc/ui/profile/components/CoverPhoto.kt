@@ -228,7 +228,7 @@ private fun CoverPlaceholder(
 @Composable
 fun CoverPhotoWithProfile(
     coverImageUrl: String?,
-    profileImageUrl: String?,
+    avatar: String?,
     scrollOffset: Float = 0f,
     isOwnProfile: Boolean = false,
     hasStory: Boolean = false,
@@ -260,7 +260,7 @@ fun CoverPhotoWithProfile(
                 .offset(y = profileImageOffset)
         ) {
             ProfileImageWithRing(
-                avatar = profileImageUrl,
+                avatar = avatar,
                 size = profileImageSize,
                 hasStory = hasStory,
                 isOwnProfile = isOwnProfile,
@@ -275,7 +275,7 @@ fun CoverPhotoWithProfile(
  */
 @Composable
 fun ProfileImageWithRing(
-    profileImageUrl: String?,
+    avatar: String?,
     size: Dp,
     hasStory: Boolean = false,
     isOwnProfile: Boolean = false,
@@ -352,9 +352,9 @@ fun ProfileImageWithRing(
                 .padding(if (hasStory) ringWidth + ringPadding else 2.dp)
                 .clip(CircleShape)
         ) {
-            if (profileImageUrl != null) {
+            if (avatar != null) {
                 AsyncImage(
-                    model = profileImageUrl,
+                    model = avatar,
                     contentDescription = "Profile picture",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop

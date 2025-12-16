@@ -46,7 +46,7 @@ class EditProfileRepository {
                     email = result["email"]?.toString()?.removeSurrounding("\""),
                     bio = result["bio"]?.toString()?.removeSurrounding("\"")
                         ?: result["bio"]?.toString()?.removeSurrounding("\""),
-                    profileImageUrl = result["avatar"]?.toString()?.removeSurrounding("\"")
+                    avatar = result["avatar"]?.toString()?.removeSurrounding("\"")
                         ?: result["avatar"]?.toString()?.removeSurrounding("\""),
                     profileCoverImage = result["profile_cover_image"]?.toString()?.removeSurrounding("\""),
                     gender = result["gender"]?.toString()?.removeSurrounding("\""),

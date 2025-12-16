@@ -9,7 +9,7 @@ data class UserMention(
     val uid: String,
     val username: String,
     val displayName: String? = null,
-    val profileImageUrl: String? = null,
+    val avatar: String? = null,
     val startIndex: Int = 0,
     val endIndex: Int = 0
 ) {

@@ -41,7 +41,7 @@ import com.synapse.social.studioasinc.R
  */
 @Composable
 fun ProfileHeader(
-    profileImageUrl: String?,
+    avatar: String?,
     coverImageUrl: String? = null,
     name: String?,
     username: String,
@@ -83,7 +83,7 @@ fun ProfileHeader(
         // Cover Photo with Profile Image Overlay
         CoverPhotoWithProfile(
             coverImageUrl = coverImageUrl,
-            avatar = profileImageUrl,
+            avatar = avatar,
             scrollOffset = scrollOffset,
             isOwnProfile = isOwnProfile,
             hasStory = hasStory,

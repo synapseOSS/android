@@ -96,7 +96,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         email = result["email"]?.toString()?.removeSurrounding("\""),
                         displayName = result["display_name"]?.toString()?.removeSurrounding("\"") 
                             ?: result["nickname"]?.toString()?.removeSurrounding("\""),
-                        profileImageUrl = result["avatar"]?.toString()?.removeSurrounding("\""),
+                        avatar = result["avatar"]?.toString()?.removeSurrounding("\""),
                         profileCoverImage = result["profile_cover_image"]?.toString()?.removeSurrounding("\""),
                         bio = result["bio"]?.toString()?.removeSurrounding("\""),
                         joinDate = result["join_date"]?.toString()?.removeSurrounding("\""),

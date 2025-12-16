@@ -11,7 +11,7 @@ data class UserProfile(
     val nickname: String? = null,
     val bio: String? = null,
     @SerialName("avatar")
-    val profileImageUrl: String? = null,
+    val avatar: String? = null,
     @SerialName("cover_image_url")
     val coverImageUrl: String? = null,
     @SerialName("is_verified")
