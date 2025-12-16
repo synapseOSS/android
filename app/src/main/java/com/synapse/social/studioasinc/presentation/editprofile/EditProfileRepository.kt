@@ -69,7 +69,21 @@ class EditProfileRepository {
     suspend fun updateProfile(userId: String, updateData: Map<String, Any?>): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                client.from("users").update(updateData) {
+                // Convert Any? values to serializable types
+                val serializedData = updateData.mapValues { (_, value) ->
+                    when (value) {
+                        is String -> value
+                        is Int -> value
+                        is Boolean -> value
+                        is Long -> value
+                        is Double -> value
+                        is Float -> value
+                        null -> null
+                        else -> value.toString()
+                    }
+                }
+                
+                client.from("users").update(serializedData) {
                     filter { eq("uid", userId) }
                 }
                 Result.success(Unit)

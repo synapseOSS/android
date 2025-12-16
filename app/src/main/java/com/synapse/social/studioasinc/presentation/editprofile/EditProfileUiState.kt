@@ -9,6 +9,8 @@ data class EditProfileUiState(
     val profile: UserProfile? = null,
     val avatarUrl: String? = null,
     val coverUrl: String? = null,
+    val avatarUploadState: UploadState = UploadState.Idle,
+    val coverUploadState: UploadState = UploadState.Idle,
     val username: String = "",
     val usernameValidation: UsernameValidation = UsernameValidation.Valid,
     val nickname: String = "",
@@ -25,6 +27,13 @@ enum class Gender {
     Male, Female, Hidden
 }
 
+sealed class UploadState {
+    object Idle : UploadState()
+    data class Uploading(val progress: Float = 0f) : UploadState()
+    object Success : UploadState()
+    data class Error(val message: String, val canRetry: Boolean = true) : UploadState()
+}
+
 sealed class UsernameValidation {
     object Valid : UsernameValidation()
     object Checking : UsernameValidation()
@@ -39,6 +48,8 @@ sealed class EditProfileEvent {
     data class RegionSelected(val region: String) : EditProfileEvent()
     data class AvatarSelected(val uri: Uri) : EditProfileEvent()
     data class CoverSelected(val uri: Uri) : EditProfileEvent()
+    object RetryAvatarUpload : EditProfileEvent()
+    object RetryCoverUpload : EditProfileEvent()
     object SaveClicked : EditProfileEvent()
     object BackClicked : EditProfileEvent()
     object ProfileHistoryClicked : EditProfileEvent()

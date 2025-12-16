@@ -163,11 +163,19 @@ fun EditProfileScreen(
                         ProfileImageSection(
                             coverUrl = uiState.coverUrl,
                             avatarUrl = uiState.avatarUrl,
+                            avatarUploadState = uiState.avatarUploadState,
+                            coverUploadState = uiState.coverUploadState,
                             onCoverClick = {
                                 coverPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                             },
                             onAvatarClick = {
                                 avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            },
+                            onRetryAvatarUpload = {
+                                viewModel.onEvent(EditProfileEvent.RetryAvatarUpload)
+                            },
+                            onRetryCoverUpload = {
+                                viewModel.onEvent(EditProfileEvent.RetryCoverUpload)
                             }
                         )
                     }

@@ -12,7 +12,7 @@ import com.synapse.social.studioasinc.model.MediaItem
 import com.synapse.social.studioasinc.model.MediaType
 import com.synapse.social.studioasinc.model.PollOption
 import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.util.FileUtil
+import com.synapse.social.studioasinc.FileUtil
 import com.synapse.social.studioasinc.util.MediaUploadManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -154,10 +154,17 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
         
         uris.forEach { uri ->
              if (currentMedia.size >= 10) return@forEach
+             android.util.Log.d("CreatePost", "Processing URI: $uri")
              val mimeType = context.contentResolver.getType(uri) ?: return@forEach
              val type = if (mimeType.startsWith("video")) MediaType.VIDEO else MediaType.IMAGE
              FileUtil.convertUriToFilePath(context, uri)?.let { path ->
+                 android.util.Log.d("CreatePost", "Converted URI to path: $path")
+                 if (path.startsWith("content://")) {
+                     android.util.Log.e("CreatePost", "ERROR: Path is still a content URI!")
+                 }
                  currentMedia.add(MediaItem(url = path, type = type))
+             } ?: run {
+                 android.util.Log.e("CreatePost", "Failed to convert URI to path: $uri")
              }
         }
         _uiState.update { it.copy(mediaItems = currentMedia, error = null) }
@@ -203,6 +210,14 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
         
         if (text.isEmpty() && currentState.mediaItems.isEmpty() && currentState.pollData == null && currentState.youtubeUrl == null) {
             _uiState.update { it.copy(error = "Please add some content to your post") }
+            return
+        }
+
+        // Validate that no content URIs are present
+        val invalidUrls = currentState.mediaItems.filter { it.url.startsWith("content://") }
+        if (invalidUrls.isNotEmpty()) {
+            android.util.Log.e("CreatePost", "Found content URIs in media items: ${invalidUrls.map { it.url }}")
+            _uiState.update { it.copy(error = "Media processing failed. Please try selecting the images again.") }
             return
         }
 

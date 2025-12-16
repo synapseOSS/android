@@ -111,6 +111,12 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
             is EditProfileEvent.CoverSelected -> {
                 handleCoverSelection(event.uri)
             }
+            EditProfileEvent.RetryAvatarUpload -> {
+                retryAvatarUpload()
+            }
+            EditProfileEvent.RetryCoverUpload -> {
+                retryCoverUpload()
+            }
             EditProfileEvent.SaveClicked -> {
                 saveProfile()
             }
@@ -196,20 +202,34 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    private var lastAvatarUri: Uri? = null
+    private var lastCoverUri: Uri? = null
+
     private fun handleAvatarSelection(uri: Uri) {
+        lastAvatarUri = uri
+        _uiState.update { it.copy(avatarUploadState = UploadState.Uploading()) }
+        
         viewModelScope.launch {
             val context = getApplication<Application>()
             val realFilePath = FileUtil.convertUriToFilePath(context, uri)
 
             if (realFilePath != null) {
-                // Compress
-                val tempFile = File(context.cacheDir, "temp_avatar_${System.currentTimeMillis()}.jpg")
-                FileUtil.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
+                try {
+                    // Compress
+                    val tempFile = File(context.cacheDir, "temp_avatar_${System.currentTimeMillis()}.jpg")
+                    FileUtil.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
 
-                // Upload
-                uploadAvatar(tempFile.absolutePath)
+                    // Upload
+                    uploadAvatar(tempFile.absolutePath)
+                } catch (e: Exception) {
+                    _uiState.update { 
+                        it.copy(avatarUploadState = UploadState.Error("Failed to process image: ${e.message}")) 
+                    }
+                }
             } else {
-                 _uiState.update { it.copy(error = "Failed to process image") }
+                _uiState.update { 
+                    it.copy(avatarUploadState = UploadState.Error("Failed to process image")) 
+                }
             }
         }
     }
@@ -218,34 +238,51 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             val userId = repository.getCurrentUserId() ?: return@launch
 
-            // Optimistic update or show loading?
-            // Specs: Loading State: Circular progress indicator overlay
-            // I should probably track upload status. For now I rely on repository suspension.
+            _uiState.update { it.copy(avatarUploadState = UploadState.Uploading()) }
 
             val result = repository.uploadAvatar(userId, filePath)
             result.fold(
                 onSuccess = { url ->
-                     _uiState.update { it.copy(avatarUrl = url) }
-                     repository.addToProfileHistory(userId, url)
+                    _uiState.update { 
+                        it.copy(
+                            avatarUrl = url,
+                            avatarUploadState = UploadState.Success,
+                            hasChanges = true
+                        ) 
+                    }
+                    repository.addToProfileHistory(userId, url)
                 },
                 onFailure = { error ->
-                    _uiState.update { it.copy(error = "Avatar upload failed: ${error.message}") }
+                    _uiState.update { 
+                        it.copy(avatarUploadState = UploadState.Error("Avatar upload failed: ${error.message}")) 
+                    }
                 }
             )
         }
     }
 
     private fun handleCoverSelection(uri: Uri) {
+        lastCoverUri = uri
+        _uiState.update { it.copy(coverUploadState = UploadState.Uploading()) }
+        
         viewModelScope.launch {
             val context = getApplication<Application>()
             val realFilePath = FileUtil.convertUriToFilePath(context, uri)
 
             if (realFilePath != null) {
-                val tempFile = File(context.cacheDir, "temp_cover_${System.currentTimeMillis()}.jpg")
-                FileUtil.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
-                uploadCover(tempFile.absolutePath)
+                try {
+                    val tempFile = File(context.cacheDir, "temp_cover_${System.currentTimeMillis()}.jpg")
+                    FileUtil.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
+                    uploadCover(tempFile.absolutePath)
+                } catch (e: Exception) {
+                    _uiState.update { 
+                        it.copy(coverUploadState = UploadState.Error("Failed to process image: ${e.message}")) 
+                    }
+                }
             } else {
-                 _uiState.update { it.copy(error = "Failed to process image") }
+                _uiState.update { 
+                    it.copy(coverUploadState = UploadState.Error("Failed to process image")) 
+                }
             }
         }
     }
@@ -254,16 +291,38 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             val userId = repository.getCurrentUserId() ?: return@launch
 
+            _uiState.update { it.copy(coverUploadState = UploadState.Uploading()) }
+
             val result = repository.uploadCover(userId, filePath)
             result.fold(
                 onSuccess = { url ->
-                     _uiState.update { it.copy(coverUrl = url) }
-                     repository.addToCoverHistory(userId, url)
+                    _uiState.update { 
+                        it.copy(
+                            coverUrl = url,
+                            coverUploadState = UploadState.Success,
+                            hasChanges = true
+                        ) 
+                    }
+                    repository.addToCoverHistory(userId, url)
                 },
                 onFailure = { error ->
-                    _uiState.update { it.copy(error = "Cover upload failed: ${error.message}") }
+                    _uiState.update { 
+                        it.copy(coverUploadState = UploadState.Error("Cover upload failed: ${error.message}")) 
+                    }
                 }
             )
+        }
+    }
+
+    private fun retryAvatarUpload() {
+        lastAvatarUri?.let { uri ->
+            handleAvatarSelection(uri)
+        }
+    }
+
+    private fun retryCoverUpload() {
+        lastCoverUri?.let { uri ->
+            handleCoverSelection(uri)
         }
     }
 
