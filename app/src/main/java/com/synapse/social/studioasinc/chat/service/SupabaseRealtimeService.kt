@@ -350,6 +350,17 @@ class SupabaseRealtimeService {
     }
     
     /**
+     * Reset connection state to allow fresh reconnection attempts
+     */
+    fun resetConnectionState() {
+        Log.d(TAG, "Resetting connection state")
+        chatReconnectAttempts.clear()
+        chatPollingFallback.clear()
+        _connectionState.value = RealtimeState.Disconnected
+        metrics.recordConnectionReset()
+    }
+    
+    /**
      * Register a callback for connection state changes.
      * 
      * @param callback Function to be called when connection state changes

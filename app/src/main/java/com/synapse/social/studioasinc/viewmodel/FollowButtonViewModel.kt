@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 data class FollowButtonUiState(
     val isFollowing: Boolean = false,
@@ -23,6 +24,7 @@ class FollowButtonViewModel : ViewModel() {
     
     private var currentUserId: String? = null
     private var targetUserId: String? = null
+    private val isOperationInProgress = AtomicBoolean(false)
 
     fun initialize(targetUserId: String) {
         this.targetUserId = targetUserId
@@ -58,26 +60,33 @@ class FollowButtonViewModel : ViewModel() {
         val currentUid = currentUserId ?: return
         val targetUid = targetUserId ?: return
         
+        if (!isOperationInProgress.compareAndSet(false, true)) return // Prevent concurrent operations
+        
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            
-            val result = if (_uiState.value.isFollowing) {
-                followService.unfollowUser(currentUid, targetUid)
-            } else {
-                followService.followUser(currentUid, targetUid)
-            }
-            
-            result.fold(
-                onSuccess = {
-                    _uiState.value = _uiState.value.copy(
-                        isFollowing = !_uiState.value.isFollowing,
-                        isLoading = false
-                    )
-                },
-                onFailure = {
-                    _uiState.value = _uiState.value.copy(isLoading = false)
+            try {
+                val currentFollowState = _uiState.value.isFollowing
+                _uiState.value = _uiState.value.copy(isLoading = true)
+                
+                val result = if (currentFollowState) {
+                    followService.unfollowUser(currentUid, targetUid)
+                } else {
+                    followService.followUser(currentUid, targetUid)
                 }
-            )
+                
+                result.fold(
+                    onSuccess = {
+                        _uiState.value = _uiState.value.copy(
+                            isFollowing = !currentFollowState,
+                            isLoading = false
+                        )
+                    },
+                    onFailure = {
+                        _uiState.value = _uiState.value.copy(isLoading = false)
+                    }
+                )
+            } finally {
+                isOperationInProgress.set(false)
+            }
         }
     }
 }

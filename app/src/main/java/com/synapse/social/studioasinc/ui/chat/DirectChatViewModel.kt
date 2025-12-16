@@ -172,21 +172,29 @@ class DirectChatViewModel @Inject constructor(
             try {
                 android.util.Log.d("DirectChatViewModel", "Retrying connection for chat: $chatId")
                 
-                // Run diagnostics
+                // 1. Force connection state to connecting
+                _uiState.update { it.copy(connectionState = RealtimeConnectionState.Connecting) }
+                
+                // 2. Run diagnostics
                 com.synapse.social.studioasinc.util.ConnectionDiagnostics.runDiagnostics(getApplication())
                 
-                // Cancel existing connection
+                // 3. Cancel existing connection completely
                 realtimeJob?.cancel()
+                realtimeService.disconnect()
                 
-                // Wait a moment
-                delay(500)
+                // 4. Wait for cleanup
+                delay(1000)
                 
-                // Restart realtime observation
+                // 5. Reset connection state in service
+                realtimeService.resetConnectionState()
+                
+                // 6. Restart realtime observation
                 observeRealtimeMessages(chatId)
                 
                 android.util.Log.d("DirectChatViewModel", "Connection retry initiated")
             } catch (e: Exception) {
                 android.util.Log.e("DirectChatViewModel", "Failed to retry connection", e)
+                _uiState.update { it.copy(connectionState = RealtimeConnectionState.Disconnected) }
             }
         }
     }
@@ -304,7 +312,18 @@ class DirectChatViewModel @Inject constructor(
                             }
                         }
                     } catch (e: Exception) {
-                        _uiState.update { it.copy(error = "Realtime message error: ${e.message}") }
+                        android.util.Log.e("DirectChatViewModel", "Realtime message error", e)
+                        _uiState.update { it.copy(connectionState = RealtimeConnectionState.Disconnected) }
+                        
+                        // Auto-retry after a delay if this is a connection issue
+                        if (e.message?.contains("connection", ignoreCase = true) == true ||
+                            e.message?.contains("network", ignoreCase = true) == true) {
+                            delay(3000) // Wait 3 seconds before retry
+                            if (currentChatId == chatId) { // Only retry if still on same chat
+                                android.util.Log.d("DirectChatViewModel", "Auto-retrying connection after error")
+                                observeRealtimeMessages(chatId)
+                            }
+                        }
                     }
                 }
                 
@@ -347,7 +366,22 @@ class DirectChatViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Failed to set up realtime: ${e.message}") }
+                android.util.Log.e("DirectChatViewModel", "Failed to set up realtime connection", e)
+                _uiState.update { it.copy(connectionState = RealtimeConnectionState.Disconnected) }
+                
+                // Auto-retry for connection-related errors
+                if (e.message?.contains("connection", ignoreCase = true) == true ||
+                    e.message?.contains("network", ignoreCase = true) == true ||
+                    e.message?.contains("timeout", ignoreCase = true) == true) {
+                    
+                    delay(5000) // Wait 5 seconds before retry
+                    if (currentChatId == chatId) { // Only retry if still on same chat
+                        android.util.Log.d("DirectChatViewModel", "Auto-retrying realtime setup after error")
+                        observeRealtimeMessages(chatId)
+                    }
+                } else {
+                    _uiState.update { it.copy(error = "Connection failed: ${e.message}") }
+                }
             }
         }
     }

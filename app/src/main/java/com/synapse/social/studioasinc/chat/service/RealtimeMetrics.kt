@@ -167,6 +167,14 @@ class RealtimeMetrics {
     }
     
     /**
+     * Record when connection state is manually reset
+     */
+    fun recordConnectionReset() {
+        connectionStartTime = 0L
+        Log.d(TAG, "Connection reset recorded")
+    }
+    
+    /**
      * Get current metrics snapshot.
      * 
      * @return Current metrics data

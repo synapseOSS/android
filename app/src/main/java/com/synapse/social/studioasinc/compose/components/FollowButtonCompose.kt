@@ -17,9 +17,18 @@ fun FollowButtonCompose(
     viewModel: FollowButtonViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var lastClickTime by remember { mutableLongStateOf(0L) }
     
     LaunchedEffect(targetUserId) {
         viewModel.initialize(targetUserId)
+    }
+
+    val handleClick = {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime > 1000) { // 1 second debounce
+            lastClickTime = currentTime
+            viewModel.toggleFollow()
+        }
     }
 
     when {
@@ -37,7 +46,7 @@ fun FollowButtonCompose(
         
         uiState.isFollowing -> {
             OutlinedButton(
-                onClick = { viewModel.toggleFollow() },
+                onClick = handleClick,
                 modifier = modifier,
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.onSurface
@@ -49,7 +58,7 @@ fun FollowButtonCompose(
         
         else -> {
             Button(
-                onClick = { viewModel.toggleFollow() },
+                onClick = handleClick,
                 modifier = modifier
             ) {
                 Text(stringResource(R.string.follow))

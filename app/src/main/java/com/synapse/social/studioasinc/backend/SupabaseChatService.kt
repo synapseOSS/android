@@ -364,6 +364,7 @@ class SupabaseChatService {
                 }
                 
                 val messageData = mutableMapOf<String, Any?>(
+                    "id" to messageId,  // Add the missing id field
                     "chat_id" to chatId,
                     "sender_id" to senderId,
                     "content" to content,
