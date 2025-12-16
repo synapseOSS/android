@@ -4,6 +4,8 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.backend.LinkPreviewService
 import com.synapse.social.studioasinc.backend.SupabaseStorageService
@@ -29,17 +31,15 @@ import io.github.jan.supabase.realtime.PostgresAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.TextRange
 import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
-import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
 
 /**
  * ViewModel for DirectChatScreen
  * Adapter for existing ChatRepository to Compose UI State
- * Integrates with MessageDeletionViewModel for deletion status synchronization
  * Requirements: 2.4
  */
-class DirectChatViewModel(
-    application: Application,
-    private val messageDeletionViewModel: MessageDeletionViewModel
+@HiltViewModel
+class DirectChatViewModel @Inject constructor(
+    application: Application
 ) : AndroidViewModel(application) {
 
     // Dependencies
@@ -146,60 +146,9 @@ class DirectChatViewModel(
     init {
         loadCurrentUser()
         observeConnectionState()
-        observeDeletionStatus()
     }
     
-    /**
-     * Observe deletion status from MessageDeletionViewModel
-     * Updates UI state when chat deletion operations affect current chat
-     * Requirements: 2.4
-     */
-    private fun observeDeletionStatus() {
-        viewModelScope.launch {
-            messageDeletionViewModel.deletionEvents.collect { event ->
-                when (event) {
-                    is com.synapse.social.studioasinc.ui.deletion.DeletionEvent.Success -> {
-                        // Check if current chat was affected by deletion
-                        val currentChatId = this@DirectChatViewModel.currentChatId
-                        val selectedChatIds = messageDeletionViewModel.uiState.value.selectedChatIds
-                        
-                        if (currentChatId != null && selectedChatIds.contains(currentChatId)) {
-                            // Current chat was deleted, clear messages
-                            _dbMessages.value = emptyList()
-                            _optimisticMessages.value = emptyList()
-                            
-                            _uiState.update { 
-                                it.copy(error = "Chat history has been deleted")
-                            }
-                        }
-                    }
-                    is com.synapse.social.studioasinc.ui.deletion.DeletionEvent.PartialSuccess -> {
-                        // Handle partial deletion - may need to refresh messages
-                        val currentChatId = this@DirectChatViewModel.currentChatId
-                        val selectedChatIds = messageDeletionViewModel.uiState.value.selectedChatIds
-                        
-                        if (currentChatId != null && selectedChatIds.contains(currentChatId)) {
-                            // Reload messages to reflect partial deletion
-                            loadChat(currentChatId)
-                        }
-                    }
-                    is com.synapse.social.studioasinc.ui.deletion.DeletionEvent.Error -> {
-                        // Show deletion error in chat UI if relevant
-                        val currentChatId = this@DirectChatViewModel.currentChatId
-                        val selectedChatIds = messageDeletionViewModel.uiState.value.selectedChatIds
-                        
-                        if (currentChatId != null && selectedChatIds.contains(currentChatId)) {
-                            _uiState.update { 
-                                it.copy(error = "Failed to delete chat history: ${event.message}")
-                            }
-                        }
-                    }
-                    else -> { /* Handle other events if needed */ }
-                }
-            }
-        }
-    }
-
+    
     private fun observeConnectionState() {
         viewModelScope.launch {
             realtimeService.connectionState.collect { state ->
@@ -1076,28 +1025,6 @@ class DirectChatViewModel(
         
         viewModelScope.launch {
             realtimeService.broadcastTyping(chatId, userId, isTyping)
-        }
-    }
-
-    /**
-     * Delete current chat history using MessageDeletionViewModel
-     * Requirements: 2.4
-     */
-    fun deleteCurrentChatHistory() {
-        val chatId = currentChatId ?: return
-        val userId = currentUserId ?: return
-        
-        viewModelScope.launch {
-            val validationResult = messageDeletionViewModel.validateDeletionRequest(userId, listOf(chatId))
-            
-            when (validationResult) {
-                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Valid -> {
-                    messageDeletionViewModel.deleteSpecificChats(userId, listOf(chatId))
-                }
-                is com.synapse.social.studioasinc.ui.deletion.ValidationResult.Invalid -> {
-                    _uiState.update { it.copy(error = validationResult.reason) }
-                }
-            }
         }
     }
 
