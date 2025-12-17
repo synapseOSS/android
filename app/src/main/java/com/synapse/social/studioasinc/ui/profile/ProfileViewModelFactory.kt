@@ -7,6 +7,7 @@ import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.*
 import com.synapse.social.studioasinc.domain.usecase.profile.*
 import com.synapse.social.studioasinc.domain.usecase.post.*
+import com.synapse.social.studioasinc.domain.usecase.story.HasActiveStoryUseCase
 
 class ProfileViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -17,6 +18,7 @@ class ProfileViewModelFactory(private val context: Context) : ViewModelProvider.
             val postRepository = PostRepository(postDao)
             val postInteractionRepository = PostInteractionRepository()
             val profileActionRepository = ProfileActionRepository()
+            val storyRepository = StoryRepositoryImpl()
             
             return ProfileViewModel(
                 getProfileUseCase = GetProfileUseCase(profileRepository),
@@ -34,7 +36,8 @@ class ProfileViewModelFactory(private val context: Context) : ViewModelProvider.
                 blockUserUseCase = BlockUserUseCase(profileActionRepository),
                 reportUserUseCase = ReportUserUseCase(profileActionRepository),
                 muteUserUseCase = MuteUserUseCase(profileActionRepository),
-                isFollowingUseCase = IsFollowingUseCase(profileRepository)
+                isFollowingUseCase = IsFollowingUseCase(profileRepository),
+                hasActiveStoryUseCase = HasActiveStoryUseCase(storyRepository)
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
