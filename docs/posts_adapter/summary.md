@@ -1,0 +1,1 @@
+`ListAdapter` for rendering a feed of `Post` objects (See `/docs/post_model/summary.md`) in a `RecyclerView`. Handles efficient updates via `DiffUtil`, Markdown rendering with `Markwon`, and MD3 animations for interactions. Supports a wide range of user actions (like, comment, share) via callbacks.
