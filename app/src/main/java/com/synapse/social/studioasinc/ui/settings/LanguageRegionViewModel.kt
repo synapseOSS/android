@@ -1,12 +1,17 @@
 package com.synapse.social.studioasinc.ui.settings
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.synapse.social.studioasinc.data.repository.SettingsRepository
+import com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * ViewModel for the Language and Region Settings screen.
@@ -14,7 +19,7 @@ import kotlinx.coroutines.launch
  * Manages the state for language and region-related settings including:
  * - Available languages list with native names
  * - Current language selection
- * - Language change handling (placeholder)
+ * - Language change handling
  * - Region preferences navigation
  * 
  * Requirements: 8.1, 8.4
@@ -22,6 +27,9 @@ import kotlinx.coroutines.launch
 class LanguageRegionViewModel(
     application: Application
 ) : AndroidViewModel(application) {
+
+    private val settingsRepository: SettingsRepository =
+        SettingsRepositoryImpl.getInstance(application)
 
     // ========================================================================
     // State
@@ -57,7 +65,7 @@ class LanguageRegionViewModel(
             try {
                 // Define available languages with native script names
                 // Requirements: 8.4 - Language names in their native script
-                _availableLanguages.value = listOf(
+                val languages = listOf(
                     LanguageOption(
                         code = "en",
                         name = "English",
@@ -159,6 +167,23 @@ class LanguageRegionViewModel(
                         nativeName = "Svenska"
                     )
                 )
+                _availableLanguages.value = languages
+
+                // Set initial selection based on saved preference or system default
+                settingsRepository.language.collect { savedCode ->
+                    val selected = languages.find { it.code == savedCode }
+                    if (selected != null) {
+                        _currentLanguage.value = selected.nativeName
+                    } else {
+                        // If no saved preference or invalid, fallback to system if matched or English
+                        val systemLocale = Locale.getDefault()
+                        val systemCode = systemLocale.language
+                        val match = languages.find { it.code.startsWith(systemCode) }
+                        if (match != null) {
+                            _currentLanguage.value = match.nativeName
+                        }
+                    }
+                }
 
                 android.util.Log.d("LanguageRegionViewModel", "Loaded ${_availableLanguages.value.size} languages")
             } catch (e: Exception) {
@@ -170,8 +195,6 @@ class LanguageRegionViewModel(
 
     /**
      * Sets the selected language.
-     * This is a placeholder implementation - actual language change would require
-     * app restart and locale configuration.
      * 
      * @param languageOption The language option to select
      * Requirements: 8.1, 8.2
@@ -181,23 +204,27 @@ class LanguageRegionViewModel(
             _isLoading.value = true
             _error.value = null
             try {
-                // Placeholder: In a real implementation, this would:
                 // 1. Save the language preference to DataStore
+                settingsRepository.setLanguage(languageOption.code)
+
                 // 2. Update the app's locale configuration
-                // 3. Potentially prompt for app restart
+                val locale = if (languageOption.code.contains("-")) {
+                    val parts = languageOption.code.split("-")
+                    Locale(parts[0], parts[1])
+                } else {
+                    Locale(languageOption.code)
+                }
                 
+                AppCompatDelegate.setApplicationLocales(
+                    LocaleListCompat.create(locale)
+                )
+
                 _currentLanguage.value = languageOption.nativeName
                 
                 android.util.Log.d(
                     "LanguageRegionViewModel",
                     "Language changed to: ${languageOption.name} (${languageOption.code})"
                 )
-                
-                // TODO: Implement actual language change logic
-                // This would involve:
-                // - Saving to DataStore/SharedPreferences
-                // - Updating app configuration
-                // - Showing restart prompt if needed
                 
             } catch (e: Exception) {
                 android.util.Log.e("LanguageRegionViewModel", "Failed to set language", e)

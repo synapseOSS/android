@@ -80,6 +80,12 @@ class SettingsRepositoryImpl private constructor(
         settingsDataStore.setFontScale(scale)
     }
 
+    override val language: Flow<String> = settingsDataStore.language
+
+    override suspend fun setLanguage(languageCode: String) {
+        settingsDataStore.setLanguage(languageCode)
+    }
+
     // ========================================================================
     // Privacy Settings (User-level - cleared on logout)
     // ========================================================================

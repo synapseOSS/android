@@ -67,6 +67,17 @@ interface SettingsRepository {
      * @param scale The font scale to apply
      */
     suspend fun setFontScale(scale: FontScale)
+
+    /**
+     * Flow of the current language code.
+     */
+    val language: Flow<String>
+
+    /**
+     * Sets the application language.
+     * @param languageCode The language code to apply (e.g. "en", "es")
+     */
+    suspend fun setLanguage(languageCode: String)
     
     // ========================================================================
     // Privacy Settings (User-level - cleared on logout)
