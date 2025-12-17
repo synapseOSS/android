@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import com.synapse.social.studioasinc.data.repository.deletion.ChatHistoryManager
 import com.synapse.social.studioasinc.data.model.deletion.*
+import com.synapse.social.studioasinc.data.repository.AuthRepository
 import javax.inject.Inject
 
 /**
@@ -19,7 +20,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class MessageDeletionViewModel @Inject constructor(
-    private val chatHistoryManager: ChatHistoryManager
+    private val chatHistoryManager: ChatHistoryManager,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MessageDeletionUiState())
@@ -70,8 +72,9 @@ class MessageDeletionViewModel @Inject constructor(
      * Requirements: 2.4, 3.4
      */
     fun deleteAllHistory(userId: String) {
-        if (userId.isBlank()) {
-            _uiState.update { it.copy(error = "User ID is required for deletion") }
+        val currentUserId = getCurrentUserId()
+        if (userId.isBlank() || userId != currentUserId) {
+            _uiState.update { it.copy(error = "Unauthorized: User ID mismatch or not logged in") }
             return
         }
 
@@ -116,8 +119,9 @@ class MessageDeletionViewModel @Inject constructor(
      * Requirements: 2.4, 3.4
      */
     fun deleteSpecificChats(userId: String, chatIds: List<String>) {
-        if (userId.isBlank()) {
-            _uiState.update { it.copy(error = "User ID is required for deletion") }
+        val currentUserId = getCurrentUserId()
+        if (userId.isBlank() || userId != currentUserId) {
+            _uiState.update { it.copy(error = "Unauthorized: User ID mismatch or not logged in") }
             return
         }
 
@@ -315,8 +319,9 @@ class MessageDeletionViewModel @Inject constructor(
      * Requirements: 4.1, 4.3, 4.5
      */
     fun retryFailedOperations(userId: String, operations: List<DeletionOperation>? = null) {
-        if (userId.isBlank()) {
-            _uiState.update { it.copy(error = "User ID is required for retry") }
+        val currentUserId = getCurrentUserId()
+        if (userId.isBlank() || userId != currentUserId) {
+            _uiState.update { it.copy(error = "Unauthorized: User ID mismatch or not logged in") }
             return
         }
 
@@ -366,8 +371,9 @@ class MessageDeletionViewModel @Inject constructor(
      * Requirements: 4.3, 4.4
      */
     fun getFailedOperations(userId: String) {
-        if (userId.isBlank()) {
-            _uiState.update { it.copy(error = "User ID is required") }
+        val currentUserId = getCurrentUserId()
+        if (userId.isBlank() || userId != currentUserId) {
+            _uiState.update { it.copy(error = "Unauthorized: User ID mismatch or not logged in") }
             return
         }
 
@@ -421,11 +427,9 @@ class MessageDeletionViewModel @Inject constructor(
 
     /**
      * Get current user ID for deletion operations.
-     * This should be replaced with actual authentication service integration.
      */
     fun getCurrentUserId(): String {
-        // TODO: Integrate with actual authentication service
-        return "current_user_id"
+        return authRepository.getCurrentUserId() ?: ""
     }
 
     /**
