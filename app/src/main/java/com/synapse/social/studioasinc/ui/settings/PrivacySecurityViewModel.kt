@@ -1,9 +1,12 @@
 package com.synapse.social.studioasinc.ui.settings
 
 import android.app.Application
+import androidx.biometric.BiometricManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl
+import com.synapse.social.studioasinc.util.BiometricChecker
+import com.synapse.social.studioasinc.util.BiometricCheckerImpl
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +28,8 @@ import kotlinx.coroutines.launch
  * Requirements: 3.1, 3.2, 3.8
  */
 class PrivacySecurityViewModel(
-    application: Application
+    application: Application,
+    private val biometricChecker: BiometricChecker = BiometricCheckerImpl()
 ) : AndroidViewModel(application) {
 
     private val settingsRepository = SettingsRepositoryImpl.getInstance(application)
@@ -242,7 +246,46 @@ class PrivacySecurityViewModel(
             _isLoading.value = true
             _error.value = null
             try {
-                // TODO: Verify biometric capability before enabling
+                if (enabled) {
+                    val canAuthenticate = biometricChecker.canAuthenticate(getApplication())
+
+                    when (canAuthenticate) {
+                        BiometricManager.BIOMETRIC_SUCCESS -> {
+                            // Can authenticate, proceed
+                        }
+                        BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
+                            _error.value = "No biometric features available on this device."
+                            _isLoading.value = false
+                            return@launch
+                        }
+                        BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
+                            _error.value = "Biometric features are currently unavailable."
+                            _isLoading.value = false
+                            return@launch
+                        }
+                        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                            _error.value = "No biometric credentials enrolled on this device."
+                            _isLoading.value = false
+                            return@launch
+                        }
+                        BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
+                            _error.value = "Security update required for biometric features."
+                            _isLoading.value = false
+                            return@launch
+                        }
+                        BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
+                            _error.value = "Biometric features are unsupported."
+                            _isLoading.value = false
+                            return@launch
+                        }
+                        BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
+                            _error.value = "Biometric status unknown."
+                            _isLoading.value = false
+                            return@launch
+                        }
+                    }
+                }
+
                 settingsRepository.setBiometricLockEnabled(enabled)
                 android.util.Log.d("PrivacySecurityViewModel", "Biometric lock ${if (enabled) "enabled" else "disabled"}")
             } catch (e: Exception) {
