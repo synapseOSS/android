@@ -8,7 +8,12 @@ import kotlinx.coroutines.launch
 import com.synapse.social.studioasinc.data.repository.deletion.ChatHistoryManager
 import com.synapse.social.studioasinc.data.model.deletion.DeletionResult
 import com.synapse.social.studioasinc.data.model.deletion.DeletionProgress
+import com.synapse.social.studioasinc.data.model.deletion.DeletionOperation
+import com.synapse.social.studioasinc.data.model.deletion.OperationStatus
 import javax.inject.Inject
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * ViewModel for the Chat History Deletion screen.
@@ -84,37 +89,44 @@ class ChatHistoryDeletionViewModel @Inject constructor(
     private fun loadDeletionHistory() {
         viewModelScope.launch {
             try {
-                // TODO: Implement actual history loading from repository
-                // For now, using mock data
-                val mockHistory = listOf(
-                    DeletionHistoryItem(
-                        id = "del1",
-                        operationType = "Complete History Deletion",
-                        timestamp = "2 hours ago",
-                        status = "Completed",
-                        messagesAffected = 1250,
-                        isSuccess = true,
-                        isError = false,
-                        canRetry = false
-                    ),
-                    DeletionHistoryItem(
-                        id = "del2",
-                        operationType = "Selective Chat Deletion",
-                        timestamp = "1 day ago",
-                        status = "Partially Failed",
-                        messagesAffected = 89,
-                        isSuccess = false,
-                        isError = true,
-                        canRetry = true
-                    )
-                )
-                _deletionHistory.value = mockHistory
+                val history = chatHistoryManager.getDeletionHistory(getCurrentUserId())
+                _deletionHistory.value = history.map { mapToHistoryItem(it) }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     error = "Failed to load deletion history: ${e.message}"
                 )
             }
         }
+    }
+
+    private fun mapToHistoryItem(operation: DeletionOperation): DeletionHistoryItem {
+        val operationType = if (operation.chatIds == null) "Complete History Deletion" else "Selective Chat Deletion"
+
+        val sdf = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+        val dateString = sdf.format(Date(operation.timestamp))
+
+        val statusString = when (operation.status) {
+            OperationStatus.PENDING -> "Pending"
+            OperationStatus.IN_PROGRESS -> "In Progress"
+            OperationStatus.COMPLETED -> "Completed"
+            OperationStatus.FAILED -> "Failed"
+            OperationStatus.QUEUED_FOR_RETRY -> "Queued for Retry"
+        }
+
+        val isSuccess = operation.status == OperationStatus.COMPLETED
+        val isError = operation.status == OperationStatus.FAILED
+        val canRetry = operation.status == OperationStatus.FAILED || operation.status == OperationStatus.QUEUED_FOR_RETRY
+
+        return DeletionHistoryItem(
+            id = operation.id,
+            operationType = operationType,
+            timestamp = dateString,
+            status = statusString,
+            messagesAffected = operation.messagesAffected,
+            isSuccess = isSuccess,
+            isError = isError,
+            canRetry = canRetry
+        )
     }
 
     /**
