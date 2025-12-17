@@ -206,12 +206,40 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
                     return@launch
                 }
 
-                // TODO: Implement actual email change with backend
+                // Get current user email
+                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val currentUser = supabaseClient.auth.currentUserOrNull()
+                val currentEmail = currentUser?.email
+
+                if (currentEmail == null) {
+                    _error.value = "User email not found. Please sign in again."
+                    return@launch
+                }
+
+                // Verify current password by attempting to sign in
+                try {
+                    supabaseClient.auth.signInWith(Email) {
+                        this.email = currentEmail
+                        this.password = password
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("AccountSettingsViewModel", "Failed to verify password", e)
+                    if (e.message?.contains("invalid", ignoreCase = true) == true ||
+                        e.message?.contains("credential", ignoreCase = true) == true) {
+                        _error.value = "Incorrect password"
+                    } else {
+                        _error.value = "Failed to verify password: ${e.message}"
+                    }
+                    return@launch
+                }
+
+                // Update email with backend
                 android.util.Log.d("AccountSettingsViewModel", "Changing email to: $newEmail")
+                supabaseClient.auth.updateUser {
+                    email = newEmail
+                }
                 
-                // Simulate success
                 _showChangeEmailDialog.value = false
-                // TODO: Show success message to user
             } catch (e: Exception) {
                 android.util.Log.e("AccountSettingsViewModel", "Failed to change email", e)
                 _error.value = "Failed to change email: ${e.message}"
