@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.data.model.UserProfile
 import com.synapse.social.studioasinc.domain.usecase.profile.*
 import com.synapse.social.studioasinc.domain.usecase.post.*
+import com.synapse.social.studioasinc.domain.usecase.story.HasActiveStoryUseCase
 import com.synapse.social.studioasinc.ui.profile.components.ViewAsMode
 import com.synapse.social.studioasinc.ui.profile.utils.MemoryManager
 import com.synapse.social.studioasinc.ui.profile.utils.NetworkOptimizer
@@ -42,7 +43,8 @@ data class ProfileScreenState(
     val showQrCode: Boolean = false,
     val showReportDialog: Boolean = false,
     val viewAsMode: ViewAsMode? = null,
-    val viewAsUserName: String? = null
+    val viewAsUserName: String? = null,
+    val hasStory: Boolean = false
 )
 
 /**
@@ -72,7 +74,8 @@ class ProfileViewModel(
     private val blockUserUseCase: BlockUserUseCase,
     private val reportUserUseCase: ReportUserUseCase,
     private val muteUserUseCase: MuteUserUseCase,
-    private val isFollowingUseCase: IsFollowingUseCase
+    private val isFollowingUseCase: IsFollowingUseCase,
+    private val hasActiveStoryUseCase: HasActiveStoryUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileScreenState())
@@ -117,6 +120,7 @@ class ProfileViewModel(
                         )
                     }
                     loadContent(userId, ProfileContentFilter.POSTS)
+                    checkStory(userId)
                 }.onFailure { exception ->
                     _state.update {
                         it.copy(
@@ -473,6 +477,14 @@ class ProfileViewModel(
         // Use loaded profile data if available and matches author (fallback for missing post user data)
         val currentProfile = (_state.value.profileState as? ProfileUiState.Success)?.profile
         return PostMapper.mapToState(post, currentProfile)
+    }
+
+    private fun checkStory(userId: String) {
+        viewModelScope.launch {
+            hasActiveStoryUseCase(userId).onSuccess { hasStory ->
+                _state.update { it.copy(hasStory = hasStory) }
+            }
+        }
     }
 
     private fun loadContent(userId: String, filter: ProfileContentFilter) {

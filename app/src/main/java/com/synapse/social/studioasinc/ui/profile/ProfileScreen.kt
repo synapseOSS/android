@@ -298,7 +298,7 @@ private fun ProfileContent(
                 nickname = profile.nickname,
                 bio = profile.bio,
                 isVerified = profile.isVerified,
-                hasStory = false, // TODO: Implement story check
+                hasStory = state.hasStory,
                 postsCount = profile.postCount,
                 followersCount = profile.followerCount,
                 followingCount = profile.followingCount,
