@@ -11,6 +11,7 @@ import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
 import io.ktor.client.statement.bodyAsText
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Count
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.channel
@@ -480,6 +481,20 @@ class ChatRepository(private val chatDao: ChatDao) {
                 }
             }
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getMessageCount(chatId: String): Result<Long> {
+        return try {
+            val count = client.from("messages").select(head = true) {
+                filter {
+                    eq("chat_id", chatId)
+                }
+                count(Count.EXACT)
+            }.countOrNull() ?: 0L
+            Result.success(count)
         } catch (e: Exception) {
             Result.failure(e)
         }
