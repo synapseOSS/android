@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.PopupMenu
 // import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -27,6 +28,7 @@ class InboxActivity : BaseActivity() {
 
     // UI Components
     private lateinit var headerTitle: TextView
+    private lateinit var btnOptions: ImageView
     private lateinit var viewpager1: ViewPager
     private lateinit var bottomnavigation1: BottomNavigationView
     private lateinit var fabNewChat: FloatingActionButton
@@ -43,6 +45,7 @@ class InboxActivity : BaseActivity() {
     private fun initialize(savedInstanceState: Bundle?) {
         // Initialize UI components
         headerTitle = findViewById(R.id.headerTitle)
+        btnOptions = findViewById(R.id.btn_options)
         viewpager1 = findViewById(R.id.viewpager1)
         bottomnavigation1 = findViewById(R.id.bottomnavigation1)
         fabNewChat = findViewById(R.id.fab_new_chat)
@@ -86,6 +89,10 @@ class InboxActivity : BaseActivity() {
         fabNewChat.setOnClickListener {
             startNewChat()
         }
+
+        btnOptions.setOnClickListener {
+            showMoreOptions(it)
+        }
     }
 
     private fun initializeLogic() {
@@ -95,9 +102,29 @@ class InboxActivity : BaseActivity() {
         )
     }
 
-    private fun showMoreOptions() {
-        // TODO: Implement more options menu
-        SketchwareUtil.showMessage(applicationContext, "More options coming soon")
+    private fun showMoreOptions(view: View) {
+        val popup = PopupMenu(this, view)
+        popup.menuInflater.inflate(R.menu.menu_inbox_options, popup.menu)
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_mark_read -> {
+                    SketchwareUtil.showMessage(applicationContext, "Coming soon")
+                    true
+                }
+                R.id.action_chat_settings -> {
+                    val intent = Intent(applicationContext, ChatPrivacySettingsActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                R.id.action_settings -> {
+                    val intent = Intent(applicationContext, SettingsActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
     }
 
     private fun startNewChat() {
