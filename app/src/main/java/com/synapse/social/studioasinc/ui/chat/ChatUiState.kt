@@ -68,7 +68,8 @@ data class ChatUserInfo(
     val lastSeen: Long? = null,
     val isVerified: Boolean = false,
     val activityStatus: String = "offline", // online, away, typing, offline
-    val currentChatId: String? = null
+    val currentChatId: String? = null,
+    val phoneNumber: String? = null
 )
 
 /**
