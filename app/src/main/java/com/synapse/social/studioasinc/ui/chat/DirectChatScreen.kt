@@ -52,6 +52,7 @@ import com.synapse.social.studioasinc.ui.chat.components.topbar.ChatTopBar
 import com.synapse.social.studioasinc.ui.chat.components.topbar.SelectionModeTopBar
 import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
 import com.synapse.social.studioasinc.ui.chat.RealtimeConnectionState
+import com.synapse.social.studioasinc.util.CallUtils
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -576,8 +577,21 @@ fun DirectChatScreen(
                     connectionState = uiState.connectionState,
                     onBackClick = onBackClick,
                     onProfileClick = { /* TODO: Open Profile */ },
-                    onCallClick = { /* TODO: Call */ },
-                    onVideoCallClick = { /* TODO: Video Call */ },
+                    onCallClick = {
+                        val phone = uiState.otherUser?.phoneNumber
+                        if (!phone.isNullOrBlank()) {
+                            CallUtils.initiateCall(context, phone)
+                        } else {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Phone number not available")
+                            }
+                        }
+                    },
+                    onVideoCallClick = {
+                         scope.launch {
+                            snackbarHostState.showSnackbar("Video calls not supported yet")
+                        }
+                    },
                     onMenuClick = { showTopBarMenu = true },
                     onRetryConnection = { viewModel.retryConnection() },
                     isMenuExpanded = showTopBarMenu,
