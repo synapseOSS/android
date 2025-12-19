@@ -64,6 +64,7 @@ class SettingsDataStore private constructor(private val context: Context) {
         private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         private val KEY_DYNAMIC_COLOR_ENABLED = booleanPreferencesKey("dynamic_color_enabled")
         private val KEY_FONT_SCALE = stringPreferencesKey("font_scale")
+        private val KEY_APP_LANGUAGE = stringPreferencesKey("app_language")
         
         // ====================================================================
         // User-level Settings Keys (cleared on logout)
@@ -99,6 +100,7 @@ class SettingsDataStore private constructor(private val context: Context) {
         val DEFAULT_THEME_MODE = ThemeMode.SYSTEM
         val DEFAULT_DYNAMIC_COLOR_ENABLED = true
         val DEFAULT_FONT_SCALE = FontScale.MEDIUM
+        val DEFAULT_APP_LANGUAGE = "en"
         val DEFAULT_PROFILE_VISIBILITY = ProfileVisibility.PUBLIC
         val DEFAULT_CONTENT_VISIBILITY = ContentVisibility.EVERYONE
         val DEFAULT_BIOMETRIC_LOCK_ENABLED = false
@@ -206,6 +208,23 @@ class SettingsDataStore private constructor(private val context: Context) {
     suspend fun setFontScale(scale: FontScale) {
         dataStore.edit { preferences ->
             preferences[KEY_FONT_SCALE] = scale.name
+        }
+    }
+
+    /**
+     * Flow of the current language code.
+     * Returns DEFAULT_APP_LANGUAGE if read fails or value not set.
+     */
+    val language: Flow<String> = safePreferencesFlow().map { preferences ->
+        preferences[KEY_APP_LANGUAGE] ?: DEFAULT_APP_LANGUAGE
+    }
+
+    /**
+     * Sets the app language code.
+     */
+    suspend fun setLanguage(languageCode: String) {
+        dataStore.edit { preferences ->
+            preferences[KEY_APP_LANGUAGE] = languageCode
         }
     }
 
@@ -482,6 +501,7 @@ class SettingsDataStore private constructor(private val context: Context) {
             preferences[KEY_THEME_MODE] = DEFAULT_THEME_MODE.name
             preferences[KEY_DYNAMIC_COLOR_ENABLED] = DEFAULT_DYNAMIC_COLOR_ENABLED
             preferences[KEY_FONT_SCALE] = DEFAULT_FONT_SCALE.name
+            preferences[KEY_APP_LANGUAGE] = DEFAULT_APP_LANGUAGE
             
             // Privacy
             preferences[KEY_PROFILE_VISIBILITY] = DEFAULT_PROFILE_VISIBILITY.name

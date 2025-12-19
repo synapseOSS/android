@@ -237,6 +237,9 @@ dependencies {
     ksp "androidx.room:room-compiler:$room_version"
 
 
+    // Biometric authentication
+    implementation 'androidx.biometric:biometric:1.1.0'
+
     // AndroidX Core & UI Components
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'

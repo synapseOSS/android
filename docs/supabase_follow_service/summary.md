@@ -1,0 +1,1 @@
+Backend service wrapper for Supabase "follows" and "users" tables. Handles CRUD operations for user relationships (follow/unfollow), queries followers/following lists, and calculates statistics. It acts as the data source for the application. See `/docs/follow_list_activity/summary.md`.

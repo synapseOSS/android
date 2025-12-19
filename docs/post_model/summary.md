@@ -1,0 +1,1 @@
+Data class representing a social media post. Maps to Supabase `posts` table and includes computed properties/transients for UI logic (e.g., `reactions`, `postType`). Handles serialization and conversion to detail items. Used by `PostDetailActivity` (See `/docs/post_detail_activity/summary.md`) and `PostsAdapter` (See `/docs/posts_adapter/summary.md`).
