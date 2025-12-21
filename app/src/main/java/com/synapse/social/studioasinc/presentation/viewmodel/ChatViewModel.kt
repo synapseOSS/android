@@ -333,6 +333,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Sends a message
      */
+    // TODO: Refactor business logic to UseCase - Logic for sending message (auth check, typing indicator, logging) belongs in domain layer
     fun sendMessage(chatId: String, content: String, messageType: String = "text", replyToId: String? = null) {
         android.util.Log.d("ChatViewModel", "=== sendMessage START ===")
         android.util.Log.d("ChatViewModel", "Sending message to chatId: $chatId")
@@ -660,6 +661,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      * @param uris List of image URIs to upload
      * @param caption Optional caption text to accompany the images
      */
+    // TODO: Refactor business logic to UseCase - Media upload orchestration should be moved to a UseCase
     fun uploadImages(uris: List<Uri>, caption: String = "") {
         val chatId = currentChatId ?: run {
             _error.value = "No active chat"
