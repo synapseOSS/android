@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
 import com.synapse.social.studioasinc.model.Post
 import com.synapse.social.studioasinc.ui.components.*
 
@@ -35,6 +37,7 @@ fun PostFeed(
     onMediaClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var selectedPostId by remember { mutableStateOf<String?>(null) }
     var showShareSheet by remember { mutableStateOf(false) }
     var showMenuSheet by remember { mutableStateOf(false) }
@@ -97,7 +100,24 @@ fun PostFeed(
             onCopyLink = { onShareClick(selectedPostId!!) },
             onShareToStory = { /* TODO: Implement */ },
             onShareViaMessage = { /* TODO: Implement */ },
-            onShareExternal = { /* TODO: Implement */ }
+            onShareExternal = {
+                val post = posts.find { it.id == selectedPostId }
+                post?.let {
+                    val shareText = buildString {
+                        if (!it.postText.isNullOrBlank()) {
+                            append(it.postText)
+                            append("\n\n")
+                        }
+                        append("https://web-synapse.pages.dev/post/${it.id}")
+                    }
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        putExtra(Intent.EXTRA_TEXT, shareText)
+                        type = "text/plain"
+                    }
+                    val shareIntent = Intent.createChooser(sendIntent, null)
+                    context.startActivity(shareIntent)
+                }
+            }
         )
     }
     
