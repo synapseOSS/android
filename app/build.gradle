@@ -90,6 +90,7 @@ android {
             // OneSignal Configuration
             buildConfigField "String", "ONESIGNAL_APP_ID", "\"${System.getenv('ONESIGNAL_APP_ID') ?: project.findProperty('ONESIGNAL_APP_ID') ?: ''}\""
             buildConfigField "String", "ONESIGNAL_REST_API_KEY", "\"${System.getenv('ONESIGNAL_REST_API_KEY') ?: project.findProperty('ONESIGNAL_REST_API_KEY') ?: ''}\""
+            buildConfigField "String", "APP_DOMAIN", "\"${System.getenv('APP_DOMAIN') ?: 'https://synapse.app'}\""
             
             // Authentication configuration for production
             buildConfigField "boolean", "AUTH_REQUIRE_EMAIL_VERIFICATION", "${project.findProperty('auth.require.email.verification') ?: 'true'}"
@@ -113,6 +114,7 @@ android {
             buildConfigField "String", "GEMINI_API_KEY", "\"${System.getenv('GEMINI_API_KEY') ?: project.findProperty('GEMINI_API_KEY') ?: ''}\""
             buildConfigField "String", "ONESIGNAL_APP_ID", "\"${System.getenv('ONESIGNAL_APP_ID') ?: project.findProperty('ONESIGNAL_APP_ID') ?: ''}\""
             buildConfigField "String", "ONESIGNAL_REST_API_KEY", "\"${System.getenv('ONESIGNAL_REST_API_KEY') ?: project.findProperty('ONESIGNAL_REST_API_KEY') ?: ''}\""
+            buildConfigField "String", "APP_DOMAIN", "\"${System.getenv('APP_DOMAIN') ?: 'https://synapse.app'}\""
             
             // Authentication configuration for development
             buildConfigField "boolean", "AUTH_REQUIRE_EMAIL_VERIFICATION", "${project.findProperty('auth.require.email.verification') ?: 'false'}"

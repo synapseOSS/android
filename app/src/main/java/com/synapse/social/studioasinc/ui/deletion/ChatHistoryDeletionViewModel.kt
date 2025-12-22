@@ -10,6 +10,7 @@ import com.synapse.social.studioasinc.data.model.deletion.DeletionResult
 import com.synapse.social.studioasinc.data.model.deletion.DeletionProgress
 import com.synapse.social.studioasinc.data.model.deletion.DeletionOperation
 import com.synapse.social.studioasinc.data.model.deletion.OperationStatus
+import com.synapse.social.studioasinc.data.repository.AuthRepository
 import javax.inject.Inject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -28,7 +29,8 @@ import java.util.Locale
  */
 @HiltViewModel
 class ChatHistoryDeletionViewModel @Inject constructor(
-    private val chatHistoryManager: ChatHistoryManager
+    private val chatHistoryManager: ChatHistoryManager,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatHistoryDeletionUiState())
@@ -89,7 +91,14 @@ class ChatHistoryDeletionViewModel @Inject constructor(
     private fun loadDeletionHistory() {
         viewModelScope.launch {
             try {
-                val history = chatHistoryManager.getDeletionHistory(getCurrentUserId())
+                val userId = getCurrentUserId()
+                if (userId == null) {
+                    _uiState.value = _uiState.value.copy(
+                        error = "User not authenticated"
+                    )
+                    return@launch
+                }
+                val history = chatHistoryManager.getDeletionHistory(userId)
                 _deletionHistory.value = history.map { mapToHistoryItem(it) }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -154,7 +163,16 @@ class ChatHistoryDeletionViewModel @Inject constructor(
                     error = null
                 )
 
-                val result = chatHistoryManager.deleteAllHistory(getCurrentUserId())
+                val userId = getCurrentUserId()
+                if (userId == null) {
+                    _uiState.value = _uiState.value.copy(
+                        isDeleting = false,
+                        error = "User not authenticated"
+                    )
+                    return@launch
+                }
+
+                val result = chatHistoryManager.deleteAllHistory(userId)
                 
                 _uiState.value = _uiState.value.copy(
                     isDeleting = false,
@@ -186,8 +204,17 @@ class ChatHistoryDeletionViewModel @Inject constructor(
                     error = null
                 )
 
+                val userId = getCurrentUserId()
+                if (userId == null) {
+                    _uiState.value = _uiState.value.copy(
+                        isDeleting = false,
+                        error = "User not authenticated"
+                    )
+                    return@launch
+                }
+
                 val chatIds = selectedChats.map { it.chatId }
-                val result = chatHistoryManager.deleteSpecificChats(getCurrentUserId(), chatIds)
+                val result = chatHistoryManager.deleteSpecificChats(userId, chatIds)
                 
                 _uiState.value = _uiState.value.copy(
                     isDeleting = false,
@@ -273,9 +300,8 @@ class ChatHistoryDeletionViewModel @Inject constructor(
     /**
      * Get current user ID.
      */
-    fun getCurrentUserId(): String {
-        // TODO: Get actual user ID from authentication service
-        return "current_user_id"
+    fun getCurrentUserId(): String? {
+        return authRepository.getCurrentUserId()
     }
 
     /**

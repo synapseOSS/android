@@ -30,6 +30,7 @@ import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.PostDetailActivity
 import com.synapse.social.studioasinc.PostStatisticsBottomSheet
 import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.BuildConfig
 import android.content.Intent
 import androidx.paging.LoadState
 import com.synapse.social.studioasinc.adapters.PostLoadStateAdapter
@@ -310,7 +311,7 @@ class HomeFragment : Fragment() {
     
     private fun copyPostLink(post: Post) {
         val clipboard = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        val clip = android.content.ClipData.newPlainText("Post Link", "https://synapse.app/post/${post.id}")
+        val clip = android.content.ClipData.newPlainText("Post Link", "${BuildConfig.APP_DOMAIN}/post/${post.id}")
         clipboard.setPrimaryClip(clip)
         Toast.makeText(requireContext(), "Link copied to clipboard", Toast.LENGTH_SHORT).show()
     }
