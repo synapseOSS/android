@@ -227,7 +227,7 @@ fun ChatHistoryDeletionScreen(
         DeletionConfirmationDialog(
             deletionRequest = DeletionRequest(
                 id = "",
-                userId = viewModel.getCurrentUserId(),
+                userId = viewModel.getCurrentUserId() ?: "",
                 type = DeletionType.COMPLETE_HISTORY,
                 timestamp = System.currentTimeMillis()
             ),
