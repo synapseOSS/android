@@ -94,17 +94,49 @@ object UploadFiles {
     
     /**
      * Main upload method. Determines the service based on file extension and starts the upload.
+     * Now delegates to MediaStorageService for unified handling.
      */
     @JvmStatic
     fun uploadFile(filePath: String, fileName: String, callback: UploadCallback) {
         Thread {
-            val extension = getFileExtension(fileName).lowercase()
-            if (IMAGE_EXTENSIONS.contains(extension)) {
-                uploadToImgBB(filePath, fileName, callback)
-            } else {
-                uploadToCloudinary(filePath, fileName, callback)
+            try {
+                // Use MediaStorageService for unified upload handling
+                val context = getApplicationContext()
+                val appSettingsManager = com.synapse.social.studioasinc.data.local.AppSettingsManager.getInstance(context)
+                val mediaStorageService = MediaStorageService(context, appSettingsManager)
+                
+                kotlinx.coroutines.runBlocking {
+                    mediaStorageService.uploadFile(filePath, object : MediaStorageService.UploadCallback {
+                        override fun onProgress(percent: Int) {
+                            postProgress(callback, percent)
+                        }
+                        
+                        override fun onSuccess(url: String, publicId: String) {
+                            postSuccess(callback, url, publicId)
+                        }
+                        
+                        override fun onError(error: String) {
+                            postFailure(callback, error)
+                        }
+                    })
+                }
+            } catch (e: Exception) {
+                postFailure(callback, "Upload failed: ${e.message}")
             }
         }.start()
+    }
+    
+    /**
+     * Get application context safely
+     */
+    private fun getApplicationContext(): android.content.Context {
+        return try {
+            val activityThreadClass = Class.forName("android.app.ActivityThread")
+            val currentApplicationMethod = activityThreadClass.getMethod("currentApplication")
+            currentApplicationMethod.invoke(null) as android.content.Context
+        } catch (e: Exception) {
+            throw RuntimeException("Unable to get application context", e)
+        }
     }
     
     /**

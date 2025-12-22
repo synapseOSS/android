@@ -189,6 +189,7 @@ data class StorageConfig(
         supabaseConfig.bucketName.isNotBlank()
     
     fun isProviderConfigured(providerName: String): Boolean = when (providerName) {
+        "Default" -> true  // Default is always configured (uses app credentials)
         "ImgBB" -> isImgBBConfigured()
         "Cloudinary" -> isCloudinaryConfigured()
         "Cloudflare R2" -> isR2Configured()
