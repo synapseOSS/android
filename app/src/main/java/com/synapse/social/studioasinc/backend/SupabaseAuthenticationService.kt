@@ -25,6 +25,7 @@ class AuthErrorHandler {
             Log.d(TAG, "Handling auth error: ${error.message}")
             logAuthenticationError(error)
             
+            // FIXME: Fragile string parsing - Relying on error message strings is brittle; check exception types or error codes
             return when {
                 error.message?.contains("email not confirmed", ignoreCase = true) == true -> 
                     AuthError.EMAIL_NOT_VERIFIED
@@ -680,6 +681,7 @@ class SupabaseAuthenticationService : com.synapse.social.studioasinc.backend.int
      * Get current user
      */
     override fun getCurrentUser(): User? {
+        // FIXME: Improve error specificity and propagation - Catching generic Exception masks potential issues
         return try {
             // Check if Supabase is configured
             if (!SupabaseClient.isConfigured()) {

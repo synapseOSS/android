@@ -73,6 +73,7 @@ object ImageLoader {
     ) {
         val glideUrl = buildGlideUrlWithAuth(url)
         
+        // TODO: Verify thread safety and memory usage - Ensure Glide's automatic thread handling is sufficient for complex retries
         Glide.with(context)
             .load(glideUrl)
             .placeholder(placeholder)

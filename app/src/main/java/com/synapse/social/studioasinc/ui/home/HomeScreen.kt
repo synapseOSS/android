@@ -92,24 +92,28 @@ fun HomeScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             if (!isPostDetail) {
+                // TODO: Extract to resource file - Hardcoded string "Synapse"
                 TopAppBar(
                     title = { Text(text = "Synapse") },
                     actions = {
                         IconButton(onClick = onNavigateToCreatePost) {
                             Icon(
                                 imageVector = Icons.Default.AddBox,
+                                // TODO: Extract to resource file - Hardcoded string "Create Post"
                                 contentDescription = "Create Post"
                             )
                         }
                         IconButton(onClick = onNavigateToSearch) {
                             Icon(
                                 imageVector = Icons.Default.Search,
+                                // TODO: Extract to resource file - Hardcoded string "Search"
                                 contentDescription = "Search"
                             )
                         }
                         IconButton(onClick = onNavigateToInbox) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Send,
+                                // TODO: Extract to resource file - Hardcoded string "Inbox"
                                 contentDescription = "Inbox"
                             )
                         }
@@ -117,6 +121,7 @@ fun HomeScreen(
                         if (userAvatarUrl != null) {
                             com.synapse.social.studioasinc.ui.components.CircularAvatar(
                                 imageUrl = userAvatarUrl,
+                                // TODO: Extract to resource file - Hardcoded string "Profile"
                                 contentDescription = "Profile",
                                 size = 32.dp,
                                 modifier = Modifier.padding(end = 12.dp),
@@ -126,6 +131,7 @@ fun HomeScreen(
                             IconButton(onClick = { onNavigateToProfile("me") }) {
                                 Icon(
                                     imageVector = Icons.Default.Person,
+                                    // TODO: Extract to resource file - Hardcoded string "Profile"
                                     contentDescription = "Profile"
                                 )
                             }
@@ -158,9 +164,11 @@ fun HomeScreen(
                     icon = {
                         Icon(
                             imageVector = if (currentDestination?.hierarchy?.any { it.route == HomeDestinations.Feed.route } == true) Icons.Filled.Home else Icons.Outlined.Home,
+                            // TODO: Extract to resource file - Hardcoded string "Home"
                             contentDescription = "Home"
                         )
                     },
+                    // TODO: Extract to resource file - Hardcoded string "Home"
                     label = { Text("Home") }
                 )
 
@@ -178,9 +186,11 @@ fun HomeScreen(
                     icon = {
                         Icon(
                             imageVector = if (currentDestination?.hierarchy?.any { it.route == HomeDestinations.Reels.route } == true) Icons.Filled.PlayCircle else Icons.Outlined.PlayCircle,
+                            // TODO: Extract to resource file - Hardcoded string "Reels"
                             contentDescription = "Reels"
                         )
                     },
+                    // TODO: Extract to resource file - Hardcoded string "Reels"
                     label = { Text("Reels") }
                 )
 
@@ -204,10 +214,12 @@ fun HomeScreen(
                         ) {
                             Icon(
                                 imageVector = if (currentDestination?.hierarchy?.any { it.route == HomeDestinations.Notifications.route } == true) Icons.Filled.Notifications else Icons.Outlined.Notifications,
+                                // TODO: Extract to resource file - Hardcoded string "Notifications"
                                 contentDescription = "Notifications"
                             )
                         }
                     },
+                    // TODO: Extract to resource file - Hardcoded string "Notifications"
                     label = { Text("Notifications") }
                 )
             }

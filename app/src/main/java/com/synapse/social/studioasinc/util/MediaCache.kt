@@ -44,6 +44,7 @@ class MediaCache(private val context: Context) {
      * If the cache exceeds size limits, LRU eviction will be triggered.
      */
     fun put(key: String, file: File) {
+        // TODO: Verify thread safety and memory usage - File operations should be performed on a background thread
         if (!file.exists() || !file.isFile) {
             Log.w(TAG, "Cannot cache non-existent or invalid file: ${file.path}")
             return
@@ -79,6 +80,7 @@ class MediaCache(private val context: Context) {
      * Updates access time for LRU tracking.
      */
     fun get(key: String): File? {
+        // TODO: Verify thread safety and memory usage - File existence check and metadata update involves I/O
         val cacheKey = generateCacheKey(key)
         val cachedFile = getCacheFile(cacheKey)
         

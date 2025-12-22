@@ -13,6 +13,7 @@ class ObserveMessagesUseCase(chatDao: ChatDao) {
     private val chatRepository = ChatRepository(chatDao)
     
     operator fun invoke(chatId: String): Flow<List<Message>> {
+        // TODO: Verify cancellation handling - Ensure this flow is properly cancelled when the UI scope is destroyed
         return chatRepository.observeMessages(chatId)
     }
 }
