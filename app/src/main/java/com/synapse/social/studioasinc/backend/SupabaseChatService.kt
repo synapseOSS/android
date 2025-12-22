@@ -43,6 +43,7 @@ class SupabaseChatService {
     private suspend fun ensureParticipantsExist(chatId: String, userId1: String, userId2: String, createdBy: String): Result<Unit> {
         android.util.Log.d(TAG, "Ensuring participants exist for chat: $chatId")
         
+        // FIXME: Improve error specificity and propagation - Catching generic Exception masks potential issues
         return try {
             // Always try to add both participants via RPC (it has ON CONFLICT DO NOTHING)
             // This is more reliable than checking first, especially with race conditions
@@ -889,6 +890,7 @@ class SupabaseChatService {
                         
                         // Extract URLs from the JSON string
                         // This is a simple approach - in production, use proper JSON parsing
+                        // TODO: Use robust JSON parsing - Regex parsing for JSON is fragile
                         val urlPattern = """"url"\s*:\s*"([^"]+)"""".toRegex()
                         val thumbnailPattern = """"thumbnail_url"\s*:\s*"([^"]+)"""".toRegex()
                         

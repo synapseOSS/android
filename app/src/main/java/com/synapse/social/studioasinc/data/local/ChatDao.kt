@@ -13,4 +13,6 @@ interface ChatDao {
 
     @Query("SELECT * FROM chats ORDER BY timestamp DESC")
     fun getAllChats(): Flow<List<ChatEntity>>
+
+    // TODO: Add unit test for this complex query - If more complex queries are added, ensure they have tests
 }

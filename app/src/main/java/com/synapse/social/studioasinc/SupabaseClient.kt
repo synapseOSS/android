@@ -28,6 +28,7 @@ object SupabaseClient {
      * Automatically configures all required modules and handles configuration errors gracefully.
      */
     val client by lazy {
+        // FIXME: Improve error specificity and propagation - Consider defining a custom exception for configuration errors
         // Check if credentials are properly configured
         if (BuildConfig.SUPABASE_URL.isBlank() || 
             BuildConfig.SUPABASE_URL == "https://your-project.supabase.co" ||
@@ -93,6 +94,7 @@ object SupabaseClient {
      * @return Full public URL for the storage object
      */
     fun constructStorageUrl(bucket: String, path: String): String {
+        // TODO: Validate URL format - Ensure BuildConfig.SUPABASE_URL is a valid URL before concatenation
         if (path.startsWith("http://") || path.startsWith("https://")) {
             return path
         }
