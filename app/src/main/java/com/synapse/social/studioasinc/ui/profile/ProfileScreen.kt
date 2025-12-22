@@ -23,7 +23,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.synapse.social.studioasinc.BuildConfig
 import com.synapse.social.studioasinc.ui.components.EmptyState
 import com.synapse.social.studioasinc.ui.components.ErrorState
 import com.synapse.social.studioasinc.ui.components.post.PostCard
@@ -76,6 +78,7 @@ fun ProfileScreen(
     val listState = rememberLazyListState()
     var isRefreshing by remember { mutableStateOf(false) }
     var showCustomizationDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     val density = androidx.compose.ui.platform.LocalDensity.current
     val coverHeightPx = with(density) { 180.dp.toPx() }
@@ -171,7 +174,14 @@ fun ProfileScreen(
                 profile?.let { viewModel.archiveProfile(true) }
             },
             onQrCode = { viewModel.showQrCode() },
-            onCopyLink = { /* TODO: Copy to clipboard */ },
+            onCopyLink = {
+                val username = profile?.username ?: ""
+                val url = "${BuildConfig.APP_DOMAIN}/profile/$username"
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("Profile Link", url)
+                clipboard.setPrimaryClip(clip)
+                android.widget.Toast.makeText(context, "Link copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+            },
             onSettings = onNavigateToSettings,
             onActivityLog = onNavigateToActivityLog,
             onBlockUser = { 
@@ -216,7 +226,7 @@ fun ProfileScreen(
     if (state.showQrCode) {
         val profile = (state.profileState as? ProfileUiState.Success)?.profile
         QRCodeDialog(
-            profileUrl = "https://synapse.app/profile/${profile?.username ?: ""}",
+            profileUrl = "${BuildConfig.APP_DOMAIN}/profile/${profile?.username ?: ""}",
             username = profile?.username ?: "",
             onDismiss = { viewModel.hideQrCode() }
         )
