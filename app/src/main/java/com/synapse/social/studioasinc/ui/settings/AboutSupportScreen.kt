@@ -34,6 +34,7 @@ import com.synapse.social.studioasinc.data.model.AppUpdateInfo
 @Composable
 fun AboutSupportScreen(
     onBackClick: () -> Unit,
+    onNavigateToLicenses: () -> Unit = {},
     viewModel: AboutSupportViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -186,7 +187,7 @@ fun AboutSupportScreen(
                         icon = R.drawable.icon_code_round,
                         onClick = {
                             viewModel.navigateToLicenses()
-                            // TODO: Navigate to licenses screen when implemented
+                            onNavigateToLicenses()
                         }
                     )
                 }

@@ -200,7 +200,19 @@ fun SettingsNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 },
+                onNavigateToLicenses = {
+                    navController.navigate(SettingsDestination.ROUTE_LICENSES)
+                },
                 viewModel = viewModel
+            )
+        }
+
+        // Open Source Licenses Screen
+        composable(route = SettingsDestination.ROUTE_LICENSES) {
+            LicensesScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
             )
         }
     }
