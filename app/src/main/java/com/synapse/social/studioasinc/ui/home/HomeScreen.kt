@@ -99,8 +99,7 @@ fun HomeScreen(
                         IconButton(onClick = onNavigateToCreatePost) {
                             Icon(
                                 imageVector = Icons.Default.AddBox,
-                                // TODO: Extract to resource file - Hardcoded string "Create Post"
-                                contentDescription = "Create Post"
+                                contentDescription = stringResource(id = R.string.create_post)
                             )
                         }
                         IconButton(onClick = onNavigateToSearch) {
