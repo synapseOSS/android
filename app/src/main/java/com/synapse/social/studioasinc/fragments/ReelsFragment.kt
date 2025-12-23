@@ -103,13 +103,13 @@ class ReelsFragment : Fragment() {
                     lineVideosListMap.addAll(convertedPosts)
                     
                     if (::videoFeedAdapter.isInitialized) {
-                        lineVideosRecyclerViewAdapter.notifyDataSetChanged()
+                        videoFeedAdapter.notifyDataSetChanged()
                         loadedBody.visibility = View.VISIBLE
                     } else {
                         // Fallback in case initialization was skipped (unlikely with requireContext)
                         if (context != null) {
-                            lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap, requireContext())
-                            videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
+                            videoFeedAdapter = VideoFeedAdapter(lineVideosListMap, requireContext())
+                            videosRecyclerView.adapter = videoFeedAdapter
                             loadedBody.visibility = View.VISIBLE
                         }
                     }

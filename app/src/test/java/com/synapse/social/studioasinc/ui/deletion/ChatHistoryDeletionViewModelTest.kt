@@ -4,6 +4,7 @@ import com.synapse.social.studioasinc.data.model.deletion.DeletionOperation
 import com.synapse.social.studioasinc.data.model.deletion.OperationStatus
 import com.synapse.social.studioasinc.data.model.deletion.StorageType
 import com.synapse.social.studioasinc.data.repository.deletion.ChatHistoryManager
+import com.synapse.social.studioasinc.data.repository.AuthRepository
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,8 @@ class ChatHistoryDeletionViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         chatHistoryManager = mockk(relaxed = true)
-        viewModel = ChatHistoryDeletionViewModel(chatHistoryManager)
+        val authRepository = mockk<AuthRepository>(relaxed = true)
+        viewModel = ChatHistoryDeletionViewModel(chatHistoryManager, authRepository)
     }
 
     @After
@@ -67,7 +69,8 @@ class ChatHistoryDeletionViewModelTest {
 
         // When
         // Re-initialize to trigger init block which calls loadDeletionHistory
-        viewModel = ChatHistoryDeletionViewModel(chatHistoryManager)
+        val authRepository = mockk<AuthRepository>(relaxed = true)
+        viewModel = ChatHistoryDeletionViewModel(chatHistoryManager, authRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
