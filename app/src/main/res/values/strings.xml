@@ -983,5 +983,11 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="last_seen_minutes_ago">Last seen %d minutes ago</string>
     <string name="last_seen_hours_ago">Last seen %d hours ago</string>
     <string name="last_seen_days_ago">Last seen %d days ago</string>
+
+    <!-- Navigation -->
+    <string name="home">Home</string>
     <string name="inbox">Inbox</string>
+    <string name="profile">Profile</string>
+    <string name="reels">Reels</string>
+    <string name="notifications">Notifications</string>
 </resources>
