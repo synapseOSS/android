@@ -52,7 +52,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val chatRepository = ChatRepository(chatDao)
     
     // Use cases
-    private val sendMessageUseCase = SendMessageUseCase(chatDao)
+    private val sendMessageUseCase = SendMessageUseCase(chatDao, authService)
     private val getMessagesUseCase = GetMessagesUseCase(chatDao)
     private val observeMessagesUseCase = ObserveMessagesUseCase(chatDao)
     private val getUserChatsUseCase = GetUserChatsUseCase(chatDao)
@@ -333,55 +333,24 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Sends a message
      */
-    // TODO: Refactor business logic to UseCase - Logic for sending message (auth check, typing indicator, logging) belongs in domain layer
     fun sendMessage(chatId: String, content: String, messageType: String = "text", replyToId: String? = null) {
-        android.util.Log.d("ChatViewModel", "=== sendMessage START ===")
-        android.util.Log.d("ChatViewModel", "Sending message to chatId: $chatId")
-        android.util.Log.d("ChatViewModel", "Content length: ${content.length}, type: $messageType")
-        
-        if (content.isBlank()) {
-            android.util.Log.w("ChatViewModel", "Message content is blank, aborting send")
-            return
-        }
-        
         viewModelScope.launch {
             try {
-                val currentUserId = authService.getCurrentUserId()
-                android.util.Log.d("ChatViewModel", "Current user ID: $currentUserId")
-                
-                if (currentUserId == null) {
-                    android.util.Log.e("ChatViewModel", "User not authenticated")
-                    _error.value = "User not authenticated"
-                    _messageSent.value = false
-                    return@launch
-                }
-                
-                // Stop typing indicator when sending message
-                android.util.Log.d("ChatViewModel", "Stopping typing indicator")
-                typingIndicatorManager?.onUserStoppedTyping(chatId, currentUserId)
-                
-                android.util.Log.d("ChatViewModel", "Calling sendMessageUseCase")
-                val result = sendMessageUseCase(chatId, currentUserId, content, messageType, replyToId)
+                val result = sendMessageUseCase(chatId, content, messageType, replyToId, typingIndicatorManager)
                 
                 result.onSuccess { messageId ->
-                    android.util.Log.d("ChatViewModel", "Message sent successfully, messageId: $messageId")
                     _messageSent.value = true
                     _error.value = null
                     
                     // Refresh messages
-                    android.util.Log.d("ChatViewModel", "Refreshing messages after send")
                     loadMessages(chatId)
                 }.onFailure { exception ->
-                    android.util.Log.e("ChatViewModel", "Failed to send message: ${exception.message}", exception)
                     _error.value = exception.message
                     _messageSent.value = false
                 }
             } catch (e: Exception) {
-                android.util.Log.e("ChatViewModel", "Exception in sendMessage: ${e.message}", e)
                 _error.value = e.message
                 _messageSent.value = false
-            } finally {
-                android.util.Log.d("ChatViewModel", "=== sendMessage END ===")
             }
         }
     }

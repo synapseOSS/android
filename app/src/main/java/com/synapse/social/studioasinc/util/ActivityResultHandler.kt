@@ -8,7 +8,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.synapse.social.studioasinc.ChatActivity
-import com.synapse.social.studioasinc.StorageUtil
+import com.synapse.social.studioasinc.StorageUtils
 import java.util.ArrayList
 import java.util.HashMap
 
@@ -38,7 +38,7 @@ class ActivityResultHandler(private val activity: ChatActivity) {
             if (data.clipData != null) {
                 for (i in 0 until data.clipData!!.itemCount) {
                     val fileUri = data.clipData!!.getItemAt(i).uri
-                    val path = StorageUtil.getPathFromUri(activity.applicationContext, fileUri)
+                    val path = StorageUtils.getPathFromUri(activity.applicationContext, fileUri)
                     if (path != null && path.isNotEmpty()) {
                         resolvedFilePaths.add(path)
                     } else {
@@ -49,7 +49,7 @@ class ActivityResultHandler(private val activity: ChatActivity) {
             // Handle single file
             else if (data.data != null) {
                 val fileUri = data.data
-                val path = StorageUtil.getPathFromUri(activity.applicationContext, fileUri)
+                val path = StorageUtils.getPathFromUri(activity.applicationContext, fileUri)
                 if (path != null && path.isNotEmpty()) {
                     resolvedFilePaths.add(path)
                 } else {

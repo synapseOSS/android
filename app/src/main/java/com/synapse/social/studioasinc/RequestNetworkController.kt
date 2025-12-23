@@ -128,14 +128,14 @@ class RequestNetworkController private constructor() {
             
             getClient().newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    requestNetwork.getActivity().runOnUiThread {
+                    requestNetwork.getActivity()?.runOnUiThread {
                         requestListener.onErrorResponse(tag, e.message ?: "Unknown error")
                     }
                 }
                 
                 override fun onResponse(call: Call, response: Response) {
                     val responseBody = response.body?.string()?.trim() ?: ""
-                    requestNetwork.getActivity().runOnUiThread {
+                    requestNetwork.getActivity()?.runOnUiThread {
                         val headers = response.headers
                         val headerMap = mutableMapOf<String, Any>()
                         headers.names().forEach { name ->

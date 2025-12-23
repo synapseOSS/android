@@ -33,7 +33,7 @@ class ReadReceiptManager(
 ) {
     
     // Database optimization service for batch operations
-    private val dbOptimizationService = DatabaseOptimizationService()
+    private val dbOptimizationService = ChatDatabaseOptimizer()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Coroutine exception", throwable)

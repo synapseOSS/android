@@ -4,7 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.synapse.social.studioasinc.FileUtil
+import com.synapse.social.studioasinc.FileUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -215,7 +215,7 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                 android.util.Log.d("EditProfile", "Processing avatar URI: $uri")
                 
                 // Try to convert URI to file path
-                var realFilePath = FileUtil.convertUriToFilePath(context, uri)
+                var realFilePath = FileUtils.convertUriToFilePath(context, uri)
                 android.util.Log.d("EditProfile", "Converted file path: $realFilePath")
                 
                 // If conversion failed, try to copy content to temp file
@@ -250,7 +250,7 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                 val tempFile = File(context.cacheDir, "temp_avatar_${System.currentTimeMillis()}.jpg")
                 android.util.Log.d("EditProfile", "Compressing image to: ${tempFile.absolutePath}")
                 
-                FileUtil.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
+                FileUtils.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
                 
                 // Validate compressed file
                 if (!tempFile.exists() || tempFile.length() == 0L) {
@@ -331,7 +331,7 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                 android.util.Log.d("EditProfile", "Processing cover URI: $uri")
                 
                 // Try to convert URI to file path
-                var realFilePath = FileUtil.convertUriToFilePath(context, uri)
+                var realFilePath = FileUtils.convertUriToFilePath(context, uri)
                 android.util.Log.d("EditProfile", "Converted file path: $realFilePath")
                 
                 // If conversion failed, try to copy content to temp file
@@ -366,7 +366,7 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                 val tempFile = File(context.cacheDir, "temp_cover_${System.currentTimeMillis()}.jpg")
                 android.util.Log.d("EditProfile", "Compressing image to: ${tempFile.absolutePath}")
                 
-                FileUtil.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
+                FileUtils.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
                 
                 // Validate compressed file
                 if (!tempFile.exists() || tempFile.length() == 0L) {

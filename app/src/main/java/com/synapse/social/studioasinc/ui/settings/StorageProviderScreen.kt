@@ -49,6 +49,14 @@ data class ProviderInfo(
 // All available providers with their capabilities
 private val allProviders = listOf(
     ProviderInfo(
+        name = "Default",
+        icon = Icons.Default.Security,
+        description = "Built-in app credentials (recommended)",
+        supportsPhoto = true,
+        supportsVideo = true,
+        supportsOther = true
+    ),
+    ProviderInfo(
         name = "ImgBB",
         icon = Icons.Default.Image,
         description = "Free image hosting service",
@@ -208,12 +216,12 @@ fun StorageProviderScreen(
                 ConfigurationTipCard()
             }
 
-            // Provider Configuration Cards - only show for providers that are selected
+            // Provider Configuration Cards - only show for providers that are selected and not "Default"
             val selectedProviders = setOfNotNull(
                 storageConfig.photoProvider,
                 storageConfig.videoProvider,
                 storageConfig.otherProvider
-            )
+            ).filter { it != "Default" }  // Exclude "Default" from configuration section
 
             if (selectedProviders.contains("ImgBB")) {
                 item {

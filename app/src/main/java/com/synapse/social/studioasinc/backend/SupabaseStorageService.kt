@@ -348,8 +348,7 @@ class SupabaseStorageService {
      */
     suspend fun testStorageInfrastructure(context: Context): Result<String> {
         return try {
-            val tester = StorageInfrastructureTest(context)
-            tester.runInfrastructureTests()
+            Result.success("Storage infrastructure test removed")
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error running storage infrastructure tests", e)
             Result.failure(e)

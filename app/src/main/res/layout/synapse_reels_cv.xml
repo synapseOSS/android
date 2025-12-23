@@ -151,7 +151,7 @@
 								android:layout_width="48dp"
 								android:layout_height="48dp"
 								android:padding="8dp"
-								android:src="@drawable/line_video_player_icons_2"
+								android:src="@drawable/ic_comment"
 								android:scaleType="fitCenter"
 								android:focusable="false" />
 							<TextView

@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc.util
 
 import android.content.Context
 import android.net.Uri
-import com.synapse.social.studioasinc.FileUtil
+import com.synapse.social.studioasinc.FileUtils
 import java.io.File
 
 /**
@@ -23,7 +23,7 @@ object ProfileUploadDebugUtil {
         
         try {
             // Step 1: URI to file path conversion
-            val filePath = FileUtil.convertUriToFilePath(context, uri)
+            val filePath = FileUtils.convertUriToFilePath(context, uri)
             result.convertedPath = filePath
             result.uriConversionSuccess = filePath != null
             
@@ -60,7 +60,7 @@ object ProfileUploadDebugUtil {
                     // Test compression
                     val compressedFile = File(context.cacheDir, "debug_compressed_${System.currentTimeMillis()}.jpg")
                     try {
-                        FileUtil.resizeBitmapFileRetainRatio(filePath, compressedFile.absolutePath, 1024)
+                        FileUtils.resizeBitmapFileRetainRatio(filePath, compressedFile.absolutePath, 1024)
                         
                         result.compressionSuccess = compressedFile.exists() && compressedFile.length() > 0
                         result.compressedFileSize = if (compressedFile.exists()) compressedFile.length() else 0

@@ -37,7 +37,7 @@ class AttachmentHandler(
     private fun setupGalleryButton() {
         galleryBtn.setOnClickListener {
             // Open file picker for multiple file types
-            StorageUtil.pickMultipleFiles(activity, "*/*", 1001) // REQ_CD_IMAGE_PICKER constant
+            StorageUtils.pickMultipleFiles(activity, "*/*", 1001) // REQ_CD_IMAGE_PICKER constant
         }
     }
 
@@ -107,7 +107,7 @@ class AttachmentHandler(
         try {
             val currentUserId = authRepository.getCurrentUserId()
             if (currentUserId != null) {
-                PresenceManager.setActivity(currentUserId, "Idle")
+                ChatPresenceManager.setActivity(currentUserId, "Idle")
             }
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error updating user presence: ${e.message}")

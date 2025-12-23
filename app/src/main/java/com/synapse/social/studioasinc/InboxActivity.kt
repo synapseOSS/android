@@ -158,10 +158,10 @@ class InboxActivity : BaseActivity() {
 
         override fun getItem(position: Int): Fragment {
             return when (position) {
-                0 -> com.synapse.social.studioasinc.fragments.InboxChatsFragment() // Chat list fragment
+                0 -> com.synapse.social.studioasinc.fragments.ChatListFragment() // Chat list fragment
                 1 -> InboxCallsFragment() // Calls fragment (placeholder)
                 2 -> InboxContactsFragment() // Contacts fragment (placeholder)
-                else -> com.synapse.social.studioasinc.fragments.InboxChatsFragment()
+                else -> com.synapse.social.studioasinc.fragments.ChatListFragment()
             }
         }
 

@@ -98,6 +98,13 @@ android {
             buildConfigField "boolean", "AUTH_DEVELOPMENT_MODE", "${project.findProperty('auth.development.mode') ?: 'false'}"
             buildConfigField "int", "AUTH_RESEND_COOLDOWN_SECONDS", "${project.findProperty('auth.resend.cooldown.seconds') ?: '60'}"
             buildConfigField "int", "AUTH_MAX_RESEND_ATTEMPTS", "${project.findProperty('auth.max.resend.attempts') ?: '5'}"
+            
+            // Media Storage Credentials
+            buildConfigField "String", "CLOUDINARY_API_KEY", "\"${System.getenv('CLOUDINARY_API_KEY') ?: project.findProperty('CLOUDINARY_API_KEY') ?: '577882927131931'}\""
+            buildConfigField "String", "CLOUDINARY_API_SECRET", "\"${System.getenv('CLOUDINARY_API_SECRET') ?: project.findProperty('CLOUDINARY_API_SECRET') ?: 'M_w_0uQKjnLRUe-u34driUBqUQU'}\""
+            buildConfigField "String", "CLOUDINARY_CLOUD_NAME", "\"${System.getenv('CLOUDINARY_CLOUD_NAME') ?: project.findProperty('CLOUDINARY_CLOUD_NAME') ?: 'djw3fgbls'}\""
+            buildConfigField "String", "IMGBB_API_KEY", "\"${System.getenv('IMGBB_API_KEY') ?: project.findProperty('IMGBB_API_KEY') ?: 'faa85ffbac0217ff67b5f3c4baa7fb29'}\""
+            buildConfigField "String", "POSTIMAGES_API_KEY", "\"${System.getenv('POSTIMAGES_API_KEY') ?: project.findProperty('POSTIMAGES_API_KEY') ?: '7746820ffe9cebd5769618ca22fc9ca8'}\""
             buildConfigField "int", "AUTH_AUTO_RETRY_ATTEMPTS", "${project.findProperty('auth.auto.retry.attempts') ?: '3'}"
             buildConfigField "long", "AUTH_RETRY_DELAY_MS", "${project.findProperty('auth.retry.delay.ms') ?: '1000L'}"
         }
@@ -124,6 +131,13 @@ android {
             buildConfigField "int", "AUTH_MAX_RESEND_ATTEMPTS", "${project.findProperty('auth.max.resend.attempts') ?: '5'}"
             buildConfigField "int", "AUTH_AUTO_RETRY_ATTEMPTS", "${project.findProperty('auth.auto.retry.attempts') ?: '3'}"
             buildConfigField "long", "AUTH_RETRY_DELAY_MS", "${project.findProperty('auth.retry.delay.ms') ?: '1000L'}"
+            
+            // Media Storage Credentials
+            buildConfigField "String", "CLOUDINARY_API_KEY", "\"${System.getenv('CLOUDINARY_API_KEY') ?: project.findProperty('CLOUDINARY_API_KEY') ?: '577882927131931'}\""
+            buildConfigField "String", "CLOUDINARY_API_SECRET", "\"${System.getenv('CLOUDINARY_API_SECRET') ?: project.findProperty('CLOUDINARY_API_SECRET') ?: 'M_w_0uQKjnLRUe-u34driUBqUQU'}\""
+            buildConfigField "String", "CLOUDINARY_CLOUD_NAME", "\"${System.getenv('CLOUDINARY_CLOUD_NAME') ?: project.findProperty('CLOUDINARY_CLOUD_NAME') ?: 'djw3fgbls'}\""
+            buildConfigField "String", "IMGBB_API_KEY", "\"${System.getenv('IMGBB_API_KEY') ?: project.findProperty('IMGBB_API_KEY') ?: 'faa85ffbac0217ff67b5f3c4baa7fb29'}\""
+            buildConfigField "String", "POSTIMAGES_API_KEY", "\"${System.getenv('POSTIMAGES_API_KEY') ?: project.findProperty('POSTIMAGES_API_KEY') ?: '7746820ffe9cebd5769618ca22fc9ca8'}\""
         }
     }
 
@@ -348,6 +362,7 @@ dependencies {
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
     testImplementation 'org.mockito:mockito-core:5.8.0'
     testImplementation 'org.mockito.kotlin:mockito-kotlin:5.2.1'
+    testImplementation 'io.mockk:mockk:1.13.8'
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
     testImplementation 'org.robolectric:robolectric:4.11.1'
     testImplementation 'androidx.test:core:1.5.0'

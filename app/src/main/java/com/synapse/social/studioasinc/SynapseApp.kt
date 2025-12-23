@@ -117,7 +117,7 @@ class SynapseApp : Application(), DefaultLifecycleObserver {
                     val playerId = state.current.id
                     val userUid = mAuth.getCurrentUserId()
                     if (userUid != null && playerId != null) {
-                        OneSignalManager.savePlayerIdToSupabase(userUid, playerId)
+                        PushNotificationManager.savePlayerIdToSupabase(userUid, playerId)
                     }
                 }
             }
@@ -126,13 +126,13 @@ class SynapseApp : Application(), DefaultLifecycleObserver {
     
     override fun onStart(owner: LifecycleOwner) {
         mAuth.getCurrentUserId()?.let { userUid ->
-            PresenceManager.goOnline(userUid)
+            ChatPresenceManager.goOnline(userUid)
         }
     }
     
     override fun onStop(owner: LifecycleOwner) {
         mAuth.getCurrentUserId()?.let { userUid ->
-            PresenceManager.goOffline(userUid)
+            ChatPresenceManager.goOffline(userUid)
         }
     }
     

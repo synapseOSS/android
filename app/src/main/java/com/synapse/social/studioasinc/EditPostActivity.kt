@@ -206,11 +206,11 @@ class EditPostActivity : BaseActivity() {
                 if (intentData.clipData != null) {
                     for (i in 0 until intentData.clipData!!.itemCount) {
                         val item: ClipData.Item = intentData.clipData!!.getItemAt(i)
-                        FileUtil.convertUriToFilePath(applicationContext, item.uri)?.let { filePaths.add(it) }
+                        FileUtils.convertUriToFilePath(applicationContext, item.uri)?.let { filePaths.add(it) }
                     }
                 } else {
                     intentData.data?.let { uri ->
-                        FileUtil.convertUriToFilePath(applicationContext, uri)?.let { filePaths.add(it) }
+                        FileUtils.convertUriToFilePath(applicationContext, uri)?.let { filePaths.add(it) }
                     }
                 }
                 
