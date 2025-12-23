@@ -36,17 +36,17 @@ object UploadFiles {
     )
     
     // --- CLOUDINARY CONFIGURATION ---
-    private const val CLOUDINARY_API_KEY = "577882927131931"
-    private const val CLOUDINARY_API_SECRET = "M_w_0uQKjnLRUe-u34driUBqUQU"
-    private const val CLOUDINARY_CLOUD_NAME = "djw3fgbls"
-    private const val CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/$CLOUDINARY_CLOUD_NAME/auto/upload"
+    private val CLOUDINARY_API_KEY = BuildConfig.CLOUDINARY_API_KEY
+    private val CLOUDINARY_API_SECRET = BuildConfig.CLOUDINARY_API_SECRET
+    private val CLOUDINARY_CLOUD_NAME = BuildConfig.CLOUDINARY_CLOUD_NAME
+    private val CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/$CLOUDINARY_CLOUD_NAME/auto/upload"
     
     // --- IMGBB CONFIGURATION ---
-    private const val IMGBB_API_KEY = "faa85ffbac0217ff67b5f3c4baa7fb29"
-    private const val IMGBB_UPLOAD_URL = "https://api.imgbb.com/1/upload?expiration=0&key=$IMGBB_API_KEY"
+    private val IMGBB_API_KEY = BuildConfig.IMGBB_API_KEY
+    private val IMGBB_UPLOAD_URL = "https://api.imgbb.com/1/upload?expiration=0&key=$IMGBB_API_KEY"
     
     // --- POSTIMAGES.ORG CONFIGURATION (Fallback 1 for images) ---
-    private const val POSTIMAGES_API_KEY = "7746820ffe9cebd5769618ca22fc9ca8"
+    private val POSTIMAGES_API_KEY = BuildConfig.POSTIMAGES_API_KEY
     private const val POSTIMAGES_UPLOAD_URL = "https://api.postimage.org/1/upload"
     
     // --- IMGHIPPO CONFIGURATION (Fallback 2 for images) ---

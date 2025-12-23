@@ -26,10 +26,10 @@ class MediaStorageService(
     
     // Default credentials (from GitHub Actions secrets)
     companion object {
-        private const val DEFAULT_CLOUDINARY_API_KEY = "577882927131931"
-        private const val DEFAULT_CLOUDINARY_API_SECRET = "M_w_0uQKjnLRUe-u34driUBqUQU"
-        private const val DEFAULT_CLOUDINARY_CLOUD_NAME = "djw3fgbls"
-        private const val DEFAULT_IMGBB_API_KEY = "faa85ffbac0217ff67b5f3c4baa7fb29"
+        private val DEFAULT_CLOUDINARY_API_KEY = BuildConfig.CLOUDINARY_API_KEY
+        private val DEFAULT_CLOUDINARY_API_SECRET = BuildConfig.CLOUDINARY_API_SECRET
+        private val DEFAULT_CLOUDINARY_CLOUD_NAME = BuildConfig.CLOUDINARY_CLOUD_NAME
+        private val DEFAULT_IMGBB_API_KEY = BuildConfig.IMGBB_API_KEY
         
         private const val CONNECT_TIMEOUT_MS = 30000
         private const val READ_TIMEOUT_MS = 60000
