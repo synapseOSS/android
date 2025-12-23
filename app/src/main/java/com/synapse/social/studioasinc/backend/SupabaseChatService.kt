@@ -15,6 +15,9 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.JsonNull
 import java.util.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import com.synapse.social.studioasinc.model.ChatAttachmentImpl
 
 /**
  * Supabase Chat Service
@@ -882,23 +885,15 @@ class SupabaseChatService {
                 val storageService = SupabaseStorageService()
                 
                 // Delete media files if attachments exist
-                if (attachmentsJson != null && attachmentsJson.toString() != "null") {
+                if (attachmentsJson != null && attachmentsJson !is JsonNull) {
                     try {
                         // Parse attachments JSON array
-                        val attachmentsString = attachmentsJson.toString()
-                        android.util.Log.d(TAG, "Processing attachments for deletion: $attachmentsString")
-                        
-                        // Extract URLs from the JSON string
-                        // This is a simple approach - in production, use proper JSON parsing
-                        // TODO: Use robust JSON parsing - Regex parsing for JSON is fragile
-                        val urlPattern = """"url"\s*:\s*"([^"]+)"""".toRegex()
-                        val thumbnailPattern = """"thumbnail_url"\s*:\s*"([^"]+)"""".toRegex()
-                        
-                        val urls = urlPattern.findAll(attachmentsString).map { it.groupValues[1] }.toList()
-                        val thumbnailUrls = thumbnailPattern.findAll(attachmentsString)
-                            .map { it.groupValues[1] }
-                            .filter { it != "null" }
-                            .toList()
+                        val json = Json { ignoreUnknownKeys = true }
+                        val attachments = json.decodeFromJsonElement<List<ChatAttachmentImpl>>(attachmentsJson)
+                        android.util.Log.d(TAG, "Processing ${attachments.size} attachments for deletion")
+
+                        val urls = attachments.map { it.url }
+                        val thumbnailUrls = attachments.mapNotNull { it.thumbnailUrl }
                         
                         // Delete original files
                         urls.forEach { url ->
