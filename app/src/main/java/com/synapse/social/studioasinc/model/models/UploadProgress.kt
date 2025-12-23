@@ -11,7 +11,8 @@ data class UploadProgress(
     val bytesUploaded: Long,
     val totalBytes: Long,
     val state: UploadState,
-    val error: String? = null
+    val error: String? = null,
+    val result: MediaUploadResult? = null
 )
 
 /**

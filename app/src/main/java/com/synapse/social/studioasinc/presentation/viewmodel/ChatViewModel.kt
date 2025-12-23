@@ -58,6 +58,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val getUserChatsUseCase = GetUserChatsUseCase(chatDao)
     private val deleteMessageUseCase = DeleteMessageUseCase(chatDao)
     private val editMessageUseCase = EditMessageUseCase(chatDao)
+    private val uploadMediaUseCase = UploadMediaUseCase(authService)
 
     // Existing LiveData properties
     private val _messages = MutableLiveData<List<Message>>()
@@ -630,16 +631,21 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      * @param uris List of image URIs to upload
      * @param caption Optional caption text to accompany the images
      */
-    // TODO: Refactor business logic to UseCase - Media upload orchestration should be moved to a UseCase
     fun uploadImages(uris: List<Uri>, caption: String = "") {
         val chatId = currentChatId ?: run {
             _error.value = "No active chat"
             return
         }
         
+        val manager = mediaUploadManager
+        if (manager == null) {
+            _error.value = "Media upload manager not initialized"
+            return
+        }
+
         viewModelScope.launch {
             try {
-                mediaUploadManager?.uploadMultiple(uris, chatId)?.collect { progress ->
+                uploadMediaUseCase.uploadImages(manager, chatId, uris).collect { progress ->
                     // Update upload progress map
                     _uploadProgress.update { currentProgress ->
                         currentProgress + (progress.uploadId to progress)
@@ -647,8 +653,18 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     
                     // If upload completed successfully, create message with attachment
                     if (progress.state == com.synapse.social.studioasinc.model.models.UploadState.COMPLETED) {
-                        // Note: Individual upload results are handled in uploadMultiple
-                        // We'll create the message after all uploads complete
+                        // The result is now available in UploadProgress
+                        progress.result?.let { uploadResult ->
+                            uploadMediaUseCase.sendMessageWithAttachment(chatId, uploadResult, caption)
+                                .onSuccess {
+                                    _messageSent.value = true
+                                    _error.value = null
+                                    loadMessages(chatId)
+                                }
+                                .onFailure { exception ->
+                                     _error.value = "Failed to send message: ${exception.message}"
+                                }
+                        }
                     }
                     
                     // Remove from progress map if completed, failed, or cancelled
@@ -662,8 +678,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             }
                         }
                     }
-                } ?: run {
-                    _error.value = "Media upload manager not initialized"
                 }
             } catch (e: Exception) {
                 _error.value = "Failed to upload images: ${e.message}"
@@ -686,17 +700,27 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         
+        val manager = mediaUploadManager
+        if (manager == null) {
+            _error.value = "Media upload manager not initialized"
+            return
+        }
+
         viewModelScope.launch {
             try {
-                val result = mediaUploadManager?.uploadVideo(uri, chatId)
-                
-                result?.onSuccess { uploadResult ->
-                    sendMessageWithAttachment(uploadResult, caption)
-                }?.onFailure { exception ->
+                uploadMediaUseCase.uploadFileAndSend(
+                    manager,
+                    chatId,
+                    uri,
+                    UploadMediaUseCase.MediaType.VIDEO,
+                    caption
+                ).onSuccess {
+                    _messageSent.value = true
+                    _error.value = null
+                    loadMessages(chatId)
+                }.onFailure { exception ->
                     _error.value = "Failed to upload video: ${exception.message}"
                     android.util.Log.e("ChatViewModel", "Video upload failed", exception)
-                } ?: run {
-                    _error.value = "Media upload manager not initialized"
                 }
             } catch (e: Exception) {
                 _error.value = "Failed to upload video: ${e.message}"
@@ -719,17 +743,27 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         
+        val manager = mediaUploadManager
+        if (manager == null) {
+            _error.value = "Media upload manager not initialized"
+            return
+        }
+
         viewModelScope.launch {
             try {
-                val result = mediaUploadManager?.uploadAudio(uri, chatId)
-                
-                result?.onSuccess { uploadResult ->
-                    sendMessageWithAttachment(uploadResult, caption)
-                }?.onFailure { exception ->
+                uploadMediaUseCase.uploadFileAndSend(
+                    manager,
+                    chatId,
+                    uri,
+                    UploadMediaUseCase.MediaType.AUDIO,
+                    caption
+                ).onSuccess {
+                    _messageSent.value = true
+                    _error.value = null
+                    loadMessages(chatId)
+                }.onFailure { exception ->
                     _error.value = "Failed to upload audio: ${exception.message}"
                     android.util.Log.e("ChatViewModel", "Audio upload failed", exception)
-                } ?: run {
-                    _error.value = "Media upload manager not initialized"
                 }
             } catch (e: Exception) {
                 _error.value = "Failed to upload audio: ${e.message}"
@@ -752,17 +786,27 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         
+        val manager = mediaUploadManager
+        if (manager == null) {
+            _error.value = "Media upload manager not initialized"
+            return
+        }
+
         viewModelScope.launch {
             try {
-                val result = mediaUploadManager?.uploadDocument(uri, chatId)
-                
-                result?.onSuccess { uploadResult ->
-                    sendMessageWithAttachment(uploadResult, caption)
-                }?.onFailure { exception ->
+                uploadMediaUseCase.uploadFileAndSend(
+                    manager,
+                    chatId,
+                    uri,
+                    UploadMediaUseCase.MediaType.DOCUMENT,
+                    caption
+                ).onSuccess {
+                    _messageSent.value = true
+                    _error.value = null
+                    loadMessages(chatId)
+                }.onFailure { exception ->
                     _error.value = "Failed to upload document: ${exception.message}"
                     android.util.Log.e("ChatViewModel", "Document upload failed", exception)
-                } ?: run {
-                    _error.value = "Media upload manager not initialized"
                 }
             } catch (e: Exception) {
                 _error.value = "Failed to upload document: ${e.message}"
@@ -797,44 +841,19 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      */
     private fun sendMessageWithAttachment(uploadResult: MediaUploadResult, caption: String) {
         val chatId = currentChatId ?: return
-        val userId = currentUserId ?: authService.getCurrentUserId() ?: return
         
         viewModelScope.launch {
             try {
-                // Create ChatAttachment from upload result
-                val attachment = ChatAttachmentImpl(
-                    id = UUID.randomUUID().toString(),
-                    url = uploadResult.url,
-                    type = getAttachmentType(uploadResult.mimeType),
-                    fileName = uploadResult.fileName,
-                    fileSize = uploadResult.fileSize,
-                    thumbnailUrl = uploadResult.thumbnailUrl,
-                    width = uploadResult.width,
-                    height = uploadResult.height,
-                    duration = uploadResult.duration,
-                    mimeType = uploadResult.mimeType
-                )
-                
-                // Send message with attachment using backend service
-                val backendChatService = SupabaseChatService()
-                val result = backendChatService.sendMessage(
-                    chatId = chatId,
-                    senderId = userId,
-                    content = caption.ifEmpty { "" },
-                    messageType = MessageType.ATTACHMENT,
-                    replyToId = null,
-                    attachments = listOf(attachment)
-                )
-                
-                result.onSuccess {
-                    _messageSent.value = true
-                    _error.value = null
-                    // Refresh messages
-                    loadMessages(chatId)
-                }.onFailure { exception ->
-                    _error.value = "Failed to send message: ${exception.message}"
-                    android.util.Log.e("ChatViewModel", "Failed to send attachment message", exception)
-                }
+                uploadMediaUseCase.sendMessageWithAttachment(chatId, uploadResult, caption)
+                    .onSuccess {
+                        _messageSent.value = true
+                        _error.value = null
+                        // Refresh messages
+                        loadMessages(chatId)
+                    }.onFailure { exception ->
+                        _error.value = "Failed to send message: ${exception.message}"
+                        android.util.Log.e("ChatViewModel", "Failed to send attachment message", exception)
+                    }
             } catch (e: Exception) {
                 _error.value = "Failed to send message: ${e.message}"
                 android.util.Log.e("ChatViewModel", "Failed to send attachment message", e)
@@ -842,20 +861,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * Determines attachment type from MIME type.
-     * 
-     * @param mimeType The MIME type of the file
-     * @return The attachment type (image, video, audio, document)
-     */
-    private fun getAttachmentType(mimeType: String): String {
-        return when {
-            mimeType.startsWith("image/") -> "image"
-            mimeType.startsWith("video/") -> "video"
-            mimeType.startsWith("audio/") -> "audio"
-            else -> "document"
-        }
-    }
 
     // Manager integration methods
 
