@@ -341,7 +341,7 @@ class PostDetailActivity : BaseActivity() {
     }
 
     private fun navigateToProfile(userId: String) {
-        startActivity(Intent(this, ProfileComposeActivity::class.java).apply {
+        startActivity(Intent(this, ProfileActivity::class.java).apply {
             putExtra("user_id", userId)
         })
     }

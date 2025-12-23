@@ -31,17 +31,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
- * Jetpack Compose-based Profile Activity.
- * Replaces the old View-based ProfileActivity.
+ * Profile Activity built with Jetpack Compose.
  * 
  * Usage:
  * ```
- * val intent = Intent(context, ProfileComposeActivity::class.java)
+ * val intent = Intent(context, ProfileActivity::class.java)
  * intent.putExtra("uid", userId)
  * startActivity(intent)
  * ```
  */
-class ProfileComposeActivity : ComponentActivity() {
+class ProfileActivity : ComponentActivity() {
     
     private val viewModel: ProfileViewModel by viewModels { ProfileViewModelFactory(this) }
     
@@ -113,16 +112,16 @@ class ProfileComposeActivity : ComponentActivity() {
     }
     
     private fun navigateToFollowers(userId: String) {
-        val intent = Intent(this, FollowListComposeActivity::class.java)
-        intent.putExtra(FollowListComposeActivity.EXTRA_USER_ID, userId)
-        intent.putExtra(FollowListComposeActivity.EXTRA_LIST_TYPE, FollowListComposeActivity.TYPE_FOLLOWERS)
+        val intent = Intent(this, FollowListActivity::class.java)
+        intent.putExtra(FollowListActivity.EXTRA_USER_ID, userId)
+        intent.putExtra(FollowListActivity.EXTRA_LIST_TYPE, FollowListActivity.TYPE_FOLLOWERS)
         startActivity(intent)
     }
     
     private fun navigateToFollowing(userId: String) {
-        val intent = Intent(this, FollowListComposeActivity::class.java)
-        intent.putExtra(FollowListComposeActivity.EXTRA_USER_ID, userId)
-        intent.putExtra(FollowListComposeActivity.EXTRA_LIST_TYPE, FollowListComposeActivity.TYPE_FOLLOWING)
+        val intent = Intent(this, FollowListActivity::class.java)
+        intent.putExtra(FollowListActivity.EXTRA_USER_ID, userId)
+        intent.putExtra(FollowListActivity.EXTRA_LIST_TYPE, FollowListActivity.TYPE_FOLLOWING)
         startActivity(intent)
     }
     
@@ -135,7 +134,7 @@ class ProfileComposeActivity : ComponentActivity() {
     }
     
     private fun navigateToUserProfile(userId: String) {
-        val intent = Intent(this, ProfileComposeActivity::class.java)
+        val intent = Intent(this, ProfileActivity::class.java)
         intent.putExtra("uid", userId)
         startActivity(intent)
     }
@@ -149,7 +148,7 @@ class ProfileComposeActivity : ComponentActivity() {
                 
                 if (currentUserId == null) {
                     Toast.makeText(
-                        this@ProfileComposeActivity, 
+                        this@ProfileActivity, 
                         "Failed to get user info", 
                         Toast.LENGTH_SHORT
                     ).show()
@@ -158,7 +157,7 @@ class ProfileComposeActivity : ComponentActivity() {
                 
                 if (targetUserId == currentUserId) {
                     Toast.makeText(
-                        this@ProfileComposeActivity, 
+                        this@ProfileActivity, 
                         "You cannot message yourself", 
                         Toast.LENGTH_SHORT
                     ).show()
@@ -166,7 +165,7 @@ class ProfileComposeActivity : ComponentActivity() {
                 }
                 
                 // Show loading
-                val progressDialog = ProgressDialog(this@ProfileComposeActivity).apply {
+                val progressDialog = ProgressDialog(this@ProfileActivity).apply {
                     setMessage("Starting chat...")
                     setCancelable(false)
                     show()
@@ -180,7 +179,7 @@ class ProfileComposeActivity : ComponentActivity() {
                         progressDialog.dismiss()
                         
                         // Navigate to ChatActivity
-                        val intent = Intent(this@ProfileComposeActivity, ChatActivity::class.java)
+                        val intent = Intent(this@ProfileActivity, ChatActivity::class.java)
                         intent.putExtra("chatId", chatId)
                         intent.putExtra("uid", targetUserId)
                         intent.putExtra("isGroup", false)
@@ -188,18 +187,18 @@ class ProfileComposeActivity : ComponentActivity() {
                     },
                     onFailure = { error ->
                         progressDialog.dismiss()
-                        android.util.Log.e("ProfileComposeActivity", "Failed to create chat", error)
+                        android.util.Log.e("ProfileActivity", "Failed to create chat", error)
                         Toast.makeText(
-                            this@ProfileComposeActivity, 
+                            this@ProfileActivity, 
                             "Failed to start chat: ${error.message}", 
                             Toast.LENGTH_SHORT
                         ).show()
                     }
                 )
             } catch (e: Exception) {
-                android.util.Log.e("ProfileComposeActivity", "Error starting chat", e)
+                android.util.Log.e("ProfileActivity", "Error starting chat", e)
                 Toast.makeText(
-                    this@ProfileComposeActivity, 
+                    this@ProfileActivity, 
                     "Error starting chat: ${e.message}", 
                     Toast.LENGTH_SHORT
                 ).show()

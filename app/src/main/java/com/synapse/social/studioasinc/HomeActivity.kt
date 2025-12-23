@@ -31,7 +31,7 @@ class HomeActivity : BaseActivity() {
                     onNavigateToProfile = { userId ->
                         val targetUid = if (userId == "me") SupabaseClient.client.auth.currentUserOrNull()?.id else userId
                         if (targetUid != null) {
-                            val intent = Intent(this, ProfileComposeActivity::class.java).apply {
+                            val intent = Intent(this, ProfileActivity::class.java).apply {
                                 putExtra("uid", targetUid)
                             }
                             ActivityTransitions.startActivityWithTransition(this, intent)
@@ -40,7 +40,7 @@ class HomeActivity : BaseActivity() {
                     onNavigateToInbox = {
                         ActivityTransitions.startActivityWithTransition(
                             this,
-                            Intent(this, InboxComposeActivity::class.java)
+                            Intent(this, InboxActivity::class.java)
                         )
                     },
                     onNavigateToCreatePost = {

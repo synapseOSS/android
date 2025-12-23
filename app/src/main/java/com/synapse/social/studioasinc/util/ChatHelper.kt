@@ -20,11 +20,11 @@ class ChatHelper(private val context: Context) {
                     val clazz = Class.forName(fullClassName)
 
                     val newIntent = Intent(context, clazz)
-                    if ("ProfileComposeActivity" == originSimpleName.trim()) {
+                    if ("ProfileActivity" == originSimpleName.trim()) {
                         if (intent.hasExtra("uid")) {
                             newIntent.putExtra("uid", intent.getStringExtra("uid"))
                         } else {
-                            Toast.makeText(context, "Error: UID is required for ProfileComposeActivity", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Error: UID is required for ProfileActivity", Toast.LENGTH_SHORT).show()
                             activity.finish()
                             return
                         }

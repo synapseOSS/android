@@ -41,7 +41,7 @@ object NavigationMigration {
             is AppDestination.Home -> Intent(context, com.synapse.social.studioasinc.HomeActivity::class.java)
             is AppDestination.Search -> Intent(context, com.synapse.social.studioasinc.SearchActivity::class.java)
             is AppDestination.Profile -> {
-                Intent(context, com.synapse.social.studioasinc.ProfileComposeActivity::class.java).apply {
+                Intent(context, com.synapse.social.studioasinc.ProfileActivity::class.java).apply {
                     val userId = params.find { it.first == "userId" }?.second
                     if (userId != null) putExtra("uid", userId)
                 }
@@ -53,7 +53,7 @@ object NavigationMigration {
                 }
             }
             is AppDestination.CreatePost -> Intent(context, com.synapse.social.studioasinc.CreatePostActivity::class.java)
-            is AppDestination.Inbox -> Intent(context, com.synapse.social.studioasinc.InboxComposeActivity::class.java)
+            is AppDestination.Inbox -> Intent(context, com.synapse.social.studioasinc.InboxActivity::class.java)
             else -> return
         }
         
