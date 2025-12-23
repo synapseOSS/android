@@ -113,8 +113,7 @@ fun HomeScreen(
                         IconButton(onClick = onNavigateToInbox) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Send,
-                                // TODO: Extract to resource file - Hardcoded string "Inbox"
-                                contentDescription = "Inbox"
+                                contentDescription = stringResource(id = R.string.inbox)
                             )
                         }
                         // Profile Icon with Avatar
