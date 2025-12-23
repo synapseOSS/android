@@ -2,6 +2,7 @@ package com.synapse.social.studioasinc.chat.service
 
 import android.util.Log
 import com.synapse.social.studioasinc.chat.models.TypingStatus
+import com.synapse.social.studioasinc.domain.interfaces.ITypingIndicatorManager
 import io.github.jan.supabase.realtime.broadcastFlow
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -27,7 +28,7 @@ class TypingIndicatorManager(
     private val realtimeService: SupabaseRealtimeService,
     private val preferencesManager: PreferencesManager,
     private val coroutineScope: CoroutineScope
-) {
+) : ITypingIndicatorManager {
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Coroutine exception", throwable)
@@ -128,7 +129,7 @@ class TypingIndicatorManager(
      * @param chatId The chat room identifier
      * @param userId The current user's ID
      */
-    fun onUserStoppedTyping(chatId: String, userId: String) {
+    override fun onUserStoppedTyping(chatId: String, userId: String) {
         Log.d(TAG, "User stopped typing in chat: $chatId")
         
         // Cancel any pending typing jobs
