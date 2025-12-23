@@ -7,8 +7,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.synapse.social.studioasinc.data.repository.AuthRepository
@@ -20,7 +18,7 @@ import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 
 /**
  * Modern Compose-based AuthActivity.
- * Entry point for the new authentication flow.
+ * Refactored for cleaner lifecycle management and deeper link handling.
  */
 class AuthActivity : ComponentActivity() {
 
@@ -33,11 +31,20 @@ class AuthActivity : ComponentActivity() {
         EdgeToEdgeUtils.setupEdgeToEdgeActivity(this)
 
         // Configure URL Opener for Supabase
+        // Note: Consider moving this to a central initializer to avoid reassignment if possible,
+        // but keeping here as it might be activity-context dependent (though it's a lambda).
         SupabaseClient.openUrl = { url ->
-            val customTabsIntent = CustomTabsIntent.Builder().build()
-            customTabsIntent.launchUrl(this, Uri.parse(url))
+            try {
+                val customTabsIntent = CustomTabsIntent.Builder().build()
+                customTabsIntent.launchUrl(this, Uri.parse(url))
+            } catch (e: Exception) {
+                // Fallback to standard browser if Custom Tabs fail
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                startActivity(intent)
+            }
         }
 
+        // Manual DI - ideally this should use Hilt, but respecting existing pattern if Hilt isn't fully adopted for Auth.
         val authRepository = AuthRepository()
         val sharedPreferences = getSharedPreferences("auth_prefs", MODE_PRIVATE)
 
@@ -46,8 +53,8 @@ class AuthActivity : ComponentActivity() {
             AuthViewModelFactory(authRepository, sharedPreferences)
         )[AuthViewModel::class.java]
 
-        // Handle deep link if present (e.g. password reset or OAuth callback)
-        handleDeepLink(intent)
+        // Handle deep link if present
+        intent?.let { handleDeepLink(it) }
 
         setContent {
             AuthTheme(enableEdgeToEdge = true) {
@@ -60,8 +67,6 @@ class AuthActivity : ComponentActivity() {
                 )
             }
         }
-
-        // Setup observer for external URL opening
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -72,11 +77,6 @@ class AuthActivity : ComponentActivity() {
     private fun handleDeepLink(intent: Intent) {
         val data = intent.data
         if (data != null) {
-            // Check if it's OAuth callback or Recovery
-            // OAuth callback typically has code or tokens.
-            // Recovery has type=recovery.
-
-            // Delegate to ViewModel to decide
             viewModel.handleDeepLink(data)
         }
     }
@@ -91,6 +91,6 @@ class AuthViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return AuthViewModel(repository, UsernameRepository(), sharedPreferences) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }
