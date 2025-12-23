@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.synapse.social.studioasinc.model.User
-import com.synapse.social.studioasinc.ui.components.Avatar
+import com.synapse.social.studioasinc.ui.components.CircularAvatar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -140,8 +140,9 @@ fun UserSearchItem(
     ) {
         // Avatar
         if (user.avatar != null) {
-            Avatar(
+            CircularAvatar(
                 imageUrl = user.avatar,
+                contentDescription = "User avatar",
                 size = 40.dp
             )
         } else {

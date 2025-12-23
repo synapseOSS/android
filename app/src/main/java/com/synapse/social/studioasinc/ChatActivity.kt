@@ -31,6 +31,8 @@ import kotlinx.coroutines.launch
 class ChatActivity : ComponentActivity() {
 
     private val viewModel: DirectChatViewModel by viewModels()
+    private var chatId: String? = null
+    private var otherUserId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,12 +59,14 @@ class ChatActivity : ComponentActivity() {
                 dynamicColor = dynamicColor,
                 enableEdgeToEdge = true
             ) {
-                DirectChatScreen(
-                    chatId = chatId,
-                    otherUserId = otherUserId,
-                    onBackClick = { finishWithPremiumTransition() },
-                    viewModel = viewModel
-                )
+                chatId?.let { nonNullChatId ->
+                    DirectChatScreen(
+                        chatId = nonNullChatId,
+                        otherUserId = otherUserId,
+                        onBackClick = { finishWithPremiumTransition() },
+                        viewModel = viewModel
+                    )
+                }
             }
         }
     }
@@ -75,8 +79,8 @@ class ChatActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent) {
         // Parse Intent Extras safely
-        val chatId = intent.getStringExtra(EXTRA_CHAT_ID) ?: intent.getStringExtra("chatId")
-        val otherUserId = intent.getStringExtra(EXTRA_OTHER_USER_ID) ?: intent.getStringExtra("uid") ?: ""
+        chatId = intent.getStringExtra(EXTRA_CHAT_ID) ?: intent.getStringExtra("chatId")
+        otherUserId = intent.getStringExtra(EXTRA_OTHER_USER_ID) ?: intent.getStringExtra("uid") ?: ""
 
         if (chatId == null) {
             android.util.Log.e("ChatActivity", "ChatActivity started without chatId")
@@ -96,7 +100,9 @@ class ChatActivity : ComponentActivity() {
                 finish()
             } else {
                 // Initialize Chat only if user is logged in
-                viewModel.loadChat(chatId)
+                chatId?.let { nonNullChatId ->
+                    viewModel.loadChat(nonNullChatId)
+                }
             }
         }
     }

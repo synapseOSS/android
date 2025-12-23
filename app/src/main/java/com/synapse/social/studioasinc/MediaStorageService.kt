@@ -333,7 +333,7 @@ class MediaStorageService(
             // but the current version used typically expects bytes.
             // To be safer, we can check file size or just proceed as is for now,
             // but wrapping in try/finally ensures the client is closed.
-            val path = bucket.upload(fileName, file.readBytes()) {
+            bucket.upload(fileName, file.readBytes()) {
                  upsert = true
             }
 
@@ -343,10 +343,10 @@ class MediaStorageService(
             }
 
             // Get public URL
-            val publicUrl = bucket.publicUrl(path)
+            val publicUrl = bucket.publicUrl(fileName)
 
             withContext(Dispatchers.Main) {
-                callback.onSuccess(publicUrl, path)
+                callback.onSuccess(publicUrl, fileName)
             }
 
         } catch (e: Exception) {
