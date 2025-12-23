@@ -37,31 +37,7 @@ class ChatActivity : ComponentActivity() {
         
         EdgeToEdgeUtils.setupEdgeToEdgeActivity(this)
 
-        // Parse Intent Extras safely
-        val chatId = intent.getStringExtra(EXTRA_CHAT_ID) ?: intent.getStringExtra("chatId")
-        val otherUserId = intent.getStringExtra(EXTRA_OTHER_USER_ID) ?: intent.getStringExtra("uid") ?: ""
-
-        if (chatId == null) {
-            android.util.Log.e("ChatActivity", "ChatActivity started without chatId")
-            finish()
-            return
-        }
-
-        // Check authentication asynchronously
-        lifecycleScope.launch {
-            val user = try {
-                SupabaseClient.client.auth.currentUserOrNull()
-            } catch (e: Exception) {
-                null
-            }
-
-            if (user == null) {
-                finish()
-            } else {
-                // Initialize Chat only if user is logged in
-                viewModel.loadChat(chatId)
-            }
-        }
+        handleIntent(intent)
 
         setContent {
             val appearanceViewModel: AppearanceViewModel = viewModel()
@@ -91,6 +67,40 @@ class ChatActivity : ComponentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        // Parse Intent Extras safely
+        val chatId = intent.getStringExtra(EXTRA_CHAT_ID) ?: intent.getStringExtra("chatId")
+        val otherUserId = intent.getStringExtra(EXTRA_OTHER_USER_ID) ?: intent.getStringExtra("uid") ?: ""
+
+        if (chatId == null) {
+            android.util.Log.e("ChatActivity", "ChatActivity started without chatId")
+            finish()
+            return
+        }
+
+        // Check authentication asynchronously
+        lifecycleScope.launch {
+            val user = try {
+                SupabaseClient.client.auth.currentUserOrNull()
+            } catch (e: Exception) {
+                null
+            }
+
+            if (user == null) {
+                finish()
+            } else {
+                // Initialize Chat only if user is logged in
+                viewModel.loadChat(chatId)
+            }
+        }
+    }
+
     companion object {
         private const val EXTRA_CHAT_ID = "chat_id"
         private const val EXTRA_OTHER_USER_ID = "other_user_id"
@@ -98,7 +108,6 @@ class ChatActivity : ComponentActivity() {
         fun createIntent(context: Context, chatId: String): Intent {
             return Intent(context, ChatActivity::class.java).apply {
                 putExtra(EXTRA_CHAT_ID, chatId)
-                putExtra("chatId", chatId) // Legacy
             }
         }
 
@@ -106,8 +115,6 @@ class ChatActivity : ComponentActivity() {
             return Intent(context, ChatActivity::class.java).apply {
                 putExtra(EXTRA_CHAT_ID, chatId)
                 putExtra(EXTRA_OTHER_USER_ID, otherUserId)
-                putExtra("chatId", chatId) // Legacy
-                putExtra("uid", otherUserId) // Legacy
             }
         }
     }
