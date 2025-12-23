@@ -1,6 +1,5 @@
 package com.synapse.social.studioasinc.ui.profile
 
-// TODO: Improve Profile Cover Parallax Effect - enhance smoothness and depth
 // TODO: Fix Profile Picture Display in Home Feed - ensure avatar URL is resolved correctly from Post model
 
 import androidx.compose.animation.*

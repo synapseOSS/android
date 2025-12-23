@@ -66,27 +66,18 @@ fun CoverPhoto(
     val density = LocalDensity.current
     val heightPx = with(density) { height.toPx() }
     
-    // Enhanced parallax with spring animation for smoothness
-    val animatedScrollOffset by animateFloatAsState(
-        targetValue = scrollOffset,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "smoothParallax"
-    )
-    
     // Calculate parallax offset based on height
-    val parallaxOffset = animatedScrollOffset * heightPx * parallaxFactor
+    // Using direct scrollOffset for immediate response without spring lag
+    val parallaxOffset = scrollOffset * heightPx * parallaxFactor
     
     // Depth-based scale effect: zoom in slightly as user scrolls
-    val depthScale = 1.1f + (animatedScrollOffset * 0.15f).coerceIn(0f, 0.2f)
+    val depthScale = 1.1f + (scrollOffset * 0.15f).coerceIn(0f, 0.2f)
     
     // Dynamic blur based on scroll
-    val blurRadius = (animatedScrollOffset * 12).coerceIn(0f, 15f)
+    val blurRadius = (scrollOffset * 12).coerceIn(0f, 15f)
     
     // Vignette intensity increases with scroll
-    val vignetteAlpha = (0.3f + animatedScrollOffset * 0.4f).coerceIn(0.3f, 0.7f)
+    val vignetteAlpha = (0.3f + scrollOffset * 0.4f).coerceIn(0.3f, 0.7f)
     
     Box(
         modifier = modifier
