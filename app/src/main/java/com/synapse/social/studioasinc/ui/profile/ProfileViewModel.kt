@@ -44,7 +44,9 @@ data class ProfileScreenState(
     val showReportDialog: Boolean = false,
     val viewAsMode: ViewAsMode? = null,
     val viewAsUserName: String? = null,
-    val hasStory: Boolean = false
+    val hasStory: Boolean = false,
+    val searchResults: List<com.synapse.social.studioasinc.model.User> = emptyList(),
+    val isSearching: Boolean = false
 )
 
 /**
@@ -415,6 +417,35 @@ class ProfileViewModel(
 
     fun exitViewAs() {
         _state.update { it.copy(viewAsMode = null, viewAsUserName = null) }
+    }
+
+    private var searchJob: kotlinx.coroutines.Job? = null
+
+    fun searchUsers(query: String) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            kotlinx.coroutines.delay(300) // Debounce
+            if (query.isBlank()) {
+                _state.update { it.copy(searchResults = emptyList(), isSearching = false) }
+                return@launch
+            }
+
+            _state.update { it.copy(isSearching = true) }
+
+            try {
+                // Use IO dispatcher if the manager call is blocking or for safety
+                val results = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    com.synapse.social.studioasinc.UserProfileManager.searchUsers(query)
+                }
+                _state.update { it.copy(searchResults = results, isSearching = false) }
+            } catch (e: Exception) {
+                _state.update { it.copy(isSearching = false) }
+            }
+        }
+    }
+
+    fun clearSearchResults() {
+        _state.update { it.copy(searchResults = emptyList()) }
     }
 
     fun lockProfile(isLocked: Boolean) {
