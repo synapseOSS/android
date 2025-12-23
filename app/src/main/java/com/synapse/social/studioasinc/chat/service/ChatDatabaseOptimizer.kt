@@ -15,10 +15,10 @@ import kotlinx.serialization.Serializable
  * 
  * Requirements: 6.5
  */
-class DatabaseOptimizationService {
+class ChatDatabaseOptimizer {
     
     companion object {
-        private const val TAG = "DatabaseOptimizationService"
+        private const val TAG = "ChatDatabaseOptimizer"
         private const val MAX_BATCH_SIZE = 100
         private const val TYPING_CLEANUP_THRESHOLD_MS = 3600000L // 1 hour
         private const val STALE_TYPING_THRESHOLD_MS = 10000L // 10 seconds

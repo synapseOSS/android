@@ -27,7 +27,7 @@ import com.synapse.social.studioasinc.util.TimeUtils.formatTimestamp
 /**
  * Enhanced adapter for displaying posts with reactions and multi-media support
  */
-class EnhancedPostsAdapter(
+class FeedPostsAdapter(
     private val context: Context,
     private val currentUserId: String,
     private val onPostClicked: ((Post) -> Unit)? = null,
@@ -41,7 +41,7 @@ class EnhancedPostsAdapter(
     private val onReactionToggled: ((Post, ReactionType, (Boolean) -> Unit) -> Unit)? = null,
     private val onPollOptionClicked: ((Post, Int) -> Unit)? = null,
     private val onMoreOptionsClicked: ((Post) -> Unit)? = null
-) : PagingDataAdapter<Post, EnhancedPostsAdapter.PostViewHolder>(PostDiffCallback()) {
+) : PagingDataAdapter<Post, FeedPostsAdapter.PostViewHolder>(PostDiffCallback()) {
 
     /**
      * Update a post's reaction state optimistically

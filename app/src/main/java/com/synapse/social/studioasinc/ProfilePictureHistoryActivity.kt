@@ -29,7 +29,7 @@ import java.net.URL
 import java.util.*
 
 @Deprecated("Use PhotoHistoryScreen instead")
-class ProfilePhotoHistoryActivity : BaseActivity() {
+class ProfilePictureHistoryActivity : BaseActivity() {
 
     // Supabase services
     private val authService = SupabaseAuthenticationService()

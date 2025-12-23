@@ -31,7 +31,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-object FileUtil {
+object FileUtils {
 
     private fun createNewFile(path: String) {
         val lastSep = path.lastIndexOf(File.separator)

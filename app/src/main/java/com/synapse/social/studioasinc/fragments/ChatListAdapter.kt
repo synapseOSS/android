@@ -12,10 +12,10 @@ import com.synapse.social.studioasinc.R
 import java.text.SimpleDateFormat
 import java.util.*
 
-class InboxChatsAdapter(
+class ChatListAdapter(
     private val chats: ArrayList<Map<String, Any?>>,
     private val onChatClick: (String, String) -> Unit
-) : RecyclerView.Adapter<InboxChatsAdapter.ChatViewHolder>() {
+) : RecyclerView.Adapter<ChatListAdapter.ChatViewHolder>() {
     
     class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val avatarImage: ImageView = itemView.findViewById(R.id.chatAvatar)

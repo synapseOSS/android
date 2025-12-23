@@ -15,7 +15,7 @@ import kotlinx.serialization.json.jsonPrimitive
 /**
  * Service for AI-powered content moderation using BaaS Edge Functions
  */
-class AiModerationService {
+class ContentModerationService {
     
     private val supabase = SupabaseClient.client
     
@@ -60,7 +60,7 @@ class AiModerationService {
                 } ?: ModerationScores()
             )
         } catch (e: Exception) {
-            android.util.Log.e("AiModerationService", "Failed to analyze content", e)
+            android.util.Log.e("ContentModerationService", "Failed to analyze content", e)
             null
         } finally {
             _isAnalyzing.value = false
@@ -113,7 +113,7 @@ class AiModerationService {
             
             true
         } catch (e: Exception) {
-            android.util.Log.e("AiModerationService", "Failed to report content", e)
+            android.util.Log.e("ContentModerationService", "Failed to report content", e)
             false
         }
     }
@@ -136,7 +136,7 @@ class AiModerationService {
                 autoActioned = jsonResponse["auto_actioned"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0
             )
         } catch (e: Exception) {
-            android.util.Log.e("AiModerationService", "Failed to get moderation stats", e)
+            android.util.Log.e("ContentModerationService", "Failed to get moderation stats", e)
             null
         }
     }

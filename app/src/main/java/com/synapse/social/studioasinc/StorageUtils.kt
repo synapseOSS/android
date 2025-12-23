@@ -44,9 +44,9 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 
-object StorageUtil {
+object StorageUtils {
 
-    private const val TAG = "StorageUtil"
+    private const val TAG = "StorageUtils"
     private const val BUFFER_SIZE = 8192
 
     fun pickSingleFile(activity: Activity, mimeType: String, requestCode: Int) {

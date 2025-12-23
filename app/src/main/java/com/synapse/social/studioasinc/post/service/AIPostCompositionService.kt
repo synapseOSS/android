@@ -15,7 +15,7 @@ import kotlinx.serialization.json.jsonPrimitive
 /**
  * Service for Syra AI post composition assistance using BaaS Edge Functions
  */
-class SyraPostCompositionService {
+class AIPostCompositionService {
     
     private val supabase = SupabaseClient.client
     

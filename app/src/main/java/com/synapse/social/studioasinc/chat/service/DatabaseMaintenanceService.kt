@@ -84,7 +84,7 @@ class DatabaseMaintenanceService(
         }
     }
     
-    private val dbOptimizationService = DatabaseOptimizationService()
+    private val dbOptimizationService = ChatDatabaseOptimizer()
     
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         Log.i(TAG, "Starting database maintenance work")

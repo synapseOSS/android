@@ -15,10 +15,10 @@ import com.synapse.social.studioasinc.util.ImageLoader
 import java.util.ArrayList
 import java.util.HashMap
 
-class LineVideosRecyclerViewAdapter(
+class VideoFeedAdapter(
     private val data: ArrayList<HashMap<String, Any>>,
     private val context: Context
-) : RecyclerView.Adapter<LineVideosRecyclerViewAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<VideoFeedAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.synapse_reels_cv, parent, false)

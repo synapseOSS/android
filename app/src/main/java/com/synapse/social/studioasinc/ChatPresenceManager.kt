@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
  * Manages user online presence in Supabase, writing to the users table.
  * Handles online, offline (timestamp), and chat statuses.
  */
-object PresenceManager {
+object ChatPresenceManager {
 
     private val dbService = SupabaseDatabaseService()
 

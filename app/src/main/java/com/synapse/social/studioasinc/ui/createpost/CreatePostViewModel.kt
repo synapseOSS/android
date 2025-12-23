@@ -12,7 +12,7 @@ import com.synapse.social.studioasinc.model.MediaItem
 import com.synapse.social.studioasinc.model.MediaType
 import com.synapse.social.studioasinc.model.PollOption
 import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.FileUtil
+import com.synapse.social.studioasinc.FileUtils
 import com.synapse.social.studioasinc.util.MediaUploadManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -157,7 +157,7 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
              android.util.Log.d("CreatePost", "Processing URI: $uri")
              val mimeType = context.contentResolver.getType(uri) ?: return@forEach
              val type = if (mimeType.startsWith("video")) MediaType.VIDEO else MediaType.IMAGE
-             FileUtil.convertUriToFilePath(context, uri)?.let { path ->
+             FileUtils.convertUriToFilePath(context, uri)?.let { path ->
                  android.util.Log.d("CreatePost", "Converted URI to path: $path")
                  if (path.startsWith("content://")) {
                      android.util.Log.e("CreatePost", "ERROR: Path is still a content URI!")

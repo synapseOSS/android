@@ -18,7 +18,7 @@ import com.synapse.social.studioasinc.backend.SupabaseChatService
 import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import kotlinx.coroutines.launch
 
-class InboxChatsFragment : Fragment() {
+class ChatListFragment : Fragment() {
     
     private val authService = SupabaseAuthenticationService()
     private val chatService = SupabaseChatService()
@@ -28,7 +28,7 @@ class InboxChatsFragment : Fragment() {
     private var emptyView: TextView? = null
     private var progressBar: ProgressBar? = null
     private val chatsList = ArrayList<Map<String, Any?>>()
-    private var chatsAdapter: InboxChatsAdapter? = null
+    private var chatsAdapter: ChatListAdapter? = null
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,7 +49,7 @@ class InboxChatsFragment : Fragment() {
     
     private fun setupRecyclerView() {
         recyclerView?.layoutManager = LinearLayoutManager(context)
-        chatsAdapter = InboxChatsAdapter(chatsList) { chatId, otherUserId ->
+        chatsAdapter = ChatListAdapter(chatsList) { chatId, otherUserId ->
             openChat(chatId, otherUserId)
         }
         recyclerView?.adapter = chatsAdapter
@@ -85,7 +85,7 @@ class InboxChatsFragment : Fragment() {
                         }
                     },
                     onFailure = { error ->
-                        android.util.Log.e("InboxChatsFragment", "Failed to load chats", error)
+                        android.util.Log.e("ChatListFragment", "Failed to load chats", error)
                         showLoading(false)
                         showEmpty("Failed to load chats: ${error.message}")
                     }

@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.util
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.synapse.social.studioasinc.FileUtil
+import com.synapse.social.studioasinc.FileUtils
 
 /**
  * Utility for testing and debugging URI conversion
@@ -18,7 +18,7 @@ object UriTestUtil {
     fun testUriConversion(context: Context, uri: Uri): String? {
         Log.d(TAG, "Testing URI conversion for: $uri")
         
-        val result = FileUtil.convertUriToFilePath(context, uri)
+        val result = FileUtils.convertUriToFilePath(context, uri)
         
         when {
             result == null -> {

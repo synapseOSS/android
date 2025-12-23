@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Enhanced message sync service with offline queue and cross-platform sync
  */
-class EnhancedMessageSyncService(private val scope: CoroutineScope) {
+class RealtimeMessageSyncService(private val scope: CoroutineScope) {
     
     private val supabase = SupabaseClient.client
     

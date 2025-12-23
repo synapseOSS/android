@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.synapse.social.studioasinc.LineVideosRecyclerViewAdapter
+import com.synapse.social.studioasinc.VideoFeedAdapter
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import kotlinx.coroutines.launch
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 class ReelsFragment : Fragment() {
 
     private lateinit var databaseService: SupabaseDatabaseService
-    private lateinit var lineVideosRecyclerViewAdapter: LineVideosRecyclerViewAdapter
+    private lateinit var videoFeedAdapter: VideoFeedAdapter
     private val lineVideosListMap = ArrayList<HashMap<String, Any>>()
     
     private lateinit var middleRelativeTopSwipe: SwipeRefreshLayout
@@ -60,8 +60,8 @@ class ReelsFragment : Fragment() {
         lineVideoViewSnapHelper.attachToRecyclerView(videosRecyclerView)
         
         // Ensure adapter is initialized with required context
-        lineVideosRecyclerViewAdapter = LineVideosRecyclerViewAdapter(lineVideosListMap, requireContext())
-        videosRecyclerView.adapter = lineVideosRecyclerViewAdapter
+        videoFeedAdapter = VideoFeedAdapter(lineVideosListMap, requireContext())
+        videosRecyclerView.adapter = videoFeedAdapter
 
         loadReels()
     }
@@ -102,7 +102,7 @@ class ReelsFragment : Fragment() {
                     
                     lineVideosListMap.addAll(convertedPosts)
                     
-                    if (::lineVideosRecyclerViewAdapter.isInitialized) {
+                    if (::videoFeedAdapter.isInitialized) {
                         lineVideosRecyclerViewAdapter.notifyDataSetChanged()
                         loadedBody.visibility = View.VISIBLE
                     } else {

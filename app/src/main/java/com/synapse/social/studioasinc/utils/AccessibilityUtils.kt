@@ -7,7 +7,7 @@ import androidx.core.view.ViewCompat
 /**
  * Helper object for accessibility improvements
  */
-object AccessibilityHelper {
+object AccessibilityUtils {
     
     /**
      * Sets content description for a view

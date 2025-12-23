@@ -1,9 +1,9 @@
 package com.synapse.social.studioasinc
 
 /**
- * Supabase-based OneSignalManager that replaces Firebase implementation.
+ * Supabase-based PushNotificationManager that replaces Firebase implementation.
  */
-object OneSignalManager {
+object PushNotificationManager {
 
     /**
      * Saves or updates the user's OneSignal Player ID in the Supabase database.
