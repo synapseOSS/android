@@ -13,6 +13,11 @@ import java.net.URL
 import java.net.MalformedURLException
 
 /**
+ * Exception thrown when Supabase configuration is invalid or missing.
+ */
+class ConfigurationException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+
+/**
  * Supabase client singleton for the application.
  * Provides centralized access to Supabase services including Auth, Postgrest, Realtime, and Storage.
  */
@@ -30,7 +35,6 @@ object SupabaseClient {
      * Automatically configures all required modules and handles configuration errors gracefully.
      */
     val client by lazy {
-        // FIXME: Improve error specificity and propagation - Consider defining a custom exception for configuration errors
         // Check if credentials are properly configured
         if (BuildConfig.SUPABASE_URL.isBlank() || 
             BuildConfig.SUPABASE_URL == "https://your-project.supabase.co" ||
@@ -41,7 +45,7 @@ object SupabaseClient {
             Log.e(TAG, "Please update gradle.properties with your actual Supabase URL and key")
             
             // Fail fast - don't create dummy client that silently fails
-            throw IllegalStateException(
+            throw ConfigurationException(
                 "Supabase not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY in gradle.properties"
             )
         }
@@ -64,7 +68,7 @@ object SupabaseClient {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize Supabase client: ${e.message}", e)
             // Fail fast instead of creating dummy client
-            throw IllegalStateException("Failed to initialize Supabase client", e)
+            throw ConfigurationException("Failed to initialize Supabase client", e)
         }
     }
     
@@ -104,7 +108,7 @@ object SupabaseClient {
         try {
             URL(supabaseUrl)
         } catch (e: MalformedURLException) {
-            throw IllegalArgumentException("Invalid Supabase URL configured: $supabaseUrl", e)
+            throw ConfigurationException("Invalid Supabase URL configured: $supabaseUrl", e)
         }
         return "$supabaseUrl/storage/v1/object/public/$bucket/$path"
     }
