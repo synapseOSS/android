@@ -7,6 +7,8 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.rpc
+import io.github.jan.supabase.exceptions.RestException
+import io.github.jan.supabase.exceptions.HttpRequestException
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -43,7 +45,6 @@ class SupabaseChatService {
     private suspend fun ensureParticipantsExist(chatId: String, userId1: String, userId2: String, createdBy: String): Result<Unit> {
         android.util.Log.d(TAG, "Ensuring participants exist for chat: $chatId")
         
-        // FIXME: Improve error specificity and propagation - Catching generic Exception masks potential issues
         return try {
             // Always try to add both participants via RPC (it has ON CONFLICT DO NOTHING)
             // This is more reliable than checking first, especially with race conditions
@@ -60,6 +61,12 @@ class SupabaseChatService {
             
             android.util.Log.d(TAG, "Participants ensured for chat: $chatId")
             Result.success(Unit)
+        } catch (e: RestException) {
+            android.util.Log.e(TAG, "Supabase API error ensuring participants exist: ${e.message}", e)
+            Result.failure(e)
+        } catch (e: HttpRequestException) {
+            android.util.Log.e(TAG, "Network error ensuring participants exist", e)
+            Result.failure(e)
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error ensuring participants exist", e)
             Result.failure(e)
@@ -87,6 +94,23 @@ class SupabaseChatService {
             
             android.util.Log.d(TAG, "Added participant via RPC: $userId to $chatId")
             Result.success(Unit)
+        } catch (e: RestException) {
+            // Handle Supabase API errors
+            android.util.Log.e(TAG, "RPC failed (API error) for participant $userId: ${e.message}", e)
+
+            // Check for duplicate key errors or similar conflicts
+            if (e.message?.contains("duplicate", ignoreCase = true) == true ||
+                e.message?.contains("already exists", ignoreCase = true) == true ||
+                e.message?.contains("conflict", ignoreCase = true) == true) {
+                android.util.Log.d(TAG, "Participant likely already exists (RestException): $userId in $chatId")
+                Result.success(Unit)
+            } else {
+                Result.failure(e)
+            }
+        } catch (e: HttpRequestException) {
+            // Handle network errors
+            android.util.Log.e(TAG, "RPC failed (Network error) for participant $userId: ${e.message}", e)
+            Result.failure(e)
         } catch (e: Exception) {
             // The RPC function has ON CONFLICT DO NOTHING, so any error is unexpected
             android.util.Log.e(TAG, "RPC failed for participant $userId: ${e.message}", e)
