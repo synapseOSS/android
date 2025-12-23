@@ -6,6 +6,7 @@ import android.os.Looper
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.concurrent.TimeUnit
@@ -73,28 +74,27 @@ class RequestNetwork(activity: Activity) {
 
         try {
             val reqBuilder = Request.Builder()
-            val headerBuilder = Headers.Builder()
 
             headers.forEach { (key, value) ->
-                headerBuilder.add(key, value.toString())
+                reqBuilder.addHeader(key, value.toString())
             }
 
             if (requestType == REQUEST_PARAM) {
                 if (method == GET) {
-                    val httpBuilder = HttpUrl.parse(url)?.newBuilder()
+                    val httpBuilder = url.toHttpUrlOrNull()?.newBuilder()
                         ?: throw IllegalArgumentException("Invalid URL: $url")
 
                     params.forEach { (key, value) ->
                         httpBuilder.addQueryParameter(key, value.toString())
                     }
-                    reqBuilder.url(httpBuilder.build()).headers(headerBuilder.build()).get()
+                    reqBuilder.url(httpBuilder.build()).get()
                 } else {
                     val formBuilder = FormBody.Builder()
                     params.forEach { (key, value) ->
                         formBuilder.add(key, value.toString())
                     }
                     val reqBody = formBuilder.build()
-                    reqBuilder.url(url).headers(headerBuilder.build()).method(method, reqBody)
+                    reqBuilder.url(url).method(method, reqBody)
                 }
             } else {
                 val json = Gson().toJson(params)
@@ -104,9 +104,9 @@ class RequestNetwork(activity: Activity) {
                      // GET with body is non-standard but technically possible in some libs.
                      // OkHttp disallows GET with body. We fall back to standard GET without body
                      // or throw. For now, we assume GET doesn't use JSON body.
-                     reqBuilder.url(url).headers(headerBuilder.build()).get()
+                     reqBuilder.url(url).get()
                 } else {
-                    reqBuilder.url(url).headers(headerBuilder.build()).method(method, reqBody)
+                    reqBuilder.url(url).method(method, reqBody)
                 }
             }
 
