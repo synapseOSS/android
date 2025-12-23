@@ -193,5 +193,8 @@ fun HashMap<String, Any>.toPost(): Post = Post(
     postHideLikeCount = this["post_hide_like_count"] as? String,
     postHideCommentsCount = this["post_hide_comments_count"] as? String,
     postDisableComments = this["post_disable_comments"] as? String,
-    postVisibility = this["post_visibility"] as? String
+    postVisibility = this["post_visibility"] as? String,
+    avatarUrl = this["author_avatar_url"] as? String,
+    username = this["author_username"] as? String,
+    isVerified = this["author_is_verified"] as? Boolean ?: false
 )

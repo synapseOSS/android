@@ -448,7 +448,7 @@ class UserFollowsListActivity : BaseActivity() {
             }
 
             holder.body.setOnClickListener {
-                val intent = Intent(applicationContext, ProfileComposeActivity::class.java)
+                val intent = Intent(applicationContext, ProfileActivity::class.java)
                 intent.putExtra("uid", uid)
                 startActivity(intent)
             }
@@ -613,7 +613,7 @@ class UserFollowsListActivity : BaseActivity() {
             }
 
             holder.body.setOnClickListener {
-                val intent = Intent(applicationContext, ProfileComposeActivity::class.java)
+                val intent = Intent(applicationContext, ProfileActivity::class.java)
                 intent.putExtra("uid", uid)
                 startActivity(intent)
             }

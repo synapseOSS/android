@@ -82,7 +82,7 @@ class NotificationClickHandler : INotificationClickListener {
             return
         }
         
-        val intent = Intent(context, ProfileComposeActivity::class.java).apply {
+        val intent = Intent(context, ProfileActivity::class.java).apply {
             putExtra("uid", senderUid)
             if (!postId.isNullOrBlank()) {
                 putExtra("postId", postId)
@@ -175,7 +175,7 @@ class NotificationClickHandler : INotificationClickListener {
             return
         }
         
-        val intent = Intent(context, ProfileComposeActivity::class.java).apply {
+        val intent = Intent(context, ProfileActivity::class.java).apply {
             putExtra("uid", followerUid)
             putExtra("showFollowButton", true)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

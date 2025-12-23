@@ -681,26 +681,20 @@ class SupabaseAuthenticationService : com.synapse.social.studioasinc.backend.int
      * Get current user
      */
     override fun getCurrentUser(): User? {
-        // FIXME: Improve error specificity and propagation - Catching generic Exception masks potential issues
-        return try {
-            // Check if Supabase is configured
-            if (!SupabaseClient.isConfigured()) {
-                return null
-            }
-            
-            val user = client.auth.currentUserOrNull()
-            if (user != null && user.id.isNotEmpty()) {
-                User(
-                    id = user.id,
-                    email = user.email ?: "",
-                    emailConfirmed = user.emailConfirmedAt != null,
-                    createdAt = user.createdAt?.toString()
-                )
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            Log.e("SupabaseAuth", "Failed to get current user", e)
+        // Check if Supabase is configured
+        if (!SupabaseClient.isConfigured()) {
+            return null
+        }
+
+        val user = client.auth.currentUserOrNull()
+        return if (user != null && user.id.isNotEmpty()) {
+            User(
+                id = user.id,
+                email = user.email ?: "",
+                emailConfirmed = user.emailConfirmedAt != null,
+                createdAt = user.createdAt?.toString()
+            )
+        } else {
             null
         }
     }

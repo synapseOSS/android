@@ -100,7 +100,7 @@ class MarkdownRenderer private constructor(private val markwon: Markwon) {
                 val span = if (symbol == "@") object : ClickableSpan() {
                     override fun onClick(widget: View) {
                         val ctx = widget.context
-                        ctx.startActivity(Intent(ctx, com.synapse.social.studioasinc.ProfileComposeActivity::class.java).putExtra("username", full.substring(1)))
+                        ctx.startActivity(Intent(ctx, com.synapse.social.studioasinc.ProfileActivity::class.java).putExtra("username", full.substring(1)))
                     }
                     override fun updateDrawState(ds: TextPaint) {
                         ds.color = Color.parseColor("#445E91")

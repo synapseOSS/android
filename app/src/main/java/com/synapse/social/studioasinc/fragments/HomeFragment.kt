@@ -138,7 +138,7 @@ class HomeFragment : Fragment() {
             onCommentClicked = { post -> showCommentsDialog(post) },
             onShareClicked = { post -> sharePost(post) },
             onUserClicked = { userId ->
-                val intent = Intent(requireContext(), com.synapse.social.studioasinc.ProfileComposeActivity::class.java)
+                val intent = Intent(requireContext(), com.synapse.social.studioasinc.ProfileActivity::class.java)
                 intent.putExtra("uid", userId)
                 startActivity(intent)
             },
@@ -406,7 +406,7 @@ class HomeFragment : Fragment() {
         val bottomSheet = ReactedUsersBottomSheet.newInstance(
             postId = post.id,
             onUserClicked = { userId ->
-                val intent = Intent(requireContext(), com.synapse.social.studioasinc.ProfileComposeActivity::class.java)
+                val intent = Intent(requireContext(), com.synapse.social.studioasinc.ProfileActivity::class.java)
                 intent.putExtra("uid", userId)
                 startActivity(intent)
             },

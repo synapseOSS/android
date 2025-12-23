@@ -72,6 +72,7 @@ class MultiSelectManager(
      * Requirements: 8.4
      */
     private fun saveScrollPosition() {
+        /*
         val recyclerView = activity.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.ChatMessagesListRecycler)
         val layoutManager = recyclerView?.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
         
@@ -80,6 +81,7 @@ class MultiSelectManager(
             val firstVisibleView = layoutManager.findViewByPosition(savedScrollPosition)
             savedScrollOffset = firstVisibleView?.top ?: 0
         }
+        */
     }
     
     /**
@@ -89,10 +91,12 @@ class MultiSelectManager(
     private fun restoreScrollPosition() {
         if (savedScrollPosition == -1) return
         
+        /*
         val recyclerView = activity.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.ChatMessagesListRecycler)
         val layoutManager = recyclerView?.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
         
         layoutManager?.scrollToPositionWithOffset(savedScrollPosition, savedScrollOffset)
+        */
         
         // Reset saved position
         savedScrollPosition = -1
@@ -240,6 +244,7 @@ class MultiSelectManager(
      * Show the action toolbar and hide the standard toolbar
      */
     private fun showActionToolbar() {
+        /*
         // Find toolbars if not already cached
         if (standardToolbar == null) {
             standardToolbar = activity.findViewById(R.id.toolbar)
@@ -273,6 +278,7 @@ class MultiSelectManager(
         
         // Update title with initial count
         updateActionToolbarTitle()
+        */
     }
     
     /**

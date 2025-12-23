@@ -8,12 +8,32 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.core.view.ViewCompat
-// import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -21,14 +41,10 @@ import kotlinx.coroutines.launch
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.UserRepository
-import com.synapse.social.studioasinc.databinding.ActivityMainBinding
-import com.synapse.social.studioasinc.databinding.DialogErrorBinding
-import com.synapse.social.studioasinc.databinding.DialogUpdateBinding
-import com.synapse.social.studioasinc.ui.auth.util.FeatureFlag
+import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 
-class MainActivity : BaseActivity() {
+class MainActivity : ComponentActivity() {
 
-    private lateinit var binding: ActivityMainBinding
     private val authRepository = AuthRepository()
     private val userRepository by lazy { UserRepository(AppDatabase.getDatabase(this).userDao()) }
     
@@ -43,17 +59,48 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         
-        // Override BaseActivity's window insets for edge-to-edge status bar
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            insets
+        // Enable edge-to-edge display
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        
+        setContent {
+            SynapseTheme {
+                MainScreen(
+                    viewModel = viewModel,
+                    onNavigateToHome = {
+                        val intent = Intent(this@MainActivity, HomeActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    },
+                    onNavigateToAuth = {
+                        val intent = Intent(this@MainActivity, AuthActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    },
+                    onOpenUpdateLink = { updateLink ->
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateLink))
+                        startActivity(intent)
+                        finish()
+                    },
+                    onShowToast = { message ->
+                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+                    },
+                    onSignOut = {
+                        lifecycleScope.launch {
+                            authRepository.signOut()
+                        }
+                    },
+                    onFinishApp = {
+                        finishAffinity()
+                    },
+                    onFinish = {
+                        finish()
+                    }
+                )
+            }
         }
 
         createNotificationChannels()
-        setupListeners()
-        setupObservers()
         viewModel.checkForUpdates()
     }
 
@@ -89,118 +136,264 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun setupListeners() {
-        binding.appLogo.setOnLongClickListener {
-            // Developer access check - implement with Supabase user metadata if needed
-            // For now, just allow long press to exit
-            finish()
-            true
-        }
-    }
-
-    private fun setupObservers() {
-        // Check if Supabase is configured first
-        if (!com.synapse.social.studioasinc.SupabaseClient.isConfigured()) {
-            // Log the configuration issue for debugging
-            android.util.Log.e("MainActivity", "Supabase not configured - URL: ${BuildConfig.SUPABASE_URL}, Key length: ${BuildConfig.SUPABASE_ANON_KEY.length}")
-            
-            showErrorDialog("Supabase Configuration Missing\n\nThe app is not properly configured. Please contact the developer to set up the backend services.\n\nConfiguration needed:\n• Supabase URL\n• Supabase API Key\n\nThis is a development/deployment issue that needs to be resolved by the app developer.")
-            return
-        }
-        
-        viewModel.updateState.observe(this) { state ->
-            when (state) {
-                is UpdateState.UpdateAvailable -> showUpdateDialog(state.title, state.versionName, state.changelog, state.updateLink, state.isCancelable)
-                is UpdateState.NoUpdate -> viewModel.checkUserAuthentication()
-                is UpdateState.Error -> showErrorDialog(state.message)
-            }
-        }
-
-        viewModel.authState.observe(this) { state ->
-            when (state) {
-                is AuthState.Authenticated -> {
-                    // Navigate to home screen
-                    val intent = Intent(this, HomeActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                }
-                is AuthState.Unauthenticated -> {
-                    // Navigate to auth screen
-                    val intent = Intent(this, AuthActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                }
-                is AuthState.Banned -> {
-                    Toast.makeText(this, "You are banned & Signed Out.", Toast.LENGTH_LONG).show()
-                    lifecycleScope.launch {
-                        authRepository.signOut()
-                    }
-                    finish()
-                }
-                is AuthState.Error -> showErrorDialog(state.message)
-            }
-        }
-    }
-
-    private fun showUpdateDialog(title: String, versionName: String, changelog: String, updateLink: String, isCancelable: Boolean) {
-        val dialogBinding = DialogUpdateBinding.inflate(layoutInflater)
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogBinding.root)
-            .setCancelable(isCancelable)
-            .create()
-
-        dialogBinding.updateTitle.text = title
-        dialogBinding.updateVersion.text = "Version $versionName"
-        dialogBinding.updateChangelog.text = changelog.replace("\\\\n", "\\n")
-
-        dialogBinding.buttonUpdate.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateLink))
-            startActivity(intent)
-            dialog.dismiss()
-            finish()
-        }
-
-        dialogBinding.buttonLater.setOnClickListener {
-            dialog.dismiss()
-            if (isCancelable) {
-                viewModel.checkUserAuthentication()
-            }
-        }
-
-        if (!isCancelable) {
-            dialogBinding.buttonLater.visibility = View.GONE
-        }
-
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.show()
-    }
-
-    private fun showErrorDialog(errorMessage: String) {
-        val dialogBinding = DialogErrorBinding.inflate(layoutInflater)
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogBinding.root)
-            .setCancelable(true)
-            .create()
-
-        dialogBinding.errorMessageTextview.text = errorMessage
-
-        dialogBinding.okButton.setOnClickListener {
-            dialog.dismiss()
-            // If Supabase is not configured, close the app instead of retrying
-            if (!com.synapse.social.studioasinc.SupabaseClient.isConfigured()) {
-                finishAffinity()
-            } else {
-                viewModel.checkUserAuthentication()
-            }
-        }
-
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.show()
-    }
-
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         super.onBackPressed()
         finishAffinity()
+    }
+}
+
+@Composable
+fun MainScreen(
+    viewModel: MainViewModel,
+    onNavigateToHome: () -> Unit,
+    onNavigateToAuth: () -> Unit,
+    onOpenUpdateLink: (String) -> Unit,
+    onShowToast: (String) -> Unit,
+    onSignOut: () -> Unit,
+    onFinishApp: () -> Unit,
+    onFinish: () -> Unit
+) {
+    val context = LocalContext.current
+    val updateState by viewModel.updateState.observeAsState()
+    val authState by viewModel.authState.observeAsState()
+
+    // Handle state changes
+    LaunchedEffect(updateState) {
+        when (updateState) {
+            is UpdateState.NoUpdate -> viewModel.checkUserAuthentication()
+            is UpdateState.Error -> {
+                // Error will be shown in dialog
+            }
+            else -> { /* UpdateAvailable will be shown in dialog */ }
+        }
+    }
+
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthState.Authenticated -> onNavigateToHome()
+            is AuthState.Unauthenticated -> onNavigateToAuth()
+            is AuthState.Banned -> {
+                onShowToast("You are banned & Signed Out.")
+                onSignOut()
+                onFinish()
+            }
+            else -> { /* Error will be shown in dialog */ }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Top spacer
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // App logo
+            Image(
+                painter = painterResource(id = R.drawable.appicon),
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .size(85.dp)
+                    .clickable(
+                        onClick = onFinish,
+                        onClickLabel = "Long press to exit"
+                    ),
+                contentScale = ContentScale.Fit
+            )
+            
+            Spacer(modifier = Modifier.weight(3f))
+            
+            // Company trademark
+            Image(
+                painter = painterResource(id = R.drawable.bycompany_mtrl),
+                contentDescription = "Company Trademark",
+                modifier = Modifier
+                    .height(100.dp)
+                    .padding(bottom = 20.dp),
+                contentScale = ContentScale.Fit
+            )
+            
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
+        // Show dialogs based on state
+        updateState?.let { state ->
+            when (state) {
+                is UpdateState.UpdateAvailable -> {
+                    UpdateDialog(
+                        title = state.title,
+                        versionName = state.versionName,
+                        changelog = state.changelog,
+                        updateLink = state.updateLink,
+                        isCancelable = state.isCancelable,
+                        onUpdate = { onOpenUpdateLink(state.updateLink) },
+                        onLater = {
+                            if (state.isCancelable) {
+                                viewModel.checkUserAuthentication()
+                            }
+                        }
+                    )
+                }
+                is UpdateState.Error -> {
+                    ErrorDialog(
+                        message = state.message,
+                        onDismiss = {
+                            if (!SupabaseClient.isConfigured()) {
+                                onFinishApp()
+                            } else {
+                                viewModel.checkUserAuthentication()
+                            }
+                        }
+                    )
+                }
+                else -> { /* No dialog needed */ }
+            }
+        }
+
+        authState?.let { state ->
+            if (state is AuthState.Error) {
+                ErrorDialog(
+                    message = state.message,
+                    onDismiss = {
+                        if (!SupabaseClient.isConfigured()) {
+                            onFinishApp()
+                        } else {
+                            viewModel.checkUserAuthentication()
+                        }
+                    }
+                )
+            }
+        }
+
+        // Check Supabase configuration
+        if (!SupabaseClient.isConfigured()) {
+            ErrorDialog(
+                message = "Supabase Configuration Missing\n\nThe app is not properly configured. Please contact the developer to set up the backend services.\n\nConfiguration needed:\n• Supabase URL\n• Supabase API Key\n\nThis is a development/deployment issue that needs to be resolved by the app developer.",
+                onDismiss = onFinishApp
+            )
+        }
+    }
+}
+
+@Composable
+fun UpdateDialog(
+    title: String,
+    versionName: String,
+    changelog: String,
+    updateLink: String,
+    isCancelable: Boolean,
+    onUpdate: () -> Unit,
+    onLater: () -> Unit
+) {
+    Dialog(onDismissRequest = { if (isCancelable) onLater() }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Version $versionName",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = changelog.replace("\\\\n", "\n"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = if (isCancelable) Arrangement.SpaceBetween else Arrangement.Center
+                ) {
+                    if (isCancelable) {
+                        TextButton(onClick = onLater) {
+                            Text("Later")
+                        }
+                    }
+                    
+                    Button(onClick = onUpdate) {
+                        Text("Update")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ErrorDialog(
+    message: String,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Error",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Button(onClick = onDismiss) {
+                    Text("OK")
+                }
+            }
+        }
     }
 }

@@ -8,7 +8,7 @@ import android.text.style.ClickableSpan
 import android.view.View
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
-import com.synapse.social.studioasinc.ProfileComposeActivity
+import com.synapse.social.studioasinc.ProfileActivity
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import com.synapse.social.studioasinc.NotificationHelper
@@ -52,7 +52,7 @@ object MentionUtils {
                                     onSuccess = { user ->
                                         if (user != null) {
                                             CoroutineScope(Dispatchers.Main).launch {
-                                                val intent = Intent(context, ProfileComposeActivity::class.java)
+                                                val intent = Intent(context, ProfileActivity::class.java)
                                                 intent.putExtra("uid", user.uid)
                                                 context.startActivity(intent)
                                             }

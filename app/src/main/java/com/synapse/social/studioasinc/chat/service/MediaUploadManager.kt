@@ -172,8 +172,6 @@ class MediaUploadManager(
                 compressedFile.delete()
                 thumbnailFile.delete()
                 
-                emitProgress(uploadId, metadata.fileName, 1.0f, metadata.fileSize, metadata.fileSize, UploadState.COMPLETED)
-                
                 val result = MediaUploadResult(
                     url = mainUrl,
                     thumbnailUrl = thumbnailUrl,
@@ -183,6 +181,8 @@ class MediaUploadManager(
                     width = dimensions?.first,
                     height = dimensions?.second
                 )
+
+                emitProgress(uploadId, metadata.fileName, 1.0f, metadata.fileSize, metadata.fileSize, UploadState.COMPLETED, result = result)
                 
                 Result.success(result)
                 
@@ -263,8 +263,6 @@ class MediaUploadManager(
                 videoFile.delete()
                 thumbnailFile.delete()
                 
-                emitProgress(uploadId, metadata.fileName, 1.0f, metadata.fileSize, metadata.fileSize, UploadState.COMPLETED)
-                
                 val result = MediaUploadResult(
                     url = mainUrl,
                     thumbnailUrl = thumbnailUrl,
@@ -275,6 +273,8 @@ class MediaUploadManager(
                     height = videoMetadata?.height,
                     duration = videoMetadata?.duration
                 )
+
+                emitProgress(uploadId, metadata.fileName, 1.0f, metadata.fileSize, metadata.fileSize, UploadState.COMPLETED, result = result)
                 
                 Result.success(result)
                 
@@ -329,8 +329,6 @@ class MediaUploadManager(
                 // Clean up temporary file
                 audioFile.delete()
                 
-                emitProgress(uploadId, metadata.fileName, 1.0f, metadata.fileSize, metadata.fileSize, UploadState.COMPLETED)
-                
                 val result = MediaUploadResult(
                     url = mainUrl,
                     thumbnailUrl = null,
@@ -339,6 +337,8 @@ class MediaUploadManager(
                     mimeType = metadata.mimeType,
                     duration = audioMetadata?.duration
                 )
+
+                emitProgress(uploadId, metadata.fileName, 1.0f, metadata.fileSize, metadata.fileSize, UploadState.COMPLETED, result = result)
                 
                 Result.success(result)
                 
@@ -390,8 +390,6 @@ class MediaUploadManager(
                 // Clean up temporary file
                 documentFile.delete()
                 
-                emitProgress(uploadId, metadata.fileName, 1.0f, metadata.fileSize, metadata.fileSize, UploadState.COMPLETED)
-                
                 val result = MediaUploadResult(
                     url = mainUrl,
                     thumbnailUrl = null,
@@ -399,6 +397,8 @@ class MediaUploadManager(
                     fileSize = metadata.fileSize,
                     mimeType = metadata.mimeType
                 )
+
+                emitProgress(uploadId, metadata.fileName, 1.0f, metadata.fileSize, metadata.fileSize, UploadState.COMPLETED, result = result)
                 
                 Result.success(result)
                 
@@ -555,6 +555,9 @@ class MediaUploadManager(
                         state = UploadState.FAILED,
                         error = result.exceptionOrNull()?.message
                     )
+                } else {
+                    // Success is already emitted by individual upload methods with result
+                    // We just ensure we don't block here
                 }
                 
             } catch (e: Exception) {
@@ -584,7 +587,8 @@ class MediaUploadManager(
         bytesUploaded: Long,
         totalBytes: Long,
         state: UploadState,
-        error: String? = null
+        error: String? = null,
+        result: MediaUploadResult? = null
     ) {
         val progressUpdate = UploadProgress(
             uploadId = uploadId,
@@ -593,7 +597,8 @@ class MediaUploadManager(
             bytesUploaded = bytesUploaded,
             totalBytes = totalBytes,
             state = state,
-            error = error
+            error = error,
+            result = result
         )
         
         _progressFlow.emit(progressUpdate)

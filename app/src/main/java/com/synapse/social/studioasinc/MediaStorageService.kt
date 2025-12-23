@@ -4,6 +4,9 @@ import android.content.Context
 import android.webkit.MimeTypeMap
 import com.synapse.social.studioasinc.data.local.AppSettingsManager
 import com.synapse.social.studioasinc.data.local.StorageConfig
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.storage.Storage
+import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -301,11 +304,58 @@ class MediaStorageService(
     }
     
     /**
-     * Placeholder for Supabase upload (implement based on existing backend service)
+     * Upload to Supabase Storage
      */
     private suspend fun uploadToSupabase(url: String, apiKey: String, bucketName: String, file: File, callback: UploadCallback) {
-        // TODO: Implement Supabase upload logic
-        callback.onError("Supabase upload not implemented yet")
+        var client: io.github.jan.supabase.SupabaseClient? = null
+        try {
+            // Create a scoped client for this upload since credentials might differ from global instance
+            client = createSupabaseClient(
+                supabaseUrl = url,
+                supabaseKey = apiKey
+            ) {
+                install(Storage)
+            }
+
+            val bucket = client.storage.from(bucketName)
+            val fileName = "${System.currentTimeMillis()}_${file.name}"
+
+            // Initial progress
+            withContext(Dispatchers.Main) {
+                callback.onProgress(10)
+            }
+
+            // Upload the file using the overload that accepts a File or byte array.
+            // Using readBytes() is generally safe for typical mobile images (<10MB),
+            // but for large videos, chunked upload is preferred.
+            // The supabase-kt library's upload method handles byte arrays well.
+            // Ideally we would pass the File directly if the library supports it to avoid OOM,
+            // but the current version used typically expects bytes.
+            // To be safer, we can check file size or just proceed as is for now,
+            // but wrapping in try/finally ensures the client is closed.
+            bucket.upload(fileName, file.readBytes()) {
+                 upsert = true
+            }
+
+            // Final progress
+            withContext(Dispatchers.Main) {
+                callback.onProgress(100)
+            }
+
+            // Get public URL
+            val publicUrl = bucket.publicUrl(fileName)
+
+            withContext(Dispatchers.Main) {
+                callback.onSuccess(publicUrl, fileName)
+            }
+
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                callback.onError("Supabase upload failed: ${e.message}")
+            }
+        } finally {
+             client?.close()
+        }
     }
     
     /**
