@@ -33,6 +33,7 @@ import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
 import com.synapse.social.studioasinc.ui.components.post.PostActions
 import com.synapse.social.studioasinc.ui.profile.animations.crossfadeContent
 import com.synapse.social.studioasinc.ui.profile.components.*
+import com.synapse.social.studioasinc.ui.profile.components.UserSearchDialog
 import kotlinx.coroutines.delay
 
 /**
@@ -77,6 +78,7 @@ fun ProfileScreen(
     val listState = rememberLazyListState()
     var isRefreshing by remember { mutableStateOf(false) }
     var showCustomizationDialog by remember { mutableStateOf(false) }
+    var showUserSearchDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val density = androidx.compose.ui.platform.LocalDensity.current
@@ -215,10 +217,28 @@ fun ProfileScreen(
                 viewModel.hideViewAsSheet()
             },
             onViewAsSpecificUser = { 
-                // TODO: Show user search dialog
-                viewModel.setViewAsMode(ViewAsMode.SPECIFIC_USER, "User")
+                showUserSearchDialog = true
                 viewModel.hideViewAsSheet()
             }
+        )
+    }
+
+    if (showUserSearchDialog) {
+        UserSearchDialog(
+            onDismiss = {
+                showUserSearchDialog = false
+                viewModel.clearSearchResults()
+            },
+            onUserSelected = { user ->
+                showUserSearchDialog = false
+                viewModel.clearSearchResults()
+                viewModel.setViewAsMode(ViewAsMode.SPECIFIC_USER, user.username ?: "User")
+            },
+            onSearch = { query ->
+                viewModel.searchUsers(query)
+            },
+            searchResults = state.searchResults,
+            isSearching = state.isSearching
         )
     }
 
