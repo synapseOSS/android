@@ -190,7 +190,7 @@
 			android:windowSoftInputMode="stateHidden" />
 
 		<activity
-			android:name=".AuthComposeActivity"
+			android:name=".AuthActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
 			android:hardwareAccelerated="true"
 			android:supportsPictureInPicture="true"

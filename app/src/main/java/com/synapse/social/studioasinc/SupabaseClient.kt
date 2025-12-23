@@ -19,7 +19,7 @@ object SupabaseClient {
 
     /**
      * Callback to open a URL in the browser.
-     * Must be set by the active Activity (e.g., AuthComposeActivity).
+     * Must be set by the active Activity (e.g., AuthActivity).
      */
     var openUrl: ((String) -> Unit)? = null
     

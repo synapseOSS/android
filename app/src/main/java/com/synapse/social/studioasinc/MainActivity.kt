@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.ViewCompat
 // import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -44,6 +45,11 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        
+        // Override BaseActivity's window insets for edge-to-edge status bar
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            insets
+        }
 
         createNotificationChannels()
         setupListeners()
@@ -120,7 +126,7 @@ class MainActivity : BaseActivity() {
                 }
                 is AuthState.Unauthenticated -> {
                     // Navigate to auth screen
-                    val intent = Intent(this, AuthComposeActivity::class.java)
+                    val intent = Intent(this, AuthActivity::class.java)
                     startActivity(intent)
                     finish()
                 }

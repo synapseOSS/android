@@ -22,7 +22,7 @@ import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
  * Modern Compose-based AuthActivity.
  * Entry point for the new authentication flow.
  */
-class AuthComposeActivity : ComponentActivity() {
+class AuthActivity : ComponentActivity() {
 
     private lateinit var viewModel: AuthViewModel
 
