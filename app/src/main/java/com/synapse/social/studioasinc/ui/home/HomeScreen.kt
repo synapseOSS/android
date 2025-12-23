@@ -106,8 +106,7 @@ fun HomeScreen(
                         IconButton(onClick = onNavigateToSearch) {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                // TODO: Extract to resource file - Hardcoded string "Search"
-                                contentDescription = "Search"
+                                contentDescription = stringResource(R.string.search)
                             )
                         }
                         IconButton(onClick = onNavigateToInbox) {
