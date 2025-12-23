@@ -20,7 +20,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.home.HeaderAdapter
 import com.synapse.social.studioasinc.home.HomeViewModel
-import com.synapse.social.studioasinc.EnhancedPostsAdapter
+import com.synapse.social.studioasinc.FeedPostsAdapter
 import com.synapse.social.studioasinc.model.Post
 import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.ReactionPickerBottomSheet
@@ -39,7 +39,7 @@ import io.github.jan.supabase.auth.auth
 class HomeFragment : Fragment() {
 
     private lateinit var viewModel: HomeViewModel
-    private lateinit var postAdapter: EnhancedPostsAdapter
+    private lateinit var postAdapter: FeedPostsAdapter
     private lateinit var headerAdapter: HeaderAdapter
 
     private lateinit var swipeLayout: SwipeRefreshLayout
@@ -125,7 +125,7 @@ class HomeFragment : Fragment() {
         val currentUser = SupabaseClient.client.auth.currentUserOrNull()
         val currentUserId = currentUser?.id ?: ""
 
-        postAdapter = EnhancedPostsAdapter(
+        postAdapter = FeedPostsAdapter(
             context = requireContext(),
             currentUserId = currentUserId,
             onPostClicked = { post -> 

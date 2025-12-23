@@ -28,9 +28,10 @@ import kotlinx.coroutines.launch
  * Requirements: 3.1, 3.2, 3.8
  */
 class PrivacySecurityViewModel(
-    application: Application,
-    private val biometricChecker: BiometricChecker = BiometricCheckerImpl()
+    application: Application
 ) : AndroidViewModel(application) {
+    
+    private val biometricChecker: BiometricChecker = BiometricCheckerImpl()
 
     private val settingsRepository = SettingsRepositoryImpl.getInstance(application)
 

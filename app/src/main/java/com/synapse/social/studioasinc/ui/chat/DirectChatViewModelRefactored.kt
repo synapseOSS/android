@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.chat.service.MessageSelectionService
 import com.synapse.social.studioasinc.chat.service.SyraAiChatService
-import com.synapse.social.studioasinc.moderation.AiModerationService
+import com.synapse.social.studioasinc.moderation.ContentModerationService
 import com.synapse.social.studioasinc.moderation.ContentType
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import kotlinx.coroutines.flow.*
@@ -20,7 +20,7 @@ class DirectChatViewModelRefactored(application: Application) : AndroidViewModel
     // Services
     private val messageSelectionService = MessageSelectionService()
     private val syraAiService = SyraAiChatService()
-    private val moderationService = AiModerationService()
+    private val moderationService = ContentModerationService()
     private val authService = SupabaseAuthenticationService(application)
     
     // UI State

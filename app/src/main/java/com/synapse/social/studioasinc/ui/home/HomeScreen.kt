@@ -92,37 +92,32 @@ fun HomeScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             if (!isPostDetail) {
-                // TODO: Extract to resource file - Hardcoded string "Synapse"
                 TopAppBar(
-                    title = { Text(text = "Synapse") },
+                    title = { Text(text = stringResource(R.string.app_name)) },
                     actions = {
                         IconButton(onClick = onNavigateToCreatePost) {
                             Icon(
                                 imageVector = Icons.Default.AddBox,
-                                // TODO: Extract to resource file - Hardcoded string "Create Post"
-                                contentDescription = "Create Post"
+                                contentDescription = stringResource(R.string.create_post)
                             )
                         }
                         IconButton(onClick = onNavigateToSearch) {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                // TODO: Extract to resource file - Hardcoded string "Search"
-                                contentDescription = "Search"
+                                contentDescription = stringResource(R.string.search)
                             )
                         }
                         IconButton(onClick = onNavigateToInbox) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Send,
-                                // TODO: Extract to resource file - Hardcoded string "Inbox"
-                                contentDescription = "Inbox"
+                                contentDescription = stringResource(R.string.inbox)
                             )
                         }
                         // Profile Icon with Avatar
                         if (userAvatarUrl != null) {
                             com.synapse.social.studioasinc.ui.components.CircularAvatar(
                                 imageUrl = userAvatarUrl,
-                                // TODO: Extract to resource file - Hardcoded string "Profile"
-                                contentDescription = "Profile",
+                                contentDescription = stringResource(R.string.profile),
                                 size = 32.dp,
                                 modifier = Modifier.padding(end = 12.dp),
                                 onClick = { onNavigateToProfile("me") }
@@ -131,8 +126,7 @@ fun HomeScreen(
                             IconButton(onClick = { onNavigateToProfile("me") }) {
                                 Icon(
                                     imageVector = Icons.Default.Person,
-                                    // TODO: Extract to resource file - Hardcoded string "Profile"
-                                    contentDescription = "Profile"
+                                    contentDescription = stringResource(R.string.profile)
                                 )
                             }
                         }
@@ -164,12 +158,10 @@ fun HomeScreen(
                     icon = {
                         Icon(
                             imageVector = if (currentDestination?.hierarchy?.any { it.route == HomeDestinations.Feed.route } == true) Icons.Filled.Home else Icons.Outlined.Home,
-                            // TODO: Extract to resource file - Hardcoded string "Home"
-                            contentDescription = "Home"
+                            contentDescription = stringResource(R.string.home)
                         )
                     },
-                    // TODO: Extract to resource file - Hardcoded string "Home"
-                    label = { Text("Home") }
+                    label = { Text(stringResource(R.string.home)) }
                 )
 
                 NavigationBarItem(
@@ -186,12 +178,10 @@ fun HomeScreen(
                     icon = {
                         Icon(
                             imageVector = if (currentDestination?.hierarchy?.any { it.route == HomeDestinations.Reels.route } == true) Icons.Filled.PlayCircle else Icons.Outlined.PlayCircle,
-                            // TODO: Extract to resource file - Hardcoded string "Reels"
-                            contentDescription = "Reels"
+                            contentDescription = stringResource(R.string.reels)
                         )
                     },
-                    // TODO: Extract to resource file - Hardcoded string "Reels"
-                    label = { Text("Reels") }
+                    label = { Text(stringResource(R.string.reels)) }
                 )
 
                 NavigationBarItem(
@@ -214,13 +204,11 @@ fun HomeScreen(
                         ) {
                             Icon(
                                 imageVector = if (currentDestination?.hierarchy?.any { it.route == HomeDestinations.Notifications.route } == true) Icons.Filled.Notifications else Icons.Outlined.Notifications,
-                                // TODO: Extract to resource file - Hardcoded string "Notifications"
-                                contentDescription = "Notifications"
+                                contentDescription = stringResource(R.string.notifications)
                             )
                         }
                     },
-                    // TODO: Extract to resource file - Hardcoded string "Notifications"
-                    label = { Text("Notifications") }
+                    label = { Text(stringResource(R.string.notifications)) }
                 )
             }
         }

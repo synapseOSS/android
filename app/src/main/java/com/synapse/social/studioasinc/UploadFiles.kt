@@ -36,17 +36,17 @@ object UploadFiles {
     )
     
     // --- CLOUDINARY CONFIGURATION ---
-    private const val CLOUDINARY_API_KEY = "577882927131931"
-    private const val CLOUDINARY_API_SECRET = "M_w_0uQKjnLRUe-u34driUBqUQU"
-    private const val CLOUDINARY_CLOUD_NAME = "djw3fgbls"
-    private const val CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/$CLOUDINARY_CLOUD_NAME/auto/upload"
+    private val CLOUDINARY_API_KEY = BuildConfig.CLOUDINARY_API_KEY
+    private val CLOUDINARY_API_SECRET = BuildConfig.CLOUDINARY_API_SECRET
+    private val CLOUDINARY_CLOUD_NAME = BuildConfig.CLOUDINARY_CLOUD_NAME
+    private val CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/$CLOUDINARY_CLOUD_NAME/auto/upload"
     
     // --- IMGBB CONFIGURATION ---
-    private const val IMGBB_API_KEY = "faa85ffbac0217ff67b5f3c4baa7fb29"
-    private const val IMGBB_UPLOAD_URL = "https://api.imgbb.com/1/upload?expiration=0&key=$IMGBB_API_KEY"
+    private val IMGBB_API_KEY = BuildConfig.IMGBB_API_KEY
+    private val IMGBB_UPLOAD_URL = "https://api.imgbb.com/1/upload?expiration=0&key=$IMGBB_API_KEY"
     
     // --- POSTIMAGES.ORG CONFIGURATION (Fallback 1 for images) ---
-    private const val POSTIMAGES_API_KEY = "7746820ffe9cebd5769618ca22fc9ca8"
+    private val POSTIMAGES_API_KEY = BuildConfig.POSTIMAGES_API_KEY
     private const val POSTIMAGES_UPLOAD_URL = "https://api.postimage.org/1/upload"
     
     // --- IMGHIPPO CONFIGURATION (Fallback 2 for images) ---
@@ -94,17 +94,49 @@ object UploadFiles {
     
     /**
      * Main upload method. Determines the service based on file extension and starts the upload.
+     * Now delegates to MediaStorageService for unified handling.
      */
     @JvmStatic
     fun uploadFile(filePath: String, fileName: String, callback: UploadCallback) {
         Thread {
-            val extension = getFileExtension(fileName).lowercase()
-            if (IMAGE_EXTENSIONS.contains(extension)) {
-                uploadToImgBB(filePath, fileName, callback)
-            } else {
-                uploadToCloudinary(filePath, fileName, callback)
+            try {
+                // Use MediaStorageService for unified upload handling
+                val context = getApplicationContext()
+                val appSettingsManager = com.synapse.social.studioasinc.data.local.AppSettingsManager.getInstance(context)
+                val mediaStorageService = MediaStorageService(context, appSettingsManager)
+                
+                kotlinx.coroutines.runBlocking {
+                    mediaStorageService.uploadFile(filePath, object : MediaStorageService.UploadCallback {
+                        override fun onProgress(percent: Int) {
+                            postProgress(callback, percent)
+                        }
+                        
+                        override fun onSuccess(url: String, publicId: String) {
+                            postSuccess(callback, url, publicId)
+                        }
+                        
+                        override fun onError(error: String) {
+                            postFailure(callback, error)
+                        }
+                    })
+                }
+            } catch (e: Exception) {
+                postFailure(callback, "Upload failed: ${e.message}")
             }
         }.start()
+    }
+    
+    /**
+     * Get application context safely
+     */
+    private fun getApplicationContext(): android.content.Context {
+        return try {
+            val activityThreadClass = Class.forName("android.app.ActivityThread")
+            val currentApplicationMethod = activityThreadClass.getMethod("currentApplication")
+            currentApplicationMethod.invoke(null) as android.content.Context
+        } catch (e: Exception) {
+            throw RuntimeException("Unable to get application context", e)
+        }
     }
     
     /**

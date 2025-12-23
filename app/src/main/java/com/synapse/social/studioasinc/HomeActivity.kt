@@ -82,7 +82,7 @@ class HomeActivity : BaseActivity() {
         super.onStart()
         val currentUser = SupabaseClient.client.auth.currentUserOrNull()
         if (currentUser != null) {
-            PresenceManager.setActivity(currentUser.id, "In Home")
+            ChatPresenceManager.setActivity(currentUser.id, "In Home")
         }
     }
 

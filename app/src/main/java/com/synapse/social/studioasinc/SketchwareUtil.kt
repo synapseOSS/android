@@ -9,24 +9,43 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ListView
 import android.widget.Toast
 import java.io.InputStream
+import java.util.Collections
+import android.os.Handler
+import android.os.Looper
 
+/**
+ * Utility functions for Sketchware-generated code and general helpers.
+ * Refactored for safety, performance, and code hygiene.
+ */
 object SketchwareUtil {
 
+    /**
+     * Sorts a list of maps securely.
+     * Uses generics to avoid raw type casting issues.
+     */
     fun sortListMap(
         listMap: ArrayList<HashMap<String, Any>>,
         key: String,
         isNumber: Boolean,
         ascending: Boolean
     ) {
-        listMap.sortWith { map1, map2 ->
+        Collections.sort(listMap) { map1, map2 ->
             try {
+                val val1 = map1[key]
+                val val2 = map2[key]
+
+                if (val1 == null && val2 == null) return@sort 0
+                if (val1 == null) return@sort if (ascending) -1 else 1
+                if (val2 == null) return@sort if (ascending) 1 else -1
+
                 if (isNumber) {
-                    val count1 = map1[key].toString().toInt()
-                    val count2 = map2[key].toString().toInt()
-                    if (ascending) count1.compareTo(count2) else count2.compareTo(count1)
+                    // Safe parsing with default 0
+                    val num1 = val1.toString().toDoubleOrNull() ?: 0.0
+                    val num2 = val2.toString().toDoubleOrNull() ?: 0.0
+                    if (ascending) num1.compareTo(num2) else num2.compareTo(num1)
                 } else {
-                    val str1 = map1[key].toString()
-                    val str2 = map2[key].toString()
+                    val str1 = val1.toString()
+                    val str2 = val2.toString()
                     if (ascending) str1.compareTo(str2) else str2.compareTo(str1)
                 }
             } catch (e: Exception) {
@@ -45,12 +64,14 @@ object SketchwareUtil {
         return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
+    /**
+     * Reads InputStream to String efficiently.
+     */
     fun copyFromInputStream(inputStream: InputStream): String? {
         return try {
-            inputStream.use { input ->
-                input.readBytes().toString(Charsets.UTF_8)
-            }
+            inputStream.bufferedReader().use { it.readText() }
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
@@ -69,8 +90,17 @@ object SketchwareUtil {
         }
     }
 
+    /**
+     * Shows a toast message safely on the UI thread.
+     */
     fun showMessage(context: Context, message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        } else {
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     fun getLocationX(view: View): Int {
@@ -90,13 +120,14 @@ object SketchwareUtil {
     }
 
     fun getCheckedItemPositionsToArray(list: ListView): ArrayList<Double> {
-        return ArrayList<Double>().apply {
-            for (i in 0 until list.count) {
-                if (list.isItemChecked(i)) {
-                    add(i.toDouble())
-                }
+        val result = ArrayList<Double>()
+        val sparseBooleanArray = list.checkedItemPositions
+        for (i in 0 until sparseBooleanArray.size()) {
+            if (sparseBooleanArray.valueAt(i)) {
+                result.add(sparseBooleanArray.keyAt(i).toDouble())
             }
         }
+        return result
     }
 
     fun getDip(context: Context, input: Int): Float {

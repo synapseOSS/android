@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc.util
 
 import android.content.Context
 import android.net.Uri
-import com.synapse.social.studioasinc.FileUtil
+import com.synapse.social.studioasinc.FileUtils
 import com.synapse.social.studioasinc.ImageUploader
 import com.synapse.social.studioasinc.model.MediaItem
 import com.synapse.social.studioasinc.model.MediaType
@@ -92,7 +92,7 @@ object MediaUploadManager {
         return try {
             val uri = Uri.parse(uriString)
             when {
-                uri.scheme == "content" -> FileUtil.convertUriToFilePath(context, uri)
+                uri.scheme == "content" -> FileUtils.convertUriToFilePath(context, uri)
                 uri.scheme == "file" -> uri.path
                 else -> {
                     val file = File(uriString)

@@ -9,6 +9,8 @@ import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.storage.storage
 import io.ktor.client.engine.okhttp.OkHttp
 import kotlinx.serialization.json.Json
+import java.net.URL
+import java.net.MalformedURLException
 
 /**
  * Supabase client singleton for the application.
@@ -19,7 +21,7 @@ object SupabaseClient {
 
     /**
      * Callback to open a URL in the browser.
-     * Must be set by the active Activity (e.g., AuthComposeActivity).
+     * Must be set by the active Activity (e.g., AuthActivity).
      */
     var openUrl: ((String) -> Unit)? = null
     
@@ -94,11 +96,16 @@ object SupabaseClient {
      * @return Full public URL for the storage object
      */
     fun constructStorageUrl(bucket: String, path: String): String {
-        // TODO: Validate URL format - Ensure BuildConfig.SUPABASE_URL is a valid URL before concatenation
+        // Validate URL format - Ensure BuildConfig.SUPABASE_URL is a valid URL before concatenation
         if (path.startsWith("http://") || path.startsWith("https://")) {
             return path
         }
         val supabaseUrl = BuildConfig.SUPABASE_URL
+        try {
+            URL(supabaseUrl)
+        } catch (e: MalformedURLException) {
+            throw IllegalArgumentException("Invalid Supabase URL configured: $supabaseUrl", e)
+        }
         return "$supabaseUrl/storage/v1/object/public/$bucket/$path"
     }
 
