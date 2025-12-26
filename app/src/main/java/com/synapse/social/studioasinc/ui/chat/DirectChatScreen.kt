@@ -67,7 +67,8 @@ fun DirectChatScreen(
     val uiState by viewModel.uiState.collectAsState()
     val messages by viewModel.messages.collectAsState()
     val availableChats by viewModel.availableChats.collectAsState()
-    
+    val smartReplies by viewModel.smartReplies.collectAsState()
+
     // Derived State
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -598,6 +599,19 @@ fun DirectChatScreen(
                     onDismissMenu = { showTopBarMenu = false },
                     menuContent = {
                         DropdownMenuItem(
+                            text = { Text("Summarize Chat") },
+                            onClick = {
+                                showTopBarMenu = false
+                                viewModel.summarizeChat()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    painter = androidx.compose.ui.res.painterResource(id = com.synapse.social.studioasinc.R.drawable.ic_ai_summary),
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                        DropdownMenuItem(
                             text = { Text("Block User") },
                             onClick = { 
                                 showTopBarMenu = false
@@ -733,6 +747,32 @@ fun DirectChatScreen(
                             inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
                         }
                 ) {
+                    // Smart Replies
+                    if (smartReplies.isNotEmpty()) {
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(smartReplies) { reply ->
+                                SuggestionChip(
+                                    onClick = {
+                                        viewModel.handleIntent(ChatIntent.SendMessage(reply))
+                                    },
+                                    label = { Text(reply) },
+                                    icon = {
+                                        Icon(
+                                            painter = androidx.compose.ui.res.painterResource(id = com.synapse.social.studioasinc.R.drawable.ic_ai_summary),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+
                     // Pending Attachments Preview
                     if (uiState.pendingAttachments.isNotEmpty()) {
                         LazyRow(

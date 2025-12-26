@@ -147,6 +147,13 @@ class SettingsHubViewModel(application: Application) : AndroidViewModel(applicat
                 destination = SettingsDestination.Chat
             ),
             SettingsCategory(
+                id = "ai",
+                title = "AI Settings",
+                subtitle = "Configure AI Persona and Assistant",
+                icon = R.drawable.star_shine_24px,
+                destination = SettingsDestination.AI
+            ),
+            SettingsCategory(
                 id = "storage",
                 title = "Storage & Data",
                 subtitle = "Cache, data usage, and storage providers",

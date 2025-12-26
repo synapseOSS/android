@@ -172,3 +172,4 @@ class Gemini private constructor(
         private const val TAG = "GeminiAPI"
     }
 }
+// Gemini API wrapper for Synapse AI features

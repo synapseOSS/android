@@ -31,6 +31,9 @@ import io.github.jan.supabase.realtime.PostgresAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.TextRange
 import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
+import com.synapse.social.studioasinc.AI.Gemini
+import com.synapse.social.studioasinc.data.repository.AiRepository
+import com.synapse.social.studioasinc.model.AiSummary
 
 /**
  * ViewModel for DirectChatScreen
@@ -47,6 +50,8 @@ class DirectChatViewModel @Inject constructor(
     private val chatRepository = ChatRepository(chatDao)
     private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
+    private val aiRepository = AiRepository()
+    private var gemini: Gemini? = null
     
     // Enhanced typing and presence managers
     private val typingIndicatorManager = com.synapse.social.studioasinc.chat.TypingIndicatorManager.getInstance()
@@ -150,8 +155,15 @@ class DirectChatViewModel @Inject constructor(
     init {
         loadCurrentUser()
         observeConnectionState()
+        initializeGemini()
     }
-    
+
+    private fun initializeGemini() {
+        gemini = Gemini.Builder(getApplication())
+            .model("gemini-1.5-flash")
+            .responseType("text")
+            .build()
+    }
     
     private fun observeConnectionState() {
         viewModelScope.launch {
@@ -404,6 +416,11 @@ class DirectChatViewModel @Inject constructor(
         
         // Fetch link preview if message contains URL
         fetchLinkPreviewForMessage(uiMessage)
+
+        // Generate smart replies if the message is from the other user
+        if (!uiMessage.isFromCurrentUser) {
+            generateSmartReplies()
+        }
     }
 
     /**
@@ -429,9 +446,80 @@ class DirectChatViewModel @Inject constructor(
     private val _effects = kotlinx.coroutines.channels.Channel<ChatEffect>(kotlinx.coroutines.channels.Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
+    // AI State
+    private val _smartReplies = MutableStateFlow<List<String>>(emptyList())
+    val smartReplies: StateFlow<List<String>> = _smartReplies.asStateFlow()
+
+    fun generateSmartReplies() {
+        val lastMessages = _dbMessages.value.takeLast(5).map {
+             "${if (it.isFromCurrentUser) "Me" else "Other"}: ${it.content}"
+        }.joinToString("\n")
+
+        if (lastMessages.isBlank()) return
+
+        val prompt = "Based on the following conversation, suggest 3 short, relevant replies for 'Me'. Return only the replies separated by '|'.\n\nConversation:\n$lastMessages"
+
+        gemini?.sendPrompt(prompt, object : Gemini.GeminiCallback {
+            override fun onSuccess(response: String) {
+                val replies = response.split("|").map { it.trim() }.filter { it.isNotBlank() }.take(3)
+                _smartReplies.value = replies
+            }
+            override fun onError(error: String) {
+                // Log error
+            }
+            override fun onThinking() {}
+        })
+    }
+
+    fun summarizeChat() {
+         val messagesContent = _dbMessages.value.joinToString("\n") {
+             "${if (it.isFromCurrentUser) "Me" else "Other"}: ${it.content}"
+        }
+
+        if (messagesContent.isBlank()) return
+
+        val prompt = "Summarize the following conversation in a concise paragraph:\n\n$messagesContent"
+
+        viewModelScope.launch {
+            _effects.send(ChatEffect.ShowSnackbar("Generating summary..."))
+            gemini?.sendPrompt(prompt, object : Gemini.GeminiCallback {
+                override fun onSuccess(response: String) {
+                    viewModelScope.launch {
+                        _effects.send(ChatEffect.ShowSnackbar("Summary: $response")) // Or show in a dialog
+
+                        // Save summary
+                        val currentMsg = _dbMessages.value.lastOrNull()
+                        if (currentMsg != null && currentUserId != null) {
+                            try {
+                                val summary = AiSummary(
+                                    id = java.util.UUID.randomUUID().toString(),
+                                    messageId = currentMsg.id,
+                                    summaryText = response,
+                                    generatedAt = System.currentTimeMillis(),
+                                    generatedBy = currentUserId!!,
+                                    characterCount = response.length
+                                )
+                                aiRepository.saveSummary(summary)
+                            } catch (e: Exception) {
+                                // Log error
+                            }
+                        }
+                    }
+                }
+                override fun onError(error: String) {
+                    viewModelScope.launch { _effects.send(ChatEffect.ShowSnackbar("Failed to summarize")) }
+                }
+                override fun onThinking() {}
+            })
+        }
+    }
+
     fun handleIntent(intent: ChatIntent) {
         when (intent) {
-            is ChatIntent.SendMessage -> sendMessage(intent.content)
+            is ChatIntent.SendMessage -> {
+                sendMessage(intent.content)
+                _smartReplies.value = emptyList() // Clear suggestions after sending
+            }
             is ChatIntent.UpdateInputText -> {
                 _uiState.update { it.copy(inputText = intent.text) }
                 // Check for mention
