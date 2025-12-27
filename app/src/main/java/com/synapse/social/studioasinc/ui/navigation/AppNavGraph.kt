@@ -21,7 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.synapse.social.studioasinc.ChatActivity
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 import com.synapse.social.studioasinc.CreatePostActivity
 import com.synapse.social.studioasinc.FollowListActivity
 import com.synapse.social.studioasinc.PostDetailActivity
@@ -160,15 +160,15 @@ fun AppNavGraph(
                     onNavigateToEditProfile = {
                          context.startActivity(Intent(context, ProfileEditActivity::class.java))
                     },
-                    onNavigateToFollowers = { targetUserId ->
+                    onNavigateToFollowers = {
                         val intent = Intent(context, FollowListActivity::class.java)
-                        intent.putExtra(FollowListActivity.EXTRA_USER_ID, targetUserId)
+                        intent.putExtra(FollowListActivity.EXTRA_USER_ID, userId)
                         intent.putExtra(FollowListActivity.EXTRA_LIST_TYPE, FollowListActivity.TYPE_FOLLOWERS)
                         context.startActivity(intent)
                     },
-                    onNavigateToFollowing = { targetUserId ->
+                    onNavigateToFollowing = {
                         val intent = Intent(context, FollowListActivity::class.java)
-                        intent.putExtra(FollowListActivity.EXTRA_USER_ID, targetUserId)
+                        intent.putExtra(FollowListActivity.EXTRA_USER_ID, userId)
                         intent.putExtra(FollowListActivity.EXTRA_LIST_TYPE, FollowListActivity.TYPE_FOLLOWING)
                         context.startActivity(intent)
                     },

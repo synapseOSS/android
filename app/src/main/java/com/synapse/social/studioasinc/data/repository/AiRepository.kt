@@ -7,6 +7,7 @@ import com.synapse.social.studioasinc.model.AiPersonaConfig
 import com.synapse.social.studioasinc.model.AiSummary
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.json.JsonElement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -87,7 +88,7 @@ class AiRepository {
             client.from("ai_chat_sessions")
                 .select {
                     filter { eq("user_id", userId) }
-                    order("created_at", ascending = false)
+                    order("created_at", order = Order.DESCENDING)
                 }
                 .decodeList<AiChatSession>()
         } catch (e: Exception) {
@@ -112,7 +113,7 @@ class AiRepository {
             client.from("ai_chat_responses")
                 .select {
                     filter { eq("session_id", sessionId) }
-                    order("created_at", ascending = true)
+                    order("created_at", order = Order.ASCENDING)
                 }
                 .decodeList<AiChatResponse>()
         } catch (e: Exception) {

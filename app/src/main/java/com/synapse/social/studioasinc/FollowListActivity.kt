@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.lifecycleScope
 import com.synapse.social.studioasinc.compose.FollowListScreen
 import com.synapse.social.studioasinc.data.repository.AuthRepository
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 import com.synapse.social.studioasinc.backend.SupabaseChatService
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import kotlinx.coroutines.launch
