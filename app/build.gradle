@@ -242,8 +242,8 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:3.2.2")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.2.2")
     
-    // Firebase Vertex AI for Gemini
-    implementation("com.google.firebase:firebase-vertexai:16.0.2")
+    // Google AI SDK for Gemini
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
     implementation("com.google.genai:google-genai:1.29.0")
 
     // Room Database
