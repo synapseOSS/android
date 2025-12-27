@@ -39,7 +39,10 @@ import kotlinx.coroutines.runBlocking
  * intent.putExtra("uid", userId)
  * startActivity(intent)
  * ```
+ *
+ * @deprecated Use [com.synapse.social.studioasinc.ui.profile.ProfileScreen] within [MainActivity] navigation graph instead.
  */
+@Deprecated("Use ProfileScreen within MainActivity navigation graph instead")
 class ProfileActivity : ComponentActivity() {
     
     private val viewModel: ProfileViewModel by viewModels { ProfileViewModelFactory(this) }

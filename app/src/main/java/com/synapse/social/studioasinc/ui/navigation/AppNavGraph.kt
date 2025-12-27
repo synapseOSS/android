@@ -1,5 +1,7 @@
 package com.synapse.social.studioasinc.ui.navigation
 
+import android.app.Activity
+import android.content.Intent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -8,19 +10,39 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.synapse.social.studioasinc.ui.auth.AuthScreen
+import androidx.navigation.navArgument
+import com.synapse.social.studioasinc.ChatActivity
+import com.synapse.social.studioasinc.CreatePostActivity
+import com.synapse.social.studioasinc.FollowListActivity
+import com.synapse.social.studioasinc.PostDetailActivity
+import com.synapse.social.studioasinc.ProfileEditActivity
+import com.synapse.social.studioasinc.SearchActivity
+import com.synapse.social.studioasinc.SettingsActivity
+import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.backend.SupabaseChatService
+import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
 import com.synapse.social.studioasinc.ui.home.HomeScreen
-import com.synapse.social.studioasinc.ui.profile.ProfileScreen
-import com.synapse.social.studioasinc.ui.search.SearchScreen
-import com.synapse.social.studioasinc.ui.postdetail.PostDetailScreen
-import com.synapse.social.studioasinc.ui.createpost.CreatePostScreen
 import com.synapse.social.studioasinc.ui.inbox.InboxScreen
+import com.synapse.social.studioasinc.ui.inbox.InboxViewModel
+import com.synapse.social.studioasinc.ui.inbox.InboxViewModelFactory
+import com.synapse.social.studioasinc.ui.profile.ProfileScreen
+import com.synapse.social.studioasinc.ui.profile.ProfileViewModel
+import com.synapse.social.studioasinc.ui.profile.ProfileViewModelFactory
+import com.synapse.social.studioasinc.ActivityLogActivity
+import com.synapse.social.studioasinc.util.ActivityTransitions
+import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.launch
+import android.widget.Toast
 
 sealed class AppDestination(val route: String) {
     object Auth : AppDestination("auth")
@@ -78,10 +100,12 @@ object AppTransitions {
 
 @Composable
 fun AppNavGraph(
-    startDestination: String = AppDestination.Auth.route,
+    startDestination: String = AppDestination.Home.route,
     navController: NavHostController = rememberNavController(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    context: android.content.Context
 ) {
+    val scope = rememberCoroutineScope()
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -91,98 +115,151 @@ fun AppNavGraph(
         popEnterTransition = { AppTransitions.slideInFromLeft },
         popExitTransition = { AppTransitions.slideOutToRight }
     ) {
-        composable(AppDestination.Auth.route) {
-            AuthScreen(
-                viewModel = hiltViewModel(),
-                onNavigateToMain = {
-                    navController.navigate(AppDestination.Home.route) {
-                        popUpTo(AppDestination.Auth.route) { inclusive = true }
-                    }
-                }
-            )
-        }
         
+        // Home
         composable(AppDestination.Home.route) {
             HomeScreen(
                 onNavigateToSearch = {
-                    navController.navigate(AppDestination.Search.route)
+                    val intent = Intent(context, SearchActivity::class.java)
+                    ActivityTransitions.startActivityWithTransition(context as Activity, intent)
                 },
                 onNavigateToProfile = { userId ->
-                    navController.navigate(AppDestination.Profile.createRoute(userId))
+                    val targetUid = if (userId == "me") SupabaseClient.client.auth.currentUserOrNull()?.id else userId
+                    if (targetUid != null) {
+                        navController.navigate(AppDestination.Profile.createRoute(targetUid))
+                    }
                 },
                 onNavigateToInbox = {
                     navController.navigate(AppDestination.Inbox.route)
                 },
                 onNavigateToCreatePost = {
-                    navController.navigate(AppDestination.CreatePost.route)
+                    val intent = Intent(context, CreatePostActivity::class.java)
+                    ActivityTransitions.startActivityWithTransition(context as Activity, intent)
                 }
             )
         }
         
-        composable(AppDestination.Search.route) {
-            SearchScreen(
-                viewModel = hiltViewModel(),
-                onNavigateToProfile = { userId ->
-                    navController.navigate(AppDestination.Profile.createRoute(userId))
-                },
-                onNavigateToPost = { postId ->
-                    navController.navigate(AppDestination.PostDetail.createRoute(postId))
-                },
-                onBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-        
-        composable("profile/{userId}") { backStackEntry ->
+        // Profile
+        composable(
+            route = AppDestination.Profile.route,
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
-            ProfileScreen(
-                userId = userId,
-                currentUserId = "current_user", // TODO: Get from auth state
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToUserProfile = { postId ->
-                    navController.navigate(AppDestination.PostDetail.createRoute(postId))
-                },
-                viewModel = hiltViewModel()
-            )
+            val currentUserId = SupabaseClient.client.auth.currentUserOrNull()?.id
+
+            if (currentUserId != null) {
+                // Use manual factory for ProfileViewModel as it's not Hilt-annotated
+                val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(context))
+
+                ProfileScreen(
+                    userId = userId,
+                    currentUserId = currentUserId,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToEditProfile = {
+                         context.startActivity(Intent(context, ProfileEditActivity::class.java))
+                    },
+                    onNavigateToFollowers = { targetUserId ->
+                        val intent = Intent(context, FollowListActivity::class.java)
+                        intent.putExtra(FollowListActivity.EXTRA_USER_ID, targetUserId)
+                        intent.putExtra(FollowListActivity.EXTRA_LIST_TYPE, FollowListActivity.TYPE_FOLLOWERS)
+                        context.startActivity(intent)
+                    },
+                    onNavigateToFollowing = { targetUserId ->
+                        val intent = Intent(context, FollowListActivity::class.java)
+                        intent.putExtra(FollowListActivity.EXTRA_USER_ID, targetUserId)
+                        intent.putExtra(FollowListActivity.EXTRA_LIST_TYPE, FollowListActivity.TYPE_FOLLOWING)
+                        context.startActivity(intent)
+                    },
+                    onNavigateToSettings = {
+                        context.startActivity(Intent(context, SettingsActivity::class.java))
+                    },
+                    onNavigateToActivityLog = {
+                        context.startActivity(Intent(context, ActivityLogActivity::class.java))
+                    },
+                    onNavigateToUserProfile = { uid ->
+                        navController.navigate(AppDestination.Profile.createRoute(uid))
+                    },
+                    onNavigateToChat = { targetUserId ->
+                         scope.launch {
+                            try {
+                                if (targetUserId == currentUserId) {
+                                    Toast.makeText(context, "You cannot message yourself", Toast.LENGTH_SHORT).show()
+                                    return@launch
+                                }
+
+                                val chatService = SupabaseChatService()
+                                val result = chatService.getOrCreateDirectChat(currentUserId, targetUserId)
+
+                                result.fold(
+                                    onSuccess = { chatId ->
+                                        val intent = Intent(context, ChatActivity::class.java)
+                                        intent.putExtra("chatId", chatId)
+                                        intent.putExtra("uid", targetUserId)
+                                        intent.putExtra("isGroup", false)
+                                        context.startActivity(intent)
+                                    },
+                                    onFailure = { error ->
+                                        Toast.makeText(context, "Failed to start chat: ${error.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Error starting chat: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                    viewModel = viewModel
+                )
+            }
         }
         
-        composable("post/{postId}") { backStackEntry ->
-            val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
-            PostDetailScreen(
-                postId = postId,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToProfile = { userId ->
-                    navController.navigate(AppDestination.Profile.createRoute(userId))
-                },
-                viewModel = hiltViewModel()
-            )
-        }
-        
-        composable(AppDestination.CreatePost.route) {
-            CreatePostScreen(
-                viewModel = hiltViewModel(),
-                onNavigateUp = {
-                    navController.popBackStack()
-                }
-            )
-        }
-        
+        // Inbox
         composable(AppDestination.Inbox.route) {
+            // MessageDeletionViewModel can be injected via Hilt if MainActivity is @AndroidEntryPoint
+            val messageDeletionViewModel: MessageDeletionViewModel = hiltViewModel()
+            // InboxViewModel needs manual factory
+            val viewModel: InboxViewModel = viewModel(
+                factory = InboxViewModelFactory(messageDeletionViewModel = messageDeletionViewModel)
+            )
+
             InboxScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
                 onNavigateToChat = { chatId, userId ->
-                    // TODO: Navigate to chat screen when implemented
+                    val intent = ChatActivity.createIntent(context, chatId, userId)
+                    ActivityTransitions.startActivityWithTransition(context as Activity, intent)
                 },
-                messageDeletionViewModel = hiltViewModel(),
-                viewModel = hiltViewModel()
+                messageDeletionViewModel = messageDeletionViewModel,
+                viewModel = viewModel
             )
+        }
+
+        // Post Detail - Redirect to Activity for now (not used as route, handled in Home/Profile callbacks)
+        // But if someone navigates to "post/{postId}", we should handle it or fail.
+        // For deep links, we might need it.
+        // Let's implement it as a launcher for Activity to maintain graph correctness for deep links
+        composable(
+            route = AppDestination.PostDetail.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            // Side-effect to launch activity and pop back
+            val postId = backStackEntry.arguments?.getString("postId")
+            if (postId != null) {
+                // We cannot launch activity from Composable directly without context, which we have.
+                // But this will overlay the activity.
+                // Ideally we shouldn't have this route if we use Activity.
+                // But NavigationMigration uses it.
+                // Let's leave it empty or show a loader while redirecting.
+                val activity = context as? Activity
+                if (activity != null) {
+                     androidx.compose.runtime.LaunchedEffect(postId) {
+                         PostDetailActivity.start(context, postId)
+                         navController.popBackStack()
+                     }
+                }
+            }
         }
     }
 }
