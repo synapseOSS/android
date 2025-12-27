@@ -173,12 +173,12 @@ android {
         }
     }
 
-    lintOptions {
+    lint {
         abortOnError = false
         checkReleaseBuilds = false
     }
 
-    packagingOptions {
+    packaging {
         resources.excludes.add("META-INF/*")
         resources.excludes.add("META-INF/DEPENDENCIES")
     }
