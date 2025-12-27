@@ -1,0 +1,25 @@
+name: Organize Documentation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  move-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Move markdown files to docs
+        run: |
+          mkdir -p docs
+          find . -maxdepth 1 -name "*.md" ! -name "README.md" ! -name "readme.md" -exec mv {} docs/ \;
+          
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          if ! git diff --staged --quiet; then
+            git commit -m "Move markdown files to docs folder"
+            git push
+          fi
