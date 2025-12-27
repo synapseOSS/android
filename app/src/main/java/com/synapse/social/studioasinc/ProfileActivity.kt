@@ -25,6 +25,7 @@ import com.synapse.social.studioasinc.ui.profile.ProfileViewModel
 import com.synapse.social.studioasinc.ui.profile.ProfileViewModelFactory
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch

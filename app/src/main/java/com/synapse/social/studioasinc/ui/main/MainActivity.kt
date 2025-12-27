@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc
+package com.synapse.social.studioasinc.ui.main
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,7 +12,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +22,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
@@ -34,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -43,14 +42,11 @@ import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.UserRepository
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
-import com.synapse.social.studioasinc.ui.navigation.AppNavGraph
-import androidx.navigation.compose.rememberNavController
-import dagger.hilt.android.AndroidEntryPoint
-import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
-import com.synapse.social.studioasinc.ui.auth.components.ProfileCompletionDialog
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.synapse.social.studioasinc.HomeActivity
+import com.synapse.social.studioasinc.AuthActivity
+import com.synapse.social.studioasinc.R
+import com.synapse.social.studioasinc.SupabaseClient
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val authRepository = AuthRepository()
@@ -65,8 +61,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private val appearanceViewModel: AppearanceViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -74,106 +68,39 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         
         setContent {
-            // Get appearance settings to apply theme preferences
-            val appearanceSettings by appearanceViewModel.appearanceSettings.collectAsState()
-
-            // Determine dark theme based on settings
-            val darkTheme = when (appearanceSettings.themeMode) {
-                com.synapse.social.studioasinc.ui.settings.ThemeMode.LIGHT -> false
-                com.synapse.social.studioasinc.ui.settings.ThemeMode.DARK -> true
-                com.synapse.social.studioasinc.ui.settings.ThemeMode.SYSTEM ->
-                    isSystemInDarkTheme()
-            }
-
-            // Apply dynamic color only if enabled and supported (Android 12+)
-            val dynamicColor = appearanceSettings.dynamicColorEnabled &&
-                               Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-
-            SynapseTheme(
-                darkTheme = darkTheme,
-                dynamicColor = dynamicColor,
-                enableEdgeToEdge = true
-            ) {
-                var showAppContent by remember { mutableStateOf(false) }
-                val context = LocalContext.current
-
-                Crossfade(targetState = showAppContent, label = "MainContentSwitch") { isAppContent ->
-                    if (isAppContent) {
-                        val navController = rememberNavController()
-                        AppNavGraph(navController = navController, context = context)
-
-                        // Profile Completion Dialog Check
-                        var showProfileCompletion by remember {
-                            mutableStateOf(
-                                context.getSharedPreferences("auth_prefs", MODE_PRIVATE)
-                                    .getBoolean("show_profile_completion_dialog", false)
-                            )
+            SynapseTheme {
+                MainScreen(
+                    viewModel = viewModel,
+                    onNavigateToHome = {
+                        val intent = Intent(this@MainActivity, HomeActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    },
+                    onNavigateToAuth = {
+                        val intent = Intent(this@MainActivity, AuthActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    },
+                    onOpenUpdateLink = { updateLink ->
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateLink))
+                        startActivity(intent)
+                        finish()
+                    },
+                    onShowToast = { message ->
+                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+                    },
+                    onSignOut = {
+                        lifecycleScope.launch {
+                            authRepository.signOut()
                         }
-
-                        if (showProfileCompletion) {
-                            ProfileCompletionDialog(
-                                onComplete = {
-                                    context.getSharedPreferences("auth_prefs", MODE_PRIVATE)
-                                        .edit()
-                                        .putBoolean("show_profile_completion_dialog", false)
-                                        .apply()
-                                    showProfileCompletion = false
-                                    // Navigate to Edit Profile
-                                    val intent = Intent(context, ProfileEditActivity::class.java)
-                                    startActivity(intent)
-                                },
-                                onDismiss = {
-                                    context.getSharedPreferences("auth_prefs", MODE_PRIVATE)
-                                        .edit()
-                                        .putBoolean("show_profile_completion_dialog", false)
-                                        .apply()
-                                    showProfileCompletion = false
-                                }
-                            )
-                        }
-
-                        // Presence
-                        DisposableEffect(Unit) {
-                            val currentUser = SupabaseClient.client.auth.currentUserOrNull()
-                            if (currentUser != null) {
-                                ChatPresenceManager.setActivity(currentUser.id, "In Home")
-                            }
-                            onDispose { }
-                        }
-
-                    } else {
-                        MainScreen(
-                            viewModel = viewModel,
-                            onAuthenticated = {
-                                showAppContent = true
-                            },
-                            onNavigateToAuth = {
-                                val intent = Intent(this@MainActivity, AuthActivity::class.java)
-                                startActivity(intent)
-                                finish()
-                            },
-                            onOpenUpdateLink = { updateLink ->
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateLink))
-                                startActivity(intent)
-                                finish()
-                            },
-                            onShowToast = { message ->
-                                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
-                            },
-                            onSignOut = {
-                                lifecycleScope.launch {
-                                    authRepository.signOut()
-                                }
-                            },
-                            onFinishApp = {
-                                finishAffinity()
-                            },
-                            onFinish = {
-                                finish()
-                            }
-                        )
+                    },
+                    onFinishApp = {
+                        finishAffinity()
+                    },
+                    onFinish = {
+                        finish()
                     }
-                }
+                )
             }
         }
 
@@ -223,7 +150,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
-    onAuthenticated: () -> Unit,
+    onNavigateToHome: () -> Unit,
     onNavigateToAuth: () -> Unit,
     onOpenUpdateLink: (String) -> Unit,
     onShowToast: (String) -> Unit,
@@ -248,7 +175,7 @@ fun MainScreen(
 
     LaunchedEffect(authState) {
         when (authState) {
-            is AuthState.Authenticated -> onAuthenticated()
+            is AuthState.Authenticated -> onNavigateToHome()
             is AuthState.Unauthenticated -> onNavigateToAuth()
             is AuthState.Banned -> {
                 onShowToast("You are banned & Signed Out.")

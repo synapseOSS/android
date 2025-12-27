@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.attachments.Rv_attacmentListAdapter
 import com.synapse.social.studioasinc.util.ChatMessageManager
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 
 /**
  * Handles attachment functionality in chat with Supabase integration.

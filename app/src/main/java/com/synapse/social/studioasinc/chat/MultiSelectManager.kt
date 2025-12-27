@@ -5,7 +5,7 @@ import android.os.Looper
 import android.view.View
 import android.widget.TextView
 import com.google.android.material.appbar.MaterialToolbar
-import com.synapse.social.studioasinc.ChatActivity
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 import com.synapse.social.studioasinc.ChatAdapter
 import com.synapse.social.studioasinc.R
 

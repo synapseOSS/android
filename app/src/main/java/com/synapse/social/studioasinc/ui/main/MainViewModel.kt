@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc
+package com.synapse.social.studioasinc.ui.main
 
 import android.app.Application
 import android.content.Context
