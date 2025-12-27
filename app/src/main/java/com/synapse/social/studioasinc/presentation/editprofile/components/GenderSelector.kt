@@ -60,7 +60,7 @@ fun GenderSelector(
             ) {
                 CompactGenderOption(
                     label = "Male",
-                    iconRes = R.drawable.icon_male_round,
+                    iconRes = R.drawable.ic_male,
                     selected = selectedGender == Gender.Male,
                     onClick = { onGenderSelected(Gender.Male) },
                     modifier = Modifier.weight(1f)
@@ -70,7 +70,7 @@ fun GenderSelector(
 
                 CompactGenderOption(
                     label = "Female",
-                    iconRes = R.drawable.icon_female_round,
+                    iconRes = R.drawable.ic_female,
                     selected = selectedGender == Gender.Female,
                     onClick = { onGenderSelected(Gender.Female) },
                     modifier = Modifier.weight(1f)
@@ -80,7 +80,7 @@ fun GenderSelector(
 
                 CompactGenderOption(
                     label = "Other",
-                    iconRes = R.drawable.icon_transgender_round,
+                    iconRes = R.drawable.ic_person,
                     selected = selectedGender == Gender.Hidden,
                     onClick = { onGenderSelected(Gender.Hidden) },
                     modifier = Modifier.weight(1f)

@@ -32,7 +32,7 @@
         android:layout_height="wrap_content"
         android:text="@string/reply"
         android:gravity="start|center_vertical"
-        app:icon="@drawable/icon_reply_round"
+        app:icon="@drawable/ic_reply"
         app:iconGravity="start"
         app:iconSize="24dp" />
 
@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:text="@string/copy"
         android:gravity="start|center_vertical"
-        app:icon="@drawable/icon_content_copy_round"
+        app:icon="@drawable/ic_content_copy_48px"
         app:iconGravity="start"
         app:iconSize="24dp" />
 
@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:text="@string/share"
         android:gravity="start|center_vertical"
-        app:icon="@drawable/icon_share_round"
+        app:icon="@drawable/ic_forward"
         app:iconGravity="start"
         app:iconSize="24dp" />
 
@@ -65,7 +65,7 @@
         android:layout_height="wrap_content"
         android:text="@string/hide_comment"
         android:gravity="start|center_vertical"
-        app:icon="@drawable/icon_hide_source_round"
+        app:icon="@drawable/ic_visibility_off"
         app:iconGravity="start"
         app:iconSize="24dp" />
 
@@ -76,7 +76,7 @@
         android:layout_height="wrap_content"
         android:text="@string/report"
         android:gravity="start|center_vertical"
-        app:icon="@drawable/icon_report_problem_round"
+        app:icon="@drawable/ic_report_48px"
         app:iconGravity="start"
         app:iconSize="24dp" />
 
@@ -96,7 +96,7 @@
         android:text="@string/pin_comment"
         android:gravity="start|center_vertical"
         android:visibility="gone"
-        app:icon="@drawable/icon_push_pin_round"
+        app:icon="@drawable/ic_bookmark"
         app:iconGravity="start"
         app:iconSize="24dp" />
 
@@ -108,7 +108,7 @@
         android:text="@string/edit"
         android:gravity="start|center_vertical"
         android:visibility="gone"
-        app:icon="@drawable/icon_drive_file_rename_outline_round"
+        app:icon="@drawable/ic_edit"
         app:iconGravity="start"
         app:iconSize="24dp" />
 
@@ -120,7 +120,7 @@
         android:text="@string/delete"
         android:gravity="start|center_vertical"
         android:visibility="gone"
-        app:icon="@drawable/icon_delete_round"
+        app:icon="@drawable/ic_delete_48px"
         app:iconGravity="start"
         app:iconTint="?attr/colorError"
         app:iconSize="24dp" />

@@ -1,0 +1,39 @@
+SYNAPSE - UNUSED XML RESOURCES ANALYSIS
+==================================================
+
+Total XML files analyzed: 235
+Used resources: 208
+Unused resources: 25
+Usage rate: 88.5%
+
+UNUSED RESOURCES BY TYPE:
+------------------------------
+
+LAYOUT (24 files):
+  app/src/main/res/layout/bottom_sheet_media_picker.xml
+  app/src/main/res/layout/item_gallery_image.xml
+  app/src/main/res/layout/dialog_forward_message.xml
+  app/src/main/res/layout/view_audio_player.xml
+  app/src/main/res/layout/fragment_inbox_stories.xml
+  app/src/main/res/layout/activity_media_preview.xml
+  app/src/main/res/layout/dialog_delete_message.xml
+  app/src/main/res/layout/item_post_detail_video.xml
+  app/src/main/res/layout/bottom_sheet_message_actions.xml
+  app/src/main/res/layout/dialog_edit_message.xml
+  app/src/main/res/layout/activity_post_detail.xml
+  app/src/main/res/layout/item_forward_conversation.xml
+  app/src/main/res/layout/bottom_sheet_comment_options.xml
+  app/src/main/res/layout/item_post_detail_caption.xml
+  app/src/main/res/layout/item_loading_state.xml
+  app/src/main/res/layout/dialog_ai_summary.xml
+  app/src/main/res/layout/item_comment_detail.xml
+  app/src/main/res/layout/activity_image_gallery.xml
+  app/src/main/res/layout/dialog_edit_history.xml
+  app/src/main/res/layout/view_video_player.xml
+  app/src/main/res/layout/item_post_detail_image.xml
+  app/src/main/res/layout/item_nested_reply.xml
+  app/src/main/res/layout/item_media_picker_option.xml
+  app/src/main/res/layout/item_message_action.xml
+
+XML (1 files):
+  app/src/main/res/xml/provider_paths.xml

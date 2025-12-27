@@ -214,7 +214,7 @@ class SearchResultsAdapter(
             when (media.mediaType) {
                 SearchResult.MediaType.VIDEO -> {
                     imagePlayIcon.visibility = View.VISIBLE
-                    imageMediaTypeIcon.setImageResource(R.drawable.icon_video_chat_round)
+                    imageMediaTypeIcon.setImageResource(R.drawable.ic_videocam)
                 }
                 SearchResult.MediaType.PHOTO -> {
                     imagePlayIcon.visibility = View.GONE
