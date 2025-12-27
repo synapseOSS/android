@@ -1,6 +1,6 @@
 # Unused Android Resources Report
 
-Generated on: Sat Dec 27 14:08:58 UTC 2025
+Generated on: Sat Dec 27 14:53:32 UTC 2025
 
 ## Summary
 
@@ -674,6 +674,6 @@ Generated on: Sat Dec 27 14:08:58 UTC 2025
 
 To delete unused drawable and layout files:
 ```bash
-./find_unused_assets.sh --delete
+./scripts/find_unused_assets.sh --delete
 ```
 
