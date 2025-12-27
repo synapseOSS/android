@@ -1,19 +1,12 @@
 package com.synapse.social.studioasinc.ui.profile
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.Spring
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -21,61 +14,53 @@ import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.synapse.social.studioasinc.BuildConfig
-import com.synapse.social.studioasinc.data.model.UserProfile
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.PostDetailActivity
 import com.synapse.social.studioasinc.ui.components.EmptyState
 import com.synapse.social.studioasinc.ui.components.ErrorState
+import com.synapse.social.studioasinc.ui.components.MediaViewer
 import com.synapse.social.studioasinc.ui.components.post.PostActions
+import com.synapse.social.studioasinc.ui.components.post.PostCard
+import com.synapse.social.studioasinc.ui.components.post.PostCardState
+import com.synapse.social.studioasinc.ui.components.post.PostOptionsBottomSheet
 import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
 import com.synapse.social.studioasinc.ui.profile.animations.crossfadeContent
-import com.synapse.social.studioasinc.ui.profile.components.ContentFilterBar
-import com.synapse.social.studioasinc.ui.profile.components.FollowingFilter
-import com.synapse.social.studioasinc.ui.profile.components.FollowingSection
-import com.synapse.social.studioasinc.ui.profile.components.LinkedAccount
-import com.synapse.social.studioasinc.ui.profile.components.MediaItem
-import com.synapse.social.studioasinc.ui.profile.components.PhotoGrid
-import com.synapse.social.studioasinc.ui.profile.components.ProfileHeader
-import com.synapse.social.studioasinc.ui.profile.components.ProfileImageDialog
-import com.synapse.social.studioasinc.ui.profile.components.ProfileInfoCustomizationDialog
-import com.synapse.social.studioasinc.ui.profile.components.ProfileMoreMenuBottomSheet
-import com.synapse.social.studioasinc.ui.profile.components.ProfileSkeletonScreen
-import com.synapse.social.studioasinc.ui.profile.components.ProfileTopAppBar
-import com.synapse.social.studioasinc.ui.profile.components.QRCodeDialog
-import com.synapse.social.studioasinc.ui.profile.components.ReelsGrid
-import com.synapse.social.studioasinc.ui.profile.components.ReportUserDialog
-import com.synapse.social.studioasinc.ui.profile.components.ShareProfileBottomSheet
-import com.synapse.social.studioasinc.ui.profile.components.UserDetails
-import com.synapse.social.studioasinc.ui.profile.components.UserDetailsSection
+import com.synapse.social.studioasinc.ui.profile.components.*
 import com.synapse.social.studioasinc.ui.profile.components.UserSearchDialog
-import com.synapse.social.studioasinc.ui.profile.components.ViewAsBanner
-import com.synapse.social.studioasinc.ui.profile.components.ViewAsMode
-import com.synapse.social.studioasinc.ui.profile.components.ViewAsBottomSheet
-import com.synapse.social.studioasinc.ui.profile.utils.ShareUtils
+import com.synapse.social.studioasinc.model.Post
 import kotlinx.coroutines.delay
 
 /**
  * Main Profile screen composable displaying user profile information and content.
+ * 
+ * Features:
+ * - Cover photo with parallax scrolling
+ * - Profile header with animated story ring
+ * - Animated stat counters
+ * - Content tabs with sliding indicator (Posts, Photos, Reels)
+ * - Pull-to-refresh with custom animation
+ * - Staggered content loading animations
+ * - Bottom sheet actions (Share, View As, QR Code, etc.)
+ * 
+ * @param userId The ID of the user whose profile to display
+ * @param currentUserId The ID of the currently logged-in user
+ * @param onNavigateBack Callback for back navigation
+ * @param onNavigateToEditProfile Callback to navigate to edit profile
+ * @param onNavigateToFollowers Callback to navigate to followers list
+ * @param onNavigateToFollowing Callback to navigate to following list
+ * @param onNavigateToSettings Callback to navigate to settings
+ * @param onNavigateToActivityLog Callback to navigate to activity log
+ * @param onNavigateToUserProfile Callback to navigate to another user's profile
+ * @param viewModel ProfileViewModel instance for state management
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,10 +82,19 @@ fun ProfileScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     var showCustomizationDialog by remember { mutableStateOf(false) }
     var showUserSearchDialog by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    var fullScreenImageUrl by remember { mutableStateOf<String?>(null) }
 
-    val density = LocalDensity.current
+    // Media Viewer State
+    var showMediaViewer by remember { mutableStateOf(false) }
+    var selectedMediaUrls by remember { mutableStateOf<List<String>>(emptyList()) }
+    var initialMediaPage by remember { mutableStateOf(0) }
+
+    // Post Options State
+    var showPostOptions by remember { mutableStateOf(false) }
+    var selectedPost by remember { mutableStateOf<Post?>(null) }
+
+    val context = LocalContext.current
+
+    val density = androidx.compose.ui.platform.LocalDensity.current
     val coverHeightPx = with(density) { 180.dp.toPx() }
 
     // Calculate scroll progress for parallax effect
@@ -120,9 +114,8 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            val username = (state.profileState as? ProfileUiState.Success)?.profile?.username ?: ""
             ProfileTopAppBar(
-                username = username,
+                username = (state.profileState as? ProfileUiState.Success)?.profile?.username ?: "",
                 scrollProgress = scrollProgress.value,
                 onBackClick = onNavigateBack,
                 onMoreClick = { viewModel.toggleMoreMenu() }
@@ -160,7 +153,15 @@ fun ProfileScreen(
                         onNavigateToUserProfile = onNavigateToUserProfile,
                         onNavigateToChat = onNavigateToChat,
                         onCustomizeClick = { showCustomizationDialog = true },
-                        onImageClick = { url -> fullScreenImageUrl = url }
+                        onOpenMediaViewer = { urls, index ->
+                            selectedMediaUrls = urls
+                            initialMediaPage = index
+                            showMediaViewer = true
+                        },
+                        onShowPostOptions = { post ->
+                            selectedPost = post
+                            showPostOptions = true
+                        }
                     )
                 }
                 is ProfileUiState.Error -> {
@@ -180,12 +181,6 @@ fun ProfileScreen(
             }
         }
     }
-
-    // Full screen image viewer
-    ProfileImageDialog(
-        imageUrl = fullScreenImageUrl,
-        onDismiss = { fullScreenImageUrl = null }
-    )
 
     // Bottom Sheets
     if (state.showMoreMenu) {
@@ -208,7 +203,7 @@ fun ProfileScreen(
                 val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("Profile Link", url)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(context, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, "Link copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
             },
             onSettings = onNavigateToSettings,
             onActivityLog = onNavigateToActivityLog,
@@ -224,25 +219,34 @@ fun ProfileScreen(
 
     if (state.showShareSheet) {
         val profile = (state.profileState as? ProfileUiState.Success)?.profile
-        val username = profile?.username ?: ""
-
         ShareProfileBottomSheet(
             onDismiss = { viewModel.hideShareSheet() },
             onCopyLink = {
+                val username = profile?.username ?: ""
                 val url = "${BuildConfig.APP_DOMAIN}/profile/$username"
                 val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("Profile Link", url)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(context, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, "Link copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                viewModel.hideShareSheet()
             },
             onShareToStory = {
-                ShareUtils.shareToStory(context, "Check out @$username on Synapse!")
+                Toast.makeText(context, "Share to Story coming soon", Toast.LENGTH_SHORT).show()
+                viewModel.hideShareSheet()
             },
             onShareViaMessage = {
-                 ShareUtils.shareProfile(context, username)
+                Toast.makeText(context, "Share via Message coming soon", Toast.LENGTH_SHORT).show()
+                viewModel.hideShareSheet()
             },
             onShareExternal = {
-                 ShareUtils.shareProfile(context, username)
+                val username = profile?.username ?: ""
+                val url = "${BuildConfig.APP_DOMAIN}/profile/$username"
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, "Check out this profile: $url")
+                }
+                context.startActivity(Intent.createChooser(intent, "Share Profile"))
+                viewModel.hideShareSheet()
             }
         )
     }
@@ -313,13 +317,72 @@ fun ProfileScreen(
             }
         )
     }
+
+    // Media Viewer Overlay
+    if (showMediaViewer) {
+        MediaViewer(
+            mediaUrls = selectedMediaUrls,
+            initialPage = initialMediaPage,
+            onDismiss = { showMediaViewer = false }
+        )
+    }
+
+    // Post Options Bottom Sheet
+    if (showPostOptions && selectedPost != null) {
+        val post = selectedPost!!
+        PostOptionsBottomSheet(
+            post = post,
+            isOwner = post.authorUid == currentUserId,
+            commentsDisabled = post.postDisableComments == "true",
+            onDismiss = {
+                showPostOptions = false
+                selectedPost = null
+            },
+            onEdit = {
+                Toast.makeText(context, "Edit post not implemented", Toast.LENGTH_SHORT).show()
+            },
+            onDelete = {
+                viewModel.deletePost(post.id)
+            },
+            onShare = {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, "Check out this post: ${BuildConfig.APP_DOMAIN}/post/${post.id}")
+                }
+                context.startActivity(Intent.createChooser(intent, "Share Post"))
+            },
+            onCopyLink = {
+                val url = "${BuildConfig.APP_DOMAIN}/post/${post.id}"
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("Post Link", url)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(context, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
+            },
+            onBookmark = {
+                viewModel.toggleSave(post.id)
+            },
+            onToggleComments = {
+                Toast.makeText(context, "Toggle comments not implemented", Toast.LENGTH_SHORT).show()
+            },
+            onReport = {
+                viewModel.reportPost(post.id, "Reported from profile")
+                Toast.makeText(context, "Report submitted", Toast.LENGTH_SHORT).show()
+            },
+            onBlock = {
+                viewModel.blockUser(post.authorUid)
+            },
+            onRevokeVote = {
+                Toast.makeText(context, "Revoke vote not implemented", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
 }
 
 @Composable
 private fun ProfileContent(
     state: ProfileScreenState,
-    profile: UserProfile,
-    listState: LazyListState,
+    profile: com.synapse.social.studioasinc.data.model.UserProfile,
+    listState: androidx.compose.foundation.lazy.LazyListState,
     scrollProgress: Float,
     viewModel: ProfileViewModel,
     onNavigateToEditProfile: () -> Unit,
@@ -328,7 +391,8 @@ private fun ProfileContent(
     onNavigateToUserProfile: (String) -> Unit,
     onNavigateToChat: (String) -> Unit,
     onCustomizeClick: () -> Unit = {},
-    onImageClick: (String) -> Unit
+    onOpenMediaViewer: (List<String>, Int) -> Unit,
+    onShowPostOptions: (Post) -> Unit
 ) {
     // Entry animation for content
     var contentVisible by remember { mutableStateOf(false) }
@@ -342,6 +406,8 @@ private fun ProfileContent(
         animationSpec = tween(durationMillis = 400),
         label = "contentAlpha"
     )
+
+    val context = LocalContext.current
 
     LazyColumn(
         state = listState,
@@ -377,8 +443,18 @@ private fun ProfileContent(
                 isOwnProfile = state.isOwnProfile,
                 isFollowing = state.isFollowing,
                 scrollOffset = scrollProgress,
-                onProfileImageClick = { profile.avatar?.let(onImageClick) },
-                onCoverPhotoClick = { if (state.isOwnProfile) onNavigateToEditProfile() else profile.coverImageUrl?.let(onImageClick) },
+                onProfileImageClick = {
+                     if (!profile.avatar.isNullOrBlank()) {
+                         onOpenMediaViewer(listOf(profile.avatar), 0)
+                     }
+                },
+                onCoverPhotoClick = {
+                     if (state.isOwnProfile) {
+                         onNavigateToEditProfile()
+                     } else if (!profile.coverImageUrl.isNullOrBlank()) {
+                         onOpenMediaViewer(listOf(profile.coverImageUrl), 0)
+                     }
+                },
                 onEditProfileClick = onNavigateToEditProfile,
                 onFollowClick = {
                     if (state.isFollowing) {
@@ -388,7 +464,9 @@ private fun ProfileContent(
                     }
                 },
                 onMessageClick = { onNavigateToChat(profile.id) },
-                onAddStoryClick = { /* TODO: Open story creation */ },
+                onAddStoryClick = {
+                    Toast.makeText(context, "Story creation coming soon", Toast.LENGTH_SHORT).show()
+                },
                 onMoreClick = { viewModel.toggleMoreMenu() },
                 onStatsClick = { stat ->
                     when (stat) {
@@ -426,7 +504,12 @@ private fun ProfileContent(
                             }
                             PhotoGrid(
                                 items = photos,
-                                onItemClick = { item -> item.url?.let(onImageClick) },
+                                onItemClick = { mediaItem ->
+                                    // Construct list of URLs for viewer
+                                    val allUrls = photos.map { it.url }
+                                    val index = photos.indexOf(mediaItem)
+                                    onOpenMediaViewer(allUrls, if (index >= 0) index else 0)
+                                },
                                 isLoading = state.isLoadingMore
                             )
                         }
@@ -455,7 +538,14 @@ private fun ProfileContent(
                                 ),
                                 isOwnProfile = state.isOwnProfile,
                                 onCustomizeClick = onCustomizeClick,
-                                onWebsiteClick = { /* TODO: Open website */ },
+                                onWebsiteClick = { url ->
+                                     try {
+                                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                         context.startActivity(intent)
+                                     } catch (e: Exception) {
+                                         Toast.makeText(context, "Cannot open link", Toast.LENGTH_SHORT).show()
+                                     }
+                                },
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )
 
@@ -496,7 +586,9 @@ private fun ProfileContent(
                             }
                             ReelsGrid(
                                 items = reels,
-                                onItemClick = { /* TODO: Open reels viewer */ },
+                                onItemClick = {
+                                    Toast.makeText(context, "Reels viewer coming soon", Toast.LENGTH_SHORT).show()
+                                },
                                 isLoading = state.isLoadingMore
                             )
                         }
@@ -507,7 +599,7 @@ private fun ProfileContent(
 
         // Posts items - added directly to parent LazyColumn
         if (state.contentFilter == ProfileContentFilter.POSTS && state.posts.isNotEmpty()) {
-            val posts = state.posts.filterIsInstance<Post>()
+            val posts = state.posts.filterIsInstance<com.synapse.social.studioasinc.model.Post>()
             items(posts, key = { it.id }) { post ->
                 // Context for profile actions
                 val currentProfile = (state.profileState as? ProfileUiState.Success)?.profile
@@ -518,11 +610,28 @@ private fun ProfileContent(
                     actions = PostActions(
                         onUserClick = { onNavigateToUserProfile(post.authorUid) },
                         onLike = { viewModel.toggleLike(post.id) },
-                        onComment = { /* TODO: Navigate to comments */ },
-                        onShare = { /* TODO: Share post */ },
+                        onComment = { selectedPost ->
+                            val intent = Intent(context, PostDetailActivity::class.java).apply {
+                                putExtra(PostDetailActivity.EXTRA_POST_ID, selectedPost.id)
+                                putExtra(PostDetailActivity.EXTRA_AUTHOR_UID, selectedPost.authorUid)
+                            }
+                            context.startActivity(intent)
+                        },
+                        onShare = { selectedPost ->
+                             val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, "Check out this post: ${BuildConfig.APP_DOMAIN}/post/${selectedPost.id}")
+                             }
+                             context.startActivity(Intent.createChooser(intent, "Share Post"))
+                        },
                         onBookmark = { viewModel.toggleSave(post.id) },
-                        onOptionClick = { /* TODO: Show menu */ },
-                        onMediaClick = { /* TODO: Open media */ },
+                        onOptionClick = { onShowPostOptions(post) },
+                        onMediaClick = { index ->
+                            val urls = post.mediaItems?.mapNotNull { it.url } ?: listOfNotNull(post.postImage)
+                            if (urls.isNotEmpty()) {
+                                onOpenMediaViewer(urls, index)
+                            }
+                        },
                         onPollVote = { p, idx -> viewModel.votePoll(p.id, idx) }
                     )
                 )
@@ -541,8 +650,8 @@ private fun ProfileContent(
  */
 @Composable
 private fun AnimatedPostCard(
-    post: Post,
-    currentProfile: UserProfile?,
+    post: com.synapse.social.studioasinc.model.Post,
+    currentProfile: com.synapse.social.studioasinc.data.model.UserProfile?,
     actions: PostActions
 ) {
     var visible by remember { mutableStateOf(false) }
