@@ -43,6 +43,7 @@ jobs:
         if: ${{ github.event.inputs.create_issue == 'true' }}
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PAT }}
           script: |
             const fs = require('fs');
             const reportPath = 'docs/unused.md';
@@ -66,4 +67,4 @@ jobs:
           git config --local user.name "GitHub Action"
           git add -A
           git diff --staged --quiet || git commit -m "chore: remove unused assets [skip ci]"
-          git push
+          git push https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git
