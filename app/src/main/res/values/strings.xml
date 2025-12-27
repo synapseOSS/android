@@ -990,4 +990,17 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="profile">Profile</string>
     <string name="reels">Reels</string>
     <string name="notifications">Notifications</string>
+    
+    <!-- Action strings -->
+    <string name="action_attach">Attach</string>
+    <string name="action_send_message">Send message</string>
+    <string name="action_record_audio">Record audio</string>
+    
+    <!-- Error strings -->
+    <string name="error_network">Network error</string>
+    <string name="error_authentication">Authentication error</string>
+    <string name="error_permission">Permission error</string>
+    <string name="error_validation">Validation error</string>
+    <string name="error_server">Server error</string>
+    <string name="error_unknown">Unknown error</string>
 </resources>
