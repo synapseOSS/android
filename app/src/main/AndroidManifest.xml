@@ -160,13 +160,6 @@
 			android:supportsPictureInPicture="true"
 			android:screenOrientation="portrait"
 			android:windowSoftInputMode="stateHidden" />
-		<activity
-			android:name=".EditPostActivity"
-			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
-			android:hardwareAccelerated="true"
-			android:supportsPictureInPicture="true"
-			android:screenOrientation="portrait"
-			android:windowSoftInputMode="stateHidden" />
 
 		<activity
 			android:name=".AuthActivity"

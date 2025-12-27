@@ -215,5 +215,40 @@ fun SettingsNavHost(
                 }
             )
         }
+
+        // AI Settings Screen
+        composable(route = SettingsDestination.ROUTE_AI) {
+            AiSettingsScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onNavigateToPersonaEditor = {
+                    navController.navigate(SettingsDestination.ROUTE_AI_PERSONA_EDITOR)
+                },
+                onNavigateToAiChat = {
+                    navController.navigate(SettingsDestination.ROUTE_AI_CHAT)
+                }
+            )
+        }
+
+        // AI Persona Editor Screen
+        composable(route = SettingsDestination.ROUTE_AI_PERSONA_EDITOR) {
+            AiPersonaEditorScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // AI Chat Screen
+        composable(route = SettingsDestination.ROUTE_AI_CHAT) {
+            // We'll implement this screen later
+            // For now, placeholder or commented out until AiChatScreen is created
+             com.synapse.social.studioasinc.ui.chat.AiChatScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+             )
+        }
     }
 }

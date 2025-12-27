@@ -1,33 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Chat Message Dimensions -->
-    <dimen name="chat_grid_width">250dp</dimen>
-    <dimen name="chat_carousel_image_size">200dp</dimen>
-    <dimen name="chat_carousel_spacing">8dp</dimen>
-    <dimen name="chat_corner_radius_default">27dp</dimen>
-    <dimen name="chat_side_margin">8dp</dimen>
-    <dimen name="chat_padding_vertical">2dp</dimen>
-    <dimen name="chat_padding_inner">8dp</dimen>
-    
-    <!-- Active Status Dimensions -->
-    <dimen name="active_status_indicator_size">12dp</dimen>
-    
-    <!-- Image Gallery Dimensions -->
-    <dimen name="gallery_image_corner_radius">16dp</dimen>
-    <dimen name="reply_preview_corner_radius">20dp</dimen>
-    <dimen name="left_bar_corner_radius">100dp</dimen>
-    
-    <!-- Animation and Touch Feedback -->
-    <dimen name="touch_scale_down">0.95</dimen>
-    <dimen name="touch_scale_normal">1.0</dimen>
-    
-    <!-- Standard spacing -->
-    <dimen name="spacing_tiny">2dp</dimen>
-    <dimen name="spacing_small">4dp</dimen>
-    <dimen name="spacing_normal">8dp</dimen>
-    <dimen name="spacing_medium">16dp</dimen>
-    <dimen name="spacing_large">24dp</dimen>
-    <dimen name="spacing_xlarge">32dp</dimen>
+    <!-- Spacing dimensions -->
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_normal">16dp</dimen>
+    <dimen name="spacing_medium">24dp</dimen>
+    <dimen name="spacing_large">32dp</dimen>
     
     <!-- Text sizes -->
     <dimen name="text_size_small">12sp</dimen>
@@ -35,48 +12,26 @@
     <dimen name="text_size_medium">16sp</dimen>
     <dimen name="text_size_large">18sp</dimen>
     
-    <!-- Standard elevations -->
-    <dimen name="elevation_none">0dp</dimen>
-    <dimen name="elevation_small">2dp</dimen>
-    <dimen name="elevation_medium">4dp</dimen>
-    <dimen name="elevation_large">8dp</dimen>
-    
-    <!-- Post Card Elevations -->
-    <dimen name="post_card_elevation_default">1dp</dimen>
-    <dimen name="post_card_elevation_pressed">2dp</dimen>
-    <dimen name="post_card_elevation_elevated">3dp</dimen>
-    <dimen name="post_card_elevation_elevated_pressed">4dp</dimen>
-    
-    <!-- Page indicator dimensions -->
-    <dimen name="dot_size">6dp</dimen>
-    <dimen name="dot_margin">2dp</dimen>
-
-    <!-- Refactoring Dimensions -->
-    <dimen name="edit_text_corner_radius">28dp</dimen>
-    <dimen name="edit_text_stroke_width">3dp</dimen>
-    <dimen name="button_corner_radius">300dp</dimen>
-    
-    <!-- Auth Screen Responsive Dimensions -->
-    <dimen name="auth_form_max_width">480dp</dimen>
-    <dimen name="auth_horizontal_margin">24dp</dimen>
-    <dimen name="auth_min_touch_target">48dp</dimen>
-    <dimen name="auth_keyboard_padding">16dp</dimen>
-    
-    <!-- Chat UI/UX Improvements -->
-    <dimen name="message_bubble_max_width">280dp</dimen>
-    <dimen name="message_vertical_spacing">8dp</dimen>
-    <dimen name="message_vertical_spacing_sender_change">12dp</dimen>
-    <dimen name="message_bubble_corner_radius">16dp</dimen>
+    <!-- Message bubble dimensions -->
     <dimen name="message_bubble_padding">12dp</dimen>
+    <dimen name="message_bubble_max_width">280dp</dimen>
+    <dimen name="message_vertical_spacing">4dp</dimen>
     
-    <!-- Message Grouping Spacing -->
-    <dimen name="message_spacing_grouped">2dp</dimen>
-    <dimen name="message_spacing_ungrouped">12dp</dimen>
+    <!-- Common dimensions -->
+    <dimen name="corner_radius_small">4dp</dimen>
+    <dimen name="corner_radius_medium">8dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
     
-    <!-- Profile Screen Dimensions -->
-    <dimen name="profile_image_size">96dp</dimen>
-    <dimen name="profile_story_ring_width">3dp</dimen>
-    <dimen name="profile_icon_size">24dp</dimen>
-    <dimen name="profile_chip_height">32dp</dimen>
-    <dimen name="profile_photo_grid_spacing">2dp</dimen>
+    <!-- Auth dimensions -->
+    <dimen name="auth_min_touch_target">48dp</dimen>
+    
+    <!-- Chat dimensions -->
+    <dimen name="chat_carousel_spacing">8dp</dimen>
+    <dimen name="chat_carousel_image_size">120dp</dimen>
+    <dimen name="message_spacing_ungrouped">16dp</dimen>
+    <dimen name="message_spacing_grouped">4dp</dimen>
+    <dimen name="message_bubble_corner_radius">16dp</dimen>
+    <dimen name="gallery_image_corner_radius">8dp</dimen>
+    <dimen name="active_status_indicator_size">12dp</dimen>
+    <dimen name="spacing_tiny">4dp</dimen>
 </resources>

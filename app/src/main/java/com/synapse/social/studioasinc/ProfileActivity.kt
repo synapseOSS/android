@@ -25,6 +25,7 @@ import com.synapse.social.studioasinc.ui.profile.ProfileViewModel
 import com.synapse.social.studioasinc.ui.profile.ProfileViewModelFactory
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
@@ -39,7 +40,10 @@ import kotlinx.coroutines.runBlocking
  * intent.putExtra("uid", userId)
  * startActivity(intent)
  * ```
+ *
+ * @deprecated Use [com.synapse.social.studioasinc.ui.profile.ProfileScreen] within [MainActivity] navigation graph instead.
  */
+@Deprecated("Use ProfileScreen within MainActivity navigation graph instead")
 class ProfileActivity : ComponentActivity() {
     
     private val viewModel: ProfileViewModel by viewModels { ProfileViewModelFactory(this) }

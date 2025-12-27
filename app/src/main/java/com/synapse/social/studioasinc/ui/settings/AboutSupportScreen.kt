@@ -145,7 +145,7 @@ fun AboutSupportScreen(
                     SettingsNavigationItem(
                         title = "Help Center",
                         subtitle = "FAQs and support resources",
-                        icon = R.drawable.icon_support_agent_round,
+                        icon = R.drawable.ic_info_48px,
                         onClick = {
                             viewModel.navigateToHelpCenter()
                             // TODO: Navigate to help center when implemented
@@ -184,7 +184,7 @@ fun AboutSupportScreen(
                     SettingsNavigationItem(
                         title = "Open Source Licenses",
                         subtitle = "View third-party library attributions",
-                        icon = R.drawable.icon_code_round,
+                        icon = R.drawable.ic_bug_report_48px,
                         onClick = {
                             viewModel.navigateToLicenses()
                             onNavigateToLicenses()

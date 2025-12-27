@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.Log
 import com.onesignal.notifications.INotificationClickListener
 import com.onesignal.notifications.INotificationClickEvent
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 
 /**
  * Handles notification clicks and routes users to the appropriate screens within the app.

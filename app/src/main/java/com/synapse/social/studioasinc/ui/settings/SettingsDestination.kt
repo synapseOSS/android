@@ -70,7 +70,22 @@ sealed class SettingsDestination(val route: String) {
      * Open Source Licenses screen.
      */
     object Licenses : SettingsDestination(ROUTE_LICENSES)
-    
+
+    /**
+     * AI settings screen for persona configuration and AI chat.
+     */
+    object AI : SettingsDestination(ROUTE_AI)
+
+    /**
+     * Persona Editor screen.
+     */
+    object AiPersonaEditor : SettingsDestination(ROUTE_AI_PERSONA_EDITOR)
+
+    /**
+     * AI Chat screen.
+     */
+    object AiChat : SettingsDestination(ROUTE_AI_CHAT)
+
     companion object {
         // Route constants for navigation
         const val ROUTE_HUB = "settings_hub"
@@ -85,7 +100,10 @@ sealed class SettingsDestination(val route: String) {
         const val ROUTE_ABOUT = "settings_about"
         const val ROUTE_CHAT_HISTORY_DELETION = "settings_chat_history_deletion"
         const val ROUTE_LICENSES = "settings_licenses"
-        
+        const val ROUTE_AI = "settings_ai"
+        const val ROUTE_AI_PERSONA_EDITOR = "settings_ai_persona_editor"
+        const val ROUTE_AI_CHAT = "settings_ai_chat"
+
         /**
          * Returns all available settings destinations.
          */
@@ -101,7 +119,10 @@ sealed class SettingsDestination(val route: String) {
             Language,
             About,
             ChatHistoryDeletion,
-            Licenses
+            Licenses,
+            AI,
+            AiPersonaEditor,
+            AiChat
         )
         
         /**
@@ -122,6 +143,9 @@ sealed class SettingsDestination(val route: String) {
             ROUTE_ABOUT -> About
             ROUTE_CHAT_HISTORY_DELETION -> ChatHistoryDeletion
             ROUTE_LICENSES -> Licenses
+            ROUTE_AI -> AI
+            ROUTE_AI_PERSONA_EDITOR -> AiPersonaEditor
+            ROUTE_AI_CHAT -> AiChat
             else -> null
         }
     }

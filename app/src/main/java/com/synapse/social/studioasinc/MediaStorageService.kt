@@ -15,6 +15,8 @@ import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
+import java.util.Date
+import java.util.TimeZone
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -36,6 +38,8 @@ class MediaStorageService(
         
         private const val CONNECT_TIMEOUT_MS = 30000
         private const val READ_TIMEOUT_MS = 60000
+        private const val R2_REGION = "auto"
+        private const val S3_SERVICE = "s3"
     }
     
     enum class MediaType {
@@ -359,11 +363,66 @@ class MediaStorageService(
     }
     
     /**
-     * Placeholder for R2 upload
+     * Upload to Cloudflare R2 (S3-compatible)
      */
-    private suspend fun uploadToR2(accountId: String, accessKeyId: String, secretAccessKey: String, bucketName: String, file: File, callback: UploadCallback) {
-        // TODO: Implement R2 upload logic
-        callback.onError("Cloudflare R2 upload not implemented yet")
+    private suspend fun uploadToR2(accountId: String, accessKeyId: String, secretAccessKey: String, bucketName: String, file: File, callback: UploadCallback) = withContext(Dispatchers.IO) {
+        val objectKey = "${System.currentTimeMillis()}_${safeKey(file.name)}"
+        val contentType = getMimeType(file.extension)
+        val host = "$accountId.r2.cloudflarestorage.com"
+        val path = "/$bucketName/$objectKey"
+        val urlStr = "https://$host$path"
+
+        try {
+            val url = URL(urlStr)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.doOutput = true
+            conn.requestMethod = "PUT"
+            conn.connectTimeout = CONNECT_TIMEOUT_MS
+            conn.readTimeout = READ_TIMEOUT_MS
+            conn.setRequestProperty("Host", host)
+            conn.setRequestProperty("x-amz-content-sha256", "UNSIGNED-PAYLOAD")
+            conn.setRequestProperty("x-amz-date", amzDate())
+            conn.setRequestProperty("Content-Type", contentType)
+
+            // Sign request
+            signS3(conn, "PUT", path, R2_REGION, host, accessKeyId, secretAccessKey)
+
+            // Upload
+            DataOutputStream(BufferedOutputStream(conn.outputStream)).use { dos ->
+                FileInputStream(file).use { fileInputStream ->
+                    val buffer = ByteArray(8192)
+                    val totalBytes = file.length()
+                    var bytesSent = 0L
+                    var bytesRead: Int
+
+                    while (fileInputStream.read(buffer).also { bytesRead = it } != -1) {
+                        dos.write(buffer, 0, bytesRead)
+                        bytesSent += bytesRead
+                        val progress = ((bytesSent * 100) / totalBytes).toInt()
+                        withContext(Dispatchers.Main) {
+                            callback.onProgress(progress)
+                        }
+                    }
+                }
+            }
+
+            val responseCode = conn.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+                withContext(Dispatchers.Main) {
+                    callback.onSuccess(urlStr, objectKey)
+                }
+            } else {
+                val errorResponse = conn.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
+                withContext(Dispatchers.Main) {
+                    callback.onError("R2 upload failed ($responseCode): $errorResponse")
+                }
+            }
+
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                callback.onError("R2 upload error: ${e.message}")
+            }
+        }
     }
     
     /**
@@ -383,5 +442,63 @@ class MediaStorageService(
      */
     private fun getMimeType(extension: String): String {
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase()) ?: "application/octet-stream"
+    }
+
+    // --- AWS SigV4 Helpers ---
+
+    private fun safeKey(name: String): String {
+        return name.replace(Regex("[^A-Za-z0-9._-]"), "_")
+    }
+
+    private fun signS3(conn: HttpURLConnection, method: String, canonicalPath: String, region: String, host: String, accessKeyId: String, secretAccessKey: String) {
+        val amzDate = conn.getRequestProperty("x-amz-date")
+        val dateStamp = amzDate.substring(0, 8)
+        val signedHeaders = "content-type;host;x-amz-content-sha256;x-amz-date"
+        val contentType = conn.getRequestProperty("Content-Type")
+        val payloadHash = "UNSIGNED-PAYLOAD"
+        val canonicalQuery = ""
+        val canonicalHeaders = "content-type:$contentType\n" +
+                "host:$host\n" +
+                "x-amz-content-sha256:$payloadHash\n" +
+                "x-amz-date:$amzDate\n"
+        val canonicalRequest = "$method\n$canonicalPath\n$canonicalQuery\n$canonicalHeaders\n$signedHeaders\n$payloadHash"
+        val credentialScope = "$dateStamp/$region/$S3_SERVICE/aws4_request"
+        val stringToSign = "AWS4-HMAC-SHA256\n$amzDate\n$credentialScope\n${sha256Hex(canonicalRequest)}"
+
+        val signingKey = getSignatureKey(secretAccessKey, dateStamp, region, S3_SERVICE)
+        val signature = bytesToHex(hmacSHA256(signingKey, stringToSign))
+        val authorization = "AWS4-HMAC-SHA256 Credential=$accessKeyId/$credentialScope, SignedHeaders=$signedHeaders, Signature=$signature"
+        conn.setRequestProperty("Authorization", authorization)
+    }
+
+    private fun amzDate(): String {
+        val df = java.text.SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'")
+        df.timeZone = java.util.TimeZone.getTimeZone("UTC")
+        return df.format(java.util.Date())
+    }
+
+    private fun sha256Hex(s: String): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        val d = md.digest(s.toByteArray(Charsets.UTF_8))
+        return d.joinToString("") { "%02x".format(it) }
+    }
+
+    private fun hmacSHA256(key: ByteArray, data: String): ByteArray {
+        val mac = Mac.getInstance("HmacSHA256")
+        val keySpec = SecretKeySpec(key, "HmacSHA256")
+        mac.init(keySpec)
+        return mac.doFinal(data.toByteArray(Charsets.UTF_8))
+    }
+
+    private fun getSignatureKey(key: String, dateStamp: String, regionName: String, serviceName: String): ByteArray {
+        val kSecret = "AWS4$key".toByteArray(Charsets.UTF_8)
+        val kDate = hmacSHA256(kSecret, dateStamp)
+        val kRegion = hmacSHA256(kDate, regionName)
+        val kService = hmacSHA256(kRegion, serviceName)
+        return hmacSHA256(kService, "aws4_request")
+    }
+
+    private fun bytesToHex(bytes: ByteArray): String {
+        return bytes.joinToString("") { "%02x".format(it) }
     }
 }

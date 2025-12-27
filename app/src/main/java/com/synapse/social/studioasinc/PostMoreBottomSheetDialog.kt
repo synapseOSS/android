@@ -173,6 +173,10 @@ class PostMoreBottomSheetDialog : DialogFragment() {
     private fun editPost() {
         post?.id?.let { key ->
             lifecycleScope.launch {
+                // TODO: Replace with Compose-based post editing
+                // EditPostActivity has been removed - post editing will be handled by Compose
+                dialog.dismiss()
+                /*
                 databaseService.selectById("posts", key).onSuccess { postData ->
                     postData?.let {
                         val editIntent = Intent(requireActivity(), EditPostActivity::class.java).apply {
@@ -191,6 +195,7 @@ class PostMoreBottomSheetDialog : DialogFragment() {
                         startActivity(editIntent)
                     }
                 }
+                */
             }
         }
     }

@@ -21,13 +21,17 @@ import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
 import com.synapse.social.studioasinc.ui.inbox.InboxScreen
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 import com.synapse.social.studioasinc.util.ActivityTransitions
 import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 
 /**
  * Activity for the Inbox screen.
  * Built with Jetpack Compose.
+ *
+ * @deprecated Use [com.synapse.social.studioasinc.ui.inbox.InboxScreen] within [MainActivity] navigation graph instead.
  */
+@Deprecated("Use InboxScreen within MainActivity navigation graph instead")
 @AndroidEntryPoint
 class InboxActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

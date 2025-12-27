@@ -16,7 +16,13 @@ class ChatHelper(private val context: Context) {
             if (!originSimpleName.isNullOrEmpty() && originSimpleName != "null") {
                 try {
                     val packageName = "com.synapse.social.studioasinc"
-                    val fullClassName = "$packageName.${originSimpleName.trim()}"
+                    // Handle activities that were moved to sub-packages
+                    val className = originSimpleName.trim()
+                    val fullClassName = when (className) {
+                        "MainActivity" -> "$packageName.ui.main.MainActivity"
+                        "ChatActivity" -> "$packageName.ui.chat.ChatActivity"
+                        else -> "$packageName.$className"
+                    }
                     val clazz = Class.forName(fullClassName)
 
                     val newIntent = Intent(context, clazz)
