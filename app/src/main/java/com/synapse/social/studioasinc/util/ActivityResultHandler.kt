@@ -7,7 +7,7 @@ import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import com.synapse.social.studioasinc.ChatActivity
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 import com.synapse.social.studioasinc.StorageUtils
 import java.util.ArrayList
 import java.util.HashMap

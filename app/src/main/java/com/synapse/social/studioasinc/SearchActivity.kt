@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.synapse.social.studioasinc.ui.search.SearchScreen
 import com.synapse.social.studioasinc.ui.search.SearchViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.ui.chat.ChatActivity
 
 class SearchActivity : BaseActivity() {
 

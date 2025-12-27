@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc
+package com.synapse.social.studioasinc.ui.chat
 
 import android.content.Context
 import android.content.Intent
@@ -13,13 +13,12 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.AndroidEntryPoint
-import com.synapse.social.studioasinc.ui.chat.DirectChatScreen
-import com.synapse.social.studioasinc.ui.chat.DirectChatViewModel
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import com.synapse.social.studioasinc.util.ActivityTransitions
 import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
 import com.synapse.social.studioasinc.util.finishWithPremiumTransition
+import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 

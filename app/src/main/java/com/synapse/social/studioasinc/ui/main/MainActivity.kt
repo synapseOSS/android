@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc
+package com.synapse.social.studioasinc.ui.main
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -42,6 +42,10 @@ import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.UserRepository
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import com.synapse.social.studioasinc.HomeActivity
+import com.synapse.social.studioasinc.AuthActivity
+import com.synapse.social.studioasinc.R
+import com.synapse.social.studioasinc.SupabaseClient
 
 class MainActivity : ComponentActivity() {
 
