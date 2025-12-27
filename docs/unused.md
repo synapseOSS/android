@@ -1,6 +1,6 @@
 # Unused Android Resources Report
 
-Generated on: Sat Dec 27 14:53:32 UTC 2025
+Generated on: Sat Dec 27 14:56:17 UTC 2025
 
 ## Summary
 
@@ -12,8 +12,8 @@ Generated on: Sat Dec 27 14:53:32 UTC 2025
 
 ## Unused Drawables
 
-- `ic_add_photo_black.xml` - `/home/Ashik/android/app/src/main/res/drawable/ic_add_photo_black.xml`
-- `ic_settings_black.xml` - `/home/Ashik/android/app/src/main/res/drawable/ic_settings_black.xml`
+- `ic_add_photo_black.xml` - `/home/runner/work/android/android/app/src/main/res/drawable/ic_add_photo_black.xml`
+- `ic_settings_black.xml` - `/home/runner/work/android/android/app/src/main/res/drawable/ic_settings_black.xml`
 
 ## Unused String Resources
 
@@ -613,31 +613,31 @@ Generated on: Sat Dec 27 14:53:32 UTC 2025
 
 ## Unused Layout Files
 
-- `activity_image_gallery.xml` - `/home/Ashik/android/app/src/main/res/layout/activity_image_gallery.xml`
-- `activity_media_preview.xml` - `/home/Ashik/android/app/src/main/res/layout/activity_media_preview.xml`
-- `activity_post_detail.xml` - `/home/Ashik/android/app/src/main/res/layout/activity_post_detail.xml`
-- `bottom_sheet_comment_options.xml` - `/home/Ashik/android/app/src/main/res/layout/bottom_sheet_comment_options.xml`
-- `bottom_sheet_media_picker.xml` - `/home/Ashik/android/app/src/main/res/layout/bottom_sheet_media_picker.xml`
-- `bottom_sheet_message_actions.xml` - `/home/Ashik/android/app/src/main/res/layout/bottom_sheet_message_actions.xml`
-- `create_post_settings_bottom_sheet.xml` - `/home/Ashik/android/app/src/main/res/layout/create_post_settings_bottom_sheet.xml`
-- `dialog_ai_summary.xml` - `/home/Ashik/android/app/src/main/res/layout/dialog_ai_summary.xml`
-- `dialog_delete_message.xml` - `/home/Ashik/android/app/src/main/res/layout/dialog_delete_message.xml`
-- `dialog_edit_history.xml` - `/home/Ashik/android/app/src/main/res/layout/dialog_edit_history.xml`
-- `dialog_edit_message.xml` - `/home/Ashik/android/app/src/main/res/layout/dialog_edit_message.xml`
-- `dialog_forward_message.xml` - `/home/Ashik/android/app/src/main/res/layout/dialog_forward_message.xml`
-- `fragment_inbox_stories.xml` - `/home/Ashik/android/app/src/main/res/layout/fragment_inbox_stories.xml`
-- `item_comment_detail.xml` - `/home/Ashik/android/app/src/main/res/layout/item_comment_detail.xml`
-- `item_forward_conversation.xml` - `/home/Ashik/android/app/src/main/res/layout/item_forward_conversation.xml`
-- `item_gallery_image.xml` - `/home/Ashik/android/app/src/main/res/layout/item_gallery_image.xml`
-- `item_loading_state.xml` - `/home/Ashik/android/app/src/main/res/layout/item_loading_state.xml`
-- `item_media_picker_option.xml` - `/home/Ashik/android/app/src/main/res/layout/item_media_picker_option.xml`
-- `item_message_action.xml` - `/home/Ashik/android/app/src/main/res/layout/item_message_action.xml`
-- `item_nested_reply.xml` - `/home/Ashik/android/app/src/main/res/layout/item_nested_reply.xml`
-- `item_post_detail_caption.xml` - `/home/Ashik/android/app/src/main/res/layout/item_post_detail_caption.xml`
-- `item_post_detail_image.xml` - `/home/Ashik/android/app/src/main/res/layout/item_post_detail_image.xml`
-- `item_post_detail_video.xml` - `/home/Ashik/android/app/src/main/res/layout/item_post_detail_video.xml`
-- `view_audio_player.xml` - `/home/Ashik/android/app/src/main/res/layout/view_audio_player.xml`
-- `view_video_player.xml` - `/home/Ashik/android/app/src/main/res/layout/view_video_player.xml`
+- `activity_image_gallery.xml` - `/home/runner/work/android/android/app/src/main/res/layout/activity_image_gallery.xml`
+- `activity_media_preview.xml` - `/home/runner/work/android/android/app/src/main/res/layout/activity_media_preview.xml`
+- `activity_post_detail.xml` - `/home/runner/work/android/android/app/src/main/res/layout/activity_post_detail.xml`
+- `bottom_sheet_comment_options.xml` - `/home/runner/work/android/android/app/src/main/res/layout/bottom_sheet_comment_options.xml`
+- `bottom_sheet_media_picker.xml` - `/home/runner/work/android/android/app/src/main/res/layout/bottom_sheet_media_picker.xml`
+- `bottom_sheet_message_actions.xml` - `/home/runner/work/android/android/app/src/main/res/layout/bottom_sheet_message_actions.xml`
+- `create_post_settings_bottom_sheet.xml` - `/home/runner/work/android/android/app/src/main/res/layout/create_post_settings_bottom_sheet.xml`
+- `dialog_ai_summary.xml` - `/home/runner/work/android/android/app/src/main/res/layout/dialog_ai_summary.xml`
+- `dialog_delete_message.xml` - `/home/runner/work/android/android/app/src/main/res/layout/dialog_delete_message.xml`
+- `dialog_edit_history.xml` - `/home/runner/work/android/android/app/src/main/res/layout/dialog_edit_history.xml`
+- `dialog_edit_message.xml` - `/home/runner/work/android/android/app/src/main/res/layout/dialog_edit_message.xml`
+- `dialog_forward_message.xml` - `/home/runner/work/android/android/app/src/main/res/layout/dialog_forward_message.xml`
+- `fragment_inbox_stories.xml` - `/home/runner/work/android/android/app/src/main/res/layout/fragment_inbox_stories.xml`
+- `item_comment_detail.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_comment_detail.xml`
+- `item_forward_conversation.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_forward_conversation.xml`
+- `item_gallery_image.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_gallery_image.xml`
+- `item_loading_state.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_loading_state.xml`
+- `item_media_picker_option.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_media_picker_option.xml`
+- `item_message_action.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_message_action.xml`
+- `item_nested_reply.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_nested_reply.xml`
+- `item_post_detail_caption.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_post_detail_caption.xml`
+- `item_post_detail_image.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_post_detail_image.xml`
+- `item_post_detail_video.xml` - `/home/runner/work/android/android/app/src/main/res/layout/item_post_detail_video.xml`
+- `view_audio_player.xml` - `/home/runner/work/android/android/app/src/main/res/layout/view_audio_player.xml`
+- `view_video_player.xml` - `/home/runner/work/android/android/app/src/main/res/layout/view_video_player.xml`
 
 ## Unused Color Resources
 
