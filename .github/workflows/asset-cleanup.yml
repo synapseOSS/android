@@ -1,0 +1,44 @@
+name: Asset Cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      delete_unused:
+        description: 'Delete unused assets'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday at 2 AM
+
+jobs:
+  cleanup:
+    name: Scan Unused Assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
+
+      - name: Scan for unused assets
+        run: ./scripts/cleanup_assets.sh
+
+      - name: Delete unused assets
+        if: ${{ github.event.inputs.delete_unused == 'true' }}
+        run: ./scripts/cleanup_assets.sh --delete
+
+      - name: Upload unused assets report
+        uses: actions/upload-artifact@v4
+        with:
+          name: unused-assets-report
+          path: docs/unused.md
+
+      - name: Commit changes
+        if: ${{ github.event.inputs.delete_unused == 'true' }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git diff --staged --quiet || git commit -m "chore: remove unused assets [skip ci]"
+          git push

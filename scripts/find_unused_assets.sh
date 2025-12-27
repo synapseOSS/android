@@ -278,7 +278,7 @@ EOF
 
 To delete unused drawable and layout files:
 \`\`\`bash
-./find_unused_assets.sh --delete
+./scripts/find_unused_assets.sh --delete
 \`\`\`
 
 EOF

@@ -15,8 +15,8 @@ if [[ ! -f "app/build.gradle" ]]; then
 fi
 
 # Run the main detection script
-./find_unused_assets.sh "$@"
+./scripts/find_unused_assets.sh "$@"
 
 echo ""
 echo "📄 View the full report: docs/unused.md"
-echo "🧹 To delete unused files: ./cleanup_assets.sh --delete"
+echo "🧹 To delete unused files: ./scripts/cleanup_assets.sh --delete"
