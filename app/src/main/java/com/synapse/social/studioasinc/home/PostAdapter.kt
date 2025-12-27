@@ -121,14 +121,10 @@ class PostAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             VIEW_TYPE_LOADING -> {
-                val view = LayoutInflater.from(context)
-                    .inflate(R.layout.item_loading_indicator, parent, false)
-                LoadingViewHolder(view)
+                com.synapse.social.studioasinc.compose.components.ComposeLoadingViewHolder.create(parent)
             }
             VIEW_TYPE_END_OF_LIST -> {
-                val view = LayoutInflater.from(context)
-                    .inflate(R.layout.item_end_of_list, parent, false)
-                EndOfListViewHolder(view)
+                com.synapse.social.studioasinc.compose.components.ComposeEndOfListViewHolder.create(parent)
             }
             else -> {
                 val view = LayoutInflater.from(context).inflate(R.layout.item_post, parent, false)
@@ -151,10 +147,6 @@ class PostAdapter(
         if (isAtEnd) count++
         return count
     }
-
-    class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
-    
-    class EndOfListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     inner class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val postContent: TextView = itemView.findViewById(R.id.postContent)
