@@ -106,7 +106,7 @@ object UploadFiles {
                 val mediaStorageService = MediaStorageService(context, appSettingsManager)
                 
                 kotlinx.coroutines.runBlocking {
-                    mediaStorageService.uploadFile(filePath, object : MediaStorageService.UploadCallback {
+                    mediaStorageService.uploadFile(filePath, null, object : MediaStorageService.UploadCallback {
                         override fun onProgress(percent: Int) {
                             postProgress(callback, percent)
                         }
