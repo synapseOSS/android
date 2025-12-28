@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.functions.functions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -400,12 +401,19 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
                     return@launch
                 }
 
-                // TODO: Implement actual account deletion with backend
                 android.util.Log.d("AccountSettingsViewModel", "Deleting account")
                 
-                // Simulate success
+                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+
+                // Call Edge Function to delete user
+                supabaseClient.functions.invoke(function = "delete-account")
+
+                // Sign out locally
+                supabaseClient.auth.signOut()
+
                 _showDeleteAccountDialog.value = false
-                // TODO: Navigate to login screen and clear all user data
+                // Note: Navigation to login screen is typically observed via auth state changes
+                // in the main activity or navigation graph
             } catch (e: Exception) {
                 android.util.Log.e("AccountSettingsViewModel", "Failed to delete account", e)
                 _error.value = "Failed to delete account: ${e.message}"
