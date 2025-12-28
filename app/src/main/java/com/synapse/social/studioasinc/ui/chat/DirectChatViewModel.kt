@@ -73,6 +73,9 @@ class DirectChatViewModel @Inject constructor(
     
     // Messages list (Source of Truth: Realtime/DB)
     private val _dbMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
+
+    // Typing Debounce Job
+    private var stopTypingJob: Job? = null
     
     // Storage Service
     private val storageService = com.synapse.social.studioasinc.backend.SupabaseStorageService()
@@ -175,6 +178,15 @@ class DirectChatViewModel @Inject constructor(
                     is com.synapse.social.studioasinc.chat.service.RealtimeState.Error -> RealtimeConnectionState.Disconnected
                 }
                 _uiState.update { it.copy(connectionState = connectionState) }
+
+                // Auto-retry if disconnected and we have a chat loaded
+                if (connectionState == RealtimeConnectionState.Disconnected && currentChatId != null) {
+                    delay(5000)
+                    // Check again before retrying to avoid loops if state changed
+                    if (_uiState.value.connectionState == RealtimeConnectionState.Disconnected) {
+                        retryConnection()
+                    }
+                }
             }
         }
     }
@@ -248,6 +260,11 @@ class DirectChatViewModel @Inject constructor(
                     _dbMessages.value = uiMessages
                     _uiState.update { it.copy(isLoading = false, error = null) }
                     
+                    // Mark messages as read
+                    if (currentUserId != null) {
+                        launch { chatRepository.markMessagesAsRead(chatId, currentUserId!!) }
+                    }
+
                     // Fetch link previews for messages containing URLs
                     fetchLinkPreviewsForMessages(uiMessages)
                     
@@ -413,6 +430,13 @@ class DirectChatViewModel @Inject constructor(
         _dbMessages.update { current ->
             if (current.any { it.id == uiMessage.id }) current else current + uiMessage
         }
+
+        // Mark as read if from other user (since we are active in chat)
+        if (!uiMessage.isFromCurrentUser && currentUserId != null) {
+            viewModelScope.launch {
+                chatRepository.markMessagesAsRead(message.chatId, currentUserId!!)
+            }
+        }
         
         // Fetch link preview if message contains URL
         fetchLinkPreviewForMessage(uiMessage)
@@ -522,6 +546,21 @@ class DirectChatViewModel @Inject constructor(
             }
             is ChatIntent.UpdateInputText -> {
                 _uiState.update { it.copy(inputText = intent.text) }
+
+                // Typing Indicator Logic with Debounce
+                if (intent.text.text.isNotEmpty()) {
+                    setTypingStatus(true)
+                    // Reset debounce timer
+                    stopTypingJob?.cancel()
+                    stopTypingJob = viewModelScope.launch {
+                        delay(3000) // 3 seconds of inactivity
+                        setTypingStatus(false)
+                    }
+                } else {
+                    setTypingStatus(false)
+                    stopTypingJob?.cancel()
+                }
+
                 // Check for mention
                 val mentionQuery = MentionHelper.getMentionQuery(intent.text)
                 if (mentionQuery != null) {
