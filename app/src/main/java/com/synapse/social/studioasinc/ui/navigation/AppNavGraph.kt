@@ -56,6 +56,7 @@ sealed class AppDestination(val route: String) {
     }
     object CreatePost : AppDestination("create_post")
     object Inbox : AppDestination("inbox")
+    object CreateGroup : AppDestination("create_group")
 }
 
 object AppTransitions {
@@ -231,8 +232,25 @@ fun AppNavGraph(
                     val intent = ChatActivity.createIntent(context, chatId, userId)
                     ActivityTransitions.startActivityWithTransition(context as Activity, intent)
                 },
+                onNavigateToCreateGroup = {
+                    navController.navigate(AppDestination.CreateGroup.route)
+                },
                 messageDeletionViewModel = messageDeletionViewModel,
                 viewModel = viewModel
+            )
+        }
+
+        // Create Group
+        composable(AppDestination.CreateGroup.route) {
+            com.synapse.social.studioasinc.ui.inbox.screens.CreateGroupScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onGroupCreated = { chatId ->
+                    // Replace create group screen with chat screen
+                    navController.popBackStack()
+
+                    val intent = ChatActivity.createIntent(context, chatId)
+                    ActivityTransitions.startActivityWithTransition(context as Activity, intent)
+                }
             )
         }
 
