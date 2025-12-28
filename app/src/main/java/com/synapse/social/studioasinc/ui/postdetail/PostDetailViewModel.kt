@@ -170,6 +170,17 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun createReshare(commentary: String?) {
+        val postId = currentPostId ?: return
+        viewModelScope.launch {
+            reshareRepository.createReshare(postId, commentary).onSuccess {
+                postDetailRepository.getPostWithDetails(postId).onSuccess { updatedPost ->
+                    _uiState.update { it.copy(post = updatedPost) }
+                }
+            }
+        }
+    }
+
     fun reportPost(reason: String) {
         val postId = currentPostId ?: return
         viewModelScope.launch { reportRepository.createReport(postId, reason, null) }

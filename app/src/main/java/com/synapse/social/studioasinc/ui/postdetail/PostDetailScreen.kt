@@ -116,6 +116,7 @@ fun PostDetailScreen(
                  viewModel.copyLink(postId, context)
             },
             onBookmark = { viewModel.toggleBookmark() },
+            onReshare = { viewModel.createReshare(null) },
             onToggleComments = { viewModel.toggleComments() },
             onReport = { viewModel.reportPost("Spam") },
             onBlock = {
