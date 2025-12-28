@@ -9,17 +9,17 @@
  * All rights reserved.
  */
 
-package com.synapse.social.studioasinc.util;
+package com.synapse.social.studioasinc.util
 
-import android.content.Context;
-import android.util.TypedValue;
-import android.view.View;
+import android.content.Context
+import android.util.TypedValue
+import android.view.View
 
 /**
  * Utility class for common UI operations.
  * Centralizes reusable UI helper methods to follow DRY principle.
  */
-public class UIUtils {
+object UIUtils {
 
     /**
      * Converts density-independent pixels (dp) to pixels (px).
@@ -28,12 +28,12 @@ public class UIUtils {
      * @param dp The value in dp to convert
      * @return The equivalent value in pixels
      */
-    public static int dpToPx(Context context, int dp) {
-        return (int) TypedValue.applyDimension(
+    fun dpToPx(context: Context, dp: Int): Int {
+        return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, 
-            dp, 
-            context.getResources().getDisplayMetrics()
-        );
+            dp.toFloat(),
+            context.resources.displayMetrics
+        ).toInt()
     }
 
     /**
@@ -43,8 +43,8 @@ public class UIUtils {
      * @param dp The value in dp to convert
      * @return The equivalent value in pixels
      */
-    public static int dpToPx(View view, int dp) {
-        return dpToPx(view.getContext(), dp);
+    fun dpToPx(view: View, dp: Int): Int {
+        return dpToPx(view.context, dp)
     }
 
     /**
@@ -54,8 +54,8 @@ public class UIUtils {
      * @param px The value in px to convert
      * @return The equivalent value in dp
      */
-    public static int pxToDp(Context context, int px) {
-        return (int) (px / context.getResources().getDisplayMetrics().density);
+    fun pxToDp(context: Context, px: Int): Int {
+        return (px / context.resources.displayMetrics.density).toInt()
     }
 
     /**
@@ -65,11 +65,11 @@ public class UIUtils {
      * @param sp The value in sp to convert
      * @return The equivalent value in pixels
      */
-    public static int spToPx(Context context, int sp) {
-        return (int) TypedValue.applyDimension(
+    fun spToPx(context: Context, sp: Int): Int {
+        return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_SP, 
-            sp, 
-            context.getResources().getDisplayMetrics()
-        );
+            sp.toFloat(),
+            context.resources.displayMetrics
+        ).toInt()
     }
 }
