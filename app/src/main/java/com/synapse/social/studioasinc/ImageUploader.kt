@@ -40,19 +40,24 @@ object ImageUploader {
         val mediaStorageService = MediaStorageService(context, appSettingsManager)
         
         CoroutineScope(Dispatchers.IO).launch {
-            mediaStorageService.uploadFile(filePath, object : MediaStorageService.UploadCallback {
-                override fun onProgress(percent: Int) {
-                    // Progress not exposed in legacy interface
+            // Explicitly pass arguments to match: suspend fun uploadFile(filePath: String, bucketName: String? = null, callback: UploadCallback)
+            mediaStorageService.uploadFile(
+                filePath = filePath,
+                bucketName = null,
+                callback = object : MediaStorageService.UploadCallback {
+                    override fun onProgress(percent: Int) {
+                        // Progress not exposed in legacy interface
+                    }
+
+                    override fun onSuccess(url: String, publicId: String) {
+                        callback.onUploadComplete(url)
+                    }
+
+                    override fun onError(error: String) {
+                        callback.onUploadError(error)
+                    }
                 }
-                
-                override fun onSuccess(url: String, publicId: String) {
-                    callback.onUploadComplete(url)
-                }
-                
-                override fun onError(error: String) {
-                    callback.onUploadError(error)
-                }
-            })
+            )
         }
     }
 }

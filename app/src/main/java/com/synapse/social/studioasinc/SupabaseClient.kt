@@ -61,7 +61,9 @@ object SupabaseClient {
                 install(Postgrest)
                 install(Realtime)
                 install(Storage) {
-                    customUrl = BuildConfig.SUPABASE_SYNAPSE_S3_ENDPOINT_URL
+                    if (BuildConfig.SUPABASE_SYNAPSE_S3_ENDPOINT_URL.isNotBlank()) {
+                        customUrl = BuildConfig.SUPABASE_SYNAPSE_S3_ENDPOINT_URL
+                    }
                 }
                 httpEngine = OkHttp.create()
             }
@@ -89,8 +91,9 @@ object SupabaseClient {
      */
     fun getUrl(): String = BuildConfig.SUPABASE_URL
 
-    const val BUCKET_POST_MEDIA = "post-media"
-    const val BUCKET_USER_AVATARS = "user-avatars"
+    const val BUCKET_POST_MEDIA = "posts"
+    const val BUCKET_USER_AVATARS = "avatars"
+    const val BUCKET_USER_COVERS = "covers"
 
     /**
      * Construct a full Supabase Storage URL from a storage path.

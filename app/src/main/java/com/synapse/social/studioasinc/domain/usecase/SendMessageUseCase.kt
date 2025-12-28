@@ -2,6 +2,7 @@ package com.synapse.social.studioasinc.domain.usecase
 
 import com.synapse.social.studioasinc.data.local.ChatDao
 import com.synapse.social.studioasinc.data.repository.ChatRepository
+import com.synapse.social.studioasinc.SupabaseClient
 import com.synapse.social.studioasinc.backend.interfaces.IAuthenticationService
 import com.synapse.social.studioasinc.domain.interfaces.ITypingIndicatorManager
 
@@ -12,7 +13,7 @@ class SendMessageUseCase(
     chatDao: ChatDao,
     private val authService: IAuthenticationService
 ) {
-    private val chatRepository = ChatRepository(chatDao)
+    private val chatRepository = ChatRepository(chatDao, SupabaseClient.client)
     
     suspend operator fun invoke(
         chatId: String,

@@ -26,7 +26,7 @@ sealed class PhotoHistoryEvent {
 
 class PhotoHistoryViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = EditProfileRepository()
+    private val repository = EditProfileRepository(application.applicationContext)
     private val _uiState = MutableStateFlow(PhotoHistoryUiState())
     val uiState: StateFlow<PhotoHistoryUiState> = _uiState.asStateFlow()
 

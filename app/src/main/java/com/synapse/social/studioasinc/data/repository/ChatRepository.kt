@@ -21,12 +21,15 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
+import io.github.jan.supabase.SupabaseClient as SupabaseClientType
 
-class ChatRepository(private val chatDao: ChatDao) {
+class ChatRepository(
+    private val chatDao: ChatDao,
+    private val client: SupabaseClientType
+) {
 
     private val chatService = SupabaseChatService()
     private val databaseService = SupabaseDatabaseService()
-    private val client = SupabaseClient.client
     
     private data class CacheEntry<T>(
         val data: T,
@@ -168,6 +171,21 @@ class ChatRepository(private val chatDao: ChatDao) {
         return chatService.getParticipantsForChats(chatIds)
     }
     
+    suspend fun getMessagesCount(chatId: String): Result<Int> = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val count = client.from("messages")
+                .select(columns = Columns.raw("id")) {
+                    filter {
+                        eq("chat_id", chatId)
+                    }
+                    count(io.github.jan.supabase.postgrest.query.Count.EXACT)
+                }.countOrNull() ?: 0
+            Result.success(count.toInt())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun getMessagesPage(
         chatId: String,
         beforeTimestamp: Long? = null,

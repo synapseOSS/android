@@ -77,6 +77,9 @@ class InboxActivity : ComponentActivity() {
                             val intent = ChatActivity.createIntent(this, chatId, userId)
                             ActivityTransitions.startActivityWithTransition(this, intent)
                         },
+                        onNavigateToCreateGroup = {
+                            android.widget.Toast.makeText(this@InboxActivity, "Please use the main app to create groups", android.widget.Toast.LENGTH_SHORT).show()
+                        },
                         messageDeletionViewModel = messageDeletionViewModel
                     )
                 }

@@ -20,6 +20,7 @@ import com.synapse.social.studioasinc.ui.inbox.theme.InboxShapes
 @Composable
 fun NewChatFab(
     onClick: () -> Unit,
+    onGroupClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     onExpandChange: (Boolean) -> Unit = {}
@@ -51,7 +52,7 @@ fun NewChatFab(
                 SmallFloatingActionButton(
                     onClick = { 
                         onExpandChange(false)
-                        // TODO: Start group chat
+                        onGroupClick()
                     },
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 ) {

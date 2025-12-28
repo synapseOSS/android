@@ -19,7 +19,7 @@ import java.io.File
 
 class EditProfileViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = EditProfileRepository()
+    private val repository = EditProfileRepository(application.applicationContext)
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
     val uiState: StateFlow<EditProfileUiState> = _uiState.asStateFlow()

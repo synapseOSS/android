@@ -31,7 +31,7 @@
 			android:name="com.onesignal.NotificationOpened.DEFAULT"
 			android:value="DISABLE" />
 		<activity
-			android:name=".MainActivity"
+			android:name=".ui.main.MainActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
 			android:hardwareAccelerated="true"
 			android:supportsPictureInPicture="true"
@@ -129,7 +129,7 @@
 			android:windowSoftInputMode="stateHidden" />
 
 		<activity
-			android:name=".ChatActivity"
+			android:name=".ui.chat.ChatActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
 			android:hardwareAccelerated="true"
 			android:supportsPictureInPicture="true"

@@ -39,7 +39,7 @@ class SynapseApp : Application(), DefaultLifecycleObserver {
     val postRepository: PostRepository by lazy { PostRepository(database.postDao()) }
     val commentRepository: CommentRepository by lazy { CommentRepository(database.commentDao()) }
     val userRepository: UserRepository by lazy { UserRepository(database.userDao()) }
-    val chatRepository: ChatRepository by lazy { ChatRepository(database.chatDao()) }
+    val chatRepository: ChatRepository by lazy { ChatRepository(database.chatDao(), SupabaseClient.client) }
     
     companion object {
         private lateinit var context: Context

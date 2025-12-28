@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 fun InboxScreen(
     onNavigateBack: () -> Unit,
     onNavigateToChat: (String, String) -> Unit,
+    onNavigateToCreateGroup: () -> Unit,
     messageDeletionViewModel: MessageDeletionViewModel,
     viewModel: InboxViewModel = viewModel(factory = InboxViewModelFactory(messageDeletionViewModel = messageDeletionViewModel))
 ) {
@@ -197,6 +198,7 @@ fun InboxScreen(
             ) {
                 NewChatFab(
                     onClick = { viewModel.onAction(InboxAction.NavigateToNewChat) },
+                    onGroupClick = onNavigateToCreateGroup,
                     expanded = isFabExpanded,
                     onExpandChange = { isFabExpanded = it }
                 )
