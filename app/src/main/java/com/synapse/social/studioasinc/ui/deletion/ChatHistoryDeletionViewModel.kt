@@ -5,12 +5,15 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import com.synapse.social.studioasinc.data.repository.deletion.ChatHistoryManager
 import com.synapse.social.studioasinc.data.model.deletion.DeletionResult
 import com.synapse.social.studioasinc.data.model.deletion.DeletionProgress
 import com.synapse.social.studioasinc.data.model.deletion.DeletionOperation
 import com.synapse.social.studioasinc.data.model.deletion.OperationStatus
 import com.synapse.social.studioasinc.data.repository.AuthRepository
+import com.synapse.social.studioasinc.data.repository.ChatRepository
 import javax.inject.Inject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -30,7 +33,8 @@ import java.util.Locale
 @HiltViewModel
 class ChatHistoryDeletionViewModel @Inject constructor(
     private val chatHistoryManager: ChatHistoryManager,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatHistoryDeletionUiState())
@@ -54,29 +58,30 @@ class ChatHistoryDeletionViewModel @Inject constructor(
     private fun loadAvailableChats() {
         viewModelScope.launch {
             try {
-                // TODO: Implement actual chat loading from repository
-                // For now, using mock data
-                val mockChats = listOf(
-                    ChatDeletionInfo(
-                        chatId = "chat1",
-                        chatName = "John Doe",
-                        messageCount = 156,
-                        lastMessageDate = "2 days ago"
-                    ),
-                    ChatDeletionInfo(
-                        chatId = "chat2",
-                        chatName = "Work Group",
-                        messageCount = 423,
-                        lastMessageDate = "1 hour ago"
-                    ),
-                    ChatDeletionInfo(
-                        chatId = "chat3",
-                        chatName = "Family Chat",
-                        messageCount = 89,
-                        lastMessageDate = "Yesterday"
-                    )
-                )
-                _availableChats.value = mockChats
+                chatRepository.getUserChats()
+                    .collect { result ->
+                        result.onSuccess { chats ->
+                            val deletionInfos = chats.map { chat ->
+                                async {
+                                    // Fetch real message count for each chat in parallel
+                                    val messageCountResult = chatRepository.getMessagesCount(chat.id)
+                                    val count = messageCountResult.getOrDefault(0)
+
+                                    ChatDeletionInfo(
+                                        chatId = chat.id,
+                                        chatName = chat.getDisplayName(),
+                                        messageCount = count,
+                                        lastMessageDate = chat.getFormattedLastMessageTime()
+                                    )
+                                }
+                            }.awaitAll()
+                            _availableChats.value = deletionInfos
+                        }.onFailure { error ->
+                            _uiState.value = _uiState.value.copy(
+                                error = "Failed to load available chats: ${error.message}"
+                            )
+                        }
+                    }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     error = "Failed to load available chats: ${e.message}"
