@@ -36,7 +36,7 @@ class SupabaseStorageService {
      * @return Public URL of uploaded image
      */
     suspend fun uploadAvatar(userId: String, filePath: String): Result<String> {
-        return uploadImage("avatars", userId, filePath)
+        return uploadImage(SupabaseClient.BUCKET_USER_AVATARS, userId, filePath)
     }
     
     /**
@@ -46,7 +46,7 @@ class SupabaseStorageService {
      * @return Public URL of uploaded image
      */
     suspend fun uploadCover(userId: String, filePath: String): Result<String> {
-        return uploadImage("covers", userId, filePath)
+        return uploadImage(SupabaseClient.BUCKET_USER_COVERS, userId, filePath)
     }
     
     /**
@@ -56,7 +56,7 @@ class SupabaseStorageService {
      * @return Public URL of uploaded image
      */
     suspend fun uploadPostImage(userId: String, filePath: String): Result<String> {
-        return uploadImage("posts", userId, filePath)
+        return uploadImage(SupabaseClient.BUCKET_POST_MEDIA, userId, filePath)
     }
     
     /**

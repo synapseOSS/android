@@ -1,7 +1,9 @@
 package com.synapse.social.studioasinc.presentation.editprofile
 
+import android.content.Context
+import com.synapse.social.studioasinc.MediaStorageService
 import com.synapse.social.studioasinc.SupabaseClient
-import com.synapse.social.studioasinc.backend.SupabaseStorageService
+import com.synapse.social.studioasinc.data.local.AppSettingsManager
 import com.synapse.social.studioasinc.model.UserProfile
 import com.synapse.social.studioasinc.presentation.editprofile.photohistory.HistoryItem
 import io.github.jan.supabase.auth.auth
@@ -11,17 +13,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
-import kotlinx.serialization.json.contentOrNull
 import java.util.UUID
+import kotlin.coroutines.resume
 
-class EditProfileRepository {
+class EditProfileRepository(private val context: Context) {
 
     private val client = SupabaseClient.client
-    private val storageService = SupabaseStorageService()
+    private val appSettingsManager = AppSettingsManager.getInstance(context)
+    private val mediaStorageService = MediaStorageService(context, appSettingsManager)
 
     suspend fun getCurrentUserId(): String? {
         return client.auth.currentUserOrNull()?.id
@@ -37,7 +42,6 @@ class EditProfileRepository {
 
             if (result != null) {
                 // Manually mapping JsonObject to UserProfile to ensure all fields are handled correctly
-                // similar to ProfileViewModel
                 val user = UserProfile(
                     uid = result["uid"]?.toString()?.removeSurrounding("\"") ?: userId,
                     username = result["username"]?.toString()?.removeSurrounding("\"") ?: "",
@@ -52,7 +56,6 @@ class EditProfileRepository {
                     gender = result["gender"]?.toString()?.removeSurrounding("\""),
                     region = result["region"]?.toString()?.removeSurrounding("\""),
                     status = result["status"]?.toString()?.removeSurrounding("\"") ?: "offline",
-                    // Other fields as needed, using UserProfile defaults
                     followersCount = result["followers_count"]?.toString()?.toIntOrNull() ?: 0,
                     followingCount = result["following_count"]?.toString()?.toIntOrNull() ?: 0,
                     postsCount = result["posts_count"]?.toString()?.toIntOrNull() ?: 0
@@ -125,11 +128,33 @@ class EditProfileRepository {
     }
 
     suspend fun uploadAvatar(userId: String, imagePath: String): Result<String> {
-        return storageService.uploadAvatar(userId, imagePath)
+        return uploadFile(imagePath, SupabaseClient.BUCKET_USER_AVATARS)
     }
 
     suspend fun uploadCover(userId: String, imagePath: String): Result<String> {
-        return storageService.uploadCover(userId, imagePath)
+        return uploadFile(imagePath, SupabaseClient.BUCKET_USER_COVERS)
+    }
+
+    private suspend fun uploadFile(filePath: String, bucketName: String): Result<String> = suspendCancellableCoroutine { continuation ->
+        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+            mediaStorageService.uploadFile(filePath, bucketName, object : MediaStorageService.UploadCallback {
+                override fun onProgress(percent: Int) {
+                    // Progress callback
+                }
+
+                override fun onSuccess(url: String, publicId: String) {
+                    if (continuation.isActive) {
+                        continuation.resume(Result.success(url))
+                    }
+                }
+
+                override fun onError(error: String) {
+                    if (continuation.isActive) {
+                        continuation.resume(Result.failure(Exception(error)))
+                    }
+                }
+            })
+        }
     }
 
     suspend fun addToProfileHistory(userId: String, imageUrl: String) {
@@ -145,7 +170,7 @@ class EditProfileRepository {
                 )
                 client.from("profile_history").insert(historyData)
             } catch (e: Exception) {
-                // Silent fail as per original
+                // Silent fail
             }
         }
     }
@@ -234,7 +259,6 @@ class EditProfileRepository {
         val key = json["key"]?.jsonPrimitive?.contentOrNull ?: return null
         val userId = json["user_id"]?.jsonPrimitive?.contentOrNull ?: return null
         val imageUrl = json["image_url"]?.jsonPrimitive?.contentOrNull ?: return null
-        // Handle upload_date which might be stored as string or number
         val uploadDateStr = json["upload_date"]?.jsonPrimitive?.contentOrNull
         val uploadDate = uploadDateStr?.toLongOrNull() ?: 0L
         val type = json["type"]?.jsonPrimitive?.contentOrNull ?: "url"
