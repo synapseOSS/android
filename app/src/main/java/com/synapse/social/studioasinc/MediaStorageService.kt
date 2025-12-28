@@ -55,7 +55,7 @@ class MediaStorageService(
     /**
      * Upload a file using the configured provider with fallback to default
      */
-    suspend fun uploadFile(filePath: String, callback: UploadCallback) = withContext(Dispatchers.IO) {
+    suspend fun uploadFile(filePath: String, bucketName: String? = null, callback: UploadCallback) = withContext(Dispatchers.IO) {
         val file = File(filePath)
         if (!file.exists()) {
             callback.onError("File not found: $filePath")
@@ -82,7 +82,7 @@ class MediaStorageService(
                 "Supabase" -> uploadToSupabase(
                     config.supabaseConfig.url,
                     config.supabaseConfig.apiKey,
-                    config.supabaseConfig.bucketName,
+                    bucketName ?: config.supabaseConfig.bucketName,
                     file,
                     callback
                 )
@@ -90,7 +90,7 @@ class MediaStorageService(
                     config.r2Config.accountId,
                     config.r2Config.accessKeyId,
                     config.r2Config.secretAccessKey,
-                    config.r2Config.bucketName,
+                    bucketName ?: config.r2Config.bucketName,
                     file,
                     callback
                 )

@@ -40,7 +40,7 @@ object ImageUploader {
         val mediaStorageService = MediaStorageService(context, appSettingsManager)
         
         CoroutineScope(Dispatchers.IO).launch {
-            mediaStorageService.uploadFile(filePath, object : MediaStorageService.UploadCallback {
+            mediaStorageService.uploadFile(filePath, null, object : MediaStorageService.UploadCallback {
                 override fun onProgress(percent: Int) {
                     // Progress not exposed in legacy interface
                 }
