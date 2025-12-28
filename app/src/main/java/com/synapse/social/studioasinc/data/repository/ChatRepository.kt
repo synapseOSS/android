@@ -174,11 +174,12 @@ class ChatRepository(
     suspend fun getMessagesCount(chatId: String): Result<Int> = withContext(Dispatchers.IO) {
         return@withContext try {
             val count = client.from("messages")
-                .select(head = true) {
+                .select(columns = Columns.raw("id")) {
                     filter {
                         eq("chat_id", chatId)
                     }
-                }.count()
+                    count(io.github.jan.supabase.postgrest.query.Count.EXACT)
+                }.countOrNull() ?: 0
             Result.success(count.toInt())
         } catch (e: Exception) {
             Result.failure(e)

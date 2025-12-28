@@ -4,6 +4,7 @@ import android.app.Application
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
+import com.synapse.social.studioasinc.SupabaseClient
 import com.synapse.social.studioasinc.model.Message
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,7 @@ import java.util.UUID
 class ChatMessageManager(
     application: Application,
     private val authRepository: AuthRepository = AuthRepository(),
-    private val chatRepository: ChatRepository = ChatRepository(AppDatabase.getDatabase(application).chatDao())
+    private val chatRepository: ChatRepository = ChatRepository(AppDatabase.getDatabase(application).chatDao(), SupabaseClient.client)
 ) {
 
     /**

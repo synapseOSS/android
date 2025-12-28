@@ -12,6 +12,7 @@ import com.synapse.social.studioasinc.backend.SupabaseStorageService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
+import com.synapse.social.studioasinc.SupabaseClient
 import com.synapse.social.studioasinc.model.Message
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.UserProfileManager
@@ -47,7 +48,7 @@ class DirectChatViewModel @Inject constructor(
 
     // Dependencies
     private val chatDao = AppDatabase.getDatabase(application).chatDao()
-    private val chatRepository = ChatRepository(chatDao)
+    private val chatRepository = ChatRepository(chatDao, SupabaseClient.client)
     private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
     private val aiRepository = AiRepository()
