@@ -221,6 +221,70 @@ class SupabaseChatService {
     }
     
     /**
+     * Create a new group chat
+     */
+    suspend fun createGroupChat(name: String, userIds: List<String>, creatorId: String): Result<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (!SupabaseClient.isConfigured()) {
+                    return@withContext Result.failure(Exception("Supabase not configured"))
+                }
+
+                val chatId = UUID.randomUUID().toString()
+                val isoTimestamp = java.time.Instant.now().toString()
+
+                // 1. Create chat
+                val chatData = mapOf(
+                    "chat_id" to chatId,
+                    "is_group" to true,
+                    "group_name" to name,
+                    "created_by" to creatorId,
+                    "participants_count" to userIds.size + 1, // Add creator to count
+                    "is_active" to true,
+                    "created_at" to isoTimestamp,
+                    "last_message" to "Group created",
+                    "last_message_time" to isoTimestamp,
+                    "last_message_sender" to creatorId
+                )
+
+                val insertResult = databaseService.insert("chats", chatData)
+                if (insertResult.isFailure) {
+                     return@withContext Result.failure(insertResult.exceptionOrNull() ?: Exception("Failed to create chat"))
+                }
+
+                // 2. Add participants
+                // First add creator as admin
+                addChatParticipantViaRPC(chatId, creatorId, creatorId)
+
+                // Then add others
+                userIds.filter { it != creatorId }.forEach { userId ->
+                    addChatParticipantViaRPC(chatId, userId, creatorId)
+                }
+
+                // 3. Add initial system message
+                val messageId = UUID.randomUUID().toString()
+                val messageData = mapOf(
+                    "id" to messageId,
+                    "chat_id" to chatId,
+                    "sender_id" to creatorId,
+                    "content" to "Group \"$name\" created",
+                    "message_type" to "system",
+                    "created_at" to isoTimestamp,
+                    "updated_at" to isoTimestamp,
+                    "message_state" to "sent",
+                    "delivery_status" to "sent",
+                    "is_deleted" to false
+                )
+                databaseService.insert("messages", messageData)
+
+                Result.success(chatId)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    /**
      * Create or get existing chat between two users
      * Uses try-insert-catch-retrieve pattern to handle race conditions gracefully
      */
