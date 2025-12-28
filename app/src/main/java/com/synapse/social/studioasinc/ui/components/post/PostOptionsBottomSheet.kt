@@ -35,6 +35,7 @@ fun PostOptionsBottomSheet(
     onShare: () -> Unit,
     onCopyLink: () -> Unit,
     onBookmark: () -> Unit,
+    onReshare: () -> Unit = {},
     onToggleComments: () -> Unit,
     onReport: () -> Unit,
     onBlock: () -> Unit,
@@ -58,6 +59,14 @@ fun PostOptionsBottomSheet(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
+                QuickAction(
+                    icon = R.drawable.ic_forward, // Using forward icon for reshare
+                    label = "Reshare",
+                    onClick = {
+                        onReshare()
+                        onDismiss()
+                    }
+                )
                 QuickAction(
                     icon = R.drawable.ic_send,
                     label = "Share",
