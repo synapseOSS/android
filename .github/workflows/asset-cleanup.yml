@@ -23,15 +23,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Make scripts executable
-        run: chmod +x scripts/*.sh
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Scan for unused assets
-        run: ./scripts/cleanup_assets.sh
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Delete unused assets
+      - name: Build project to generate R.java
+        run: ./gradlew assembleDebug
+
+      - name: Detect unused resources with lint
+        run: |
+          ./gradlew lintDebug
+          # Extract unused resources from lint report
+          python3 -c "
+          import xml.etree.ElementTree as ET
+          import os
+          
+          if os.path.exists('app/build/reports/lint-results-debug.xml'):
+              tree = ET.parse('app/build/reports/lint-results-debug.xml')
+              unused = []
+              for issue in tree.findall('.//issue[@id=\"UnusedResources\"]'):
+                  location = issue.find('location')
+                  if location is not None:
+                      unused.append(location.get('file'))
+              
+              os.makedirs('docs', exist_ok=True)
+              with open('docs/unused.md', 'w') as f:
+                  f.write('# Unused Resources Report\n\n')
+                  if unused:
+                      f.write('## Unused Files:\n')
+                      for file in unused:
+                          f.write(f'- {file}\n')
+                  else:
+                      f.write('No unused resources found.\n')
+          "
+
+      - name: Delete unused resources
         if: ${{ github.event.inputs.delete_unused == 'true' }}
-        run: ./scripts/cleanup_assets.sh --delete
+        run: |
+          if [ -f docs/unused.md ]; then
+            grep "^- " docs/unused.md | sed 's/^- //' | while read file; do
+              if [ -f "$file" ]; then
+                echo "Removing: $file"
+                rm "$file"
+              fi
+            done
+          fi
 
       - name: Upload unused assets report
         uses: actions/upload-artifact@v4
