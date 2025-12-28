@@ -4,13 +4,10 @@
     <dimen name="spacing_small">8dp</dimen>
     <dimen name="spacing_normal">16dp</dimen>
     <dimen name="spacing_medium">24dp</dimen>
-    <dimen name="spacing_large">32dp</dimen>
     
     <!-- Text sizes -->
-    <dimen name="text_size_small">12sp</dimen>
     <dimen name="text_size_normal">14sp</dimen>
     <dimen name="text_size_medium">16sp</dimen>
-    <dimen name="text_size_large">18sp</dimen>
     
     <!-- Message bubble dimensions -->
     <dimen name="message_bubble_padding">12dp</dimen>
@@ -18,9 +15,7 @@
     <dimen name="message_vertical_spacing">4dp</dimen>
     
     <!-- Common dimensions -->
-    <dimen name="corner_radius_small">4dp</dimen>
     <dimen name="corner_radius_medium">8dp</dimen>
-    <dimen name="corner_radius_large">16dp</dimen>
     
     <!-- Auth dimensions -->
     <dimen name="auth_min_touch_target">48dp</dimen>
