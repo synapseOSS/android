@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Message
@@ -284,19 +285,19 @@ private fun ProfileActionButtons(
                 Text("Edit Profile")
             }
             
-            // Share Profile Button
+            // Add Story Button
             FilledTonalButton(
                 onClick = onAddStoryClick,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Share,
+                    imageVector = Icons.Outlined.AddCircle,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Share Profile")
+                Text("Add Story")
             }
         } else {
             // Follow/Following Button
