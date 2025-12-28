@@ -92,7 +92,7 @@ class SupabaseStorageService {
                 
                 for (attempt in 1..3) {
                     try {
-                        storage.from(bucket).upload(path, fileBytes) { upsert = false }
+                        storage.from(bucket).upload(path, fileBytes) { upsert = true }
                         uploadSuccess = true
                         break
                     } catch (e: Exception) {

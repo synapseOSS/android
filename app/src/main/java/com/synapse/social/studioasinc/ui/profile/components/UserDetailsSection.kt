@@ -213,6 +213,21 @@ private fun CollapsedSummary(details: UserDetails) {
         details.joinedDate?.let {
             if (isNotEmpty()) append(" • Joined $it")
         }
+
+        // If summary is still empty check other fields
+        if (isEmpty()) {
+            details.website?.let { append(it) }
+            if (isEmpty()) {
+                details.relationshipStatus?.let { append(it) }
+            }
+            if (isEmpty()) {
+                 if (details.linkedAccounts.isNotEmpty()) {
+                     append("Linked Accounts: ${details.linkedAccounts.size}")
+                 } else {
+                     append("Tap 'More' to see details")
+                 }
+            }
+        }
     }
 
     Text(
