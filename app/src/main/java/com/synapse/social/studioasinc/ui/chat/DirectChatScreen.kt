@@ -740,6 +740,23 @@ fun DirectChatScreen(
 
             // Floating Input Bar (hidden during selection mode)
             if (!uiState.isMultiSelectMode) {
+                // Fade Gradient for floating effect
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(inputBarHeightDp + 20.dp)
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                                    MaterialTheme.colorScheme.surface
+                                )
+                            )
+                        )
+                )
+
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)

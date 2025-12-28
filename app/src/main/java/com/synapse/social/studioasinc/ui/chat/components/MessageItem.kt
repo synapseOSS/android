@@ -132,7 +132,7 @@ fun MessageItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetX.roundToInt(), 0) }
-                .padding(horizontal = 16.dp, vertical = 2.dp),
+                .padding(horizontal = 8.dp, vertical = 2.dp),
             horizontalArrangement = if (message.isFromCurrentUser) Arrangement.End else Arrangement.Start
         ) {
             if (!message.isFromCurrentUser) {
@@ -146,7 +146,7 @@ fun MessageItem(
                         .align(Alignment.Bottom),
                     contentScale = ContentScale.Crop
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
             }
 
             // Message Bubble
