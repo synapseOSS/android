@@ -290,6 +290,7 @@ class AuthViewModel(
                     try {
                         val client = com.synapse.social.studioasinc.SupabaseClient.client
                         val userMap = mapOf(
+                            "id" to userId,
                             "uid" to userId,
                             "username" to username,
                             "email" to email,
@@ -297,6 +298,10 @@ class AuthViewModel(
                         )
 
                         client.from("users").insert(userMap)
+                        
+                        // Create related records
+                        client.from("user_settings").insert(mapOf("user_id" to userId))
+                        client.from("user_presence").insert(mapOf("user_id" to userId))
 
                         sharedPreferences.edit()
                             .putBoolean("show_profile_completion_dialog", true)
