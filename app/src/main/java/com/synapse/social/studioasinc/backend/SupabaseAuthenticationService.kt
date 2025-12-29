@@ -4,6 +4,8 @@ import android.content.Context
 import com.synapse.social.studioasinc.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.exceptions.RestException
+import io.github.jan.supabase.exceptions.HttpRequestException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
@@ -25,32 +27,30 @@ class AuthErrorHandler {
             Log.d(TAG, "Handling auth error: ${error.message}")
             logAuthenticationError(error)
             
-            // FIXME: Fragile string parsing - Relying on error message strings is brittle; check exception types or error codes
-            return when {
-                error.message?.contains("email not confirmed", ignoreCase = true) == true -> 
-                    AuthError.EMAIL_NOT_VERIFIED
-                error.message?.contains("Email not confirmed", ignoreCase = true) == true -> 
-                    AuthError.EMAIL_NOT_VERIFIED
-                error.message?.contains("invalid", ignoreCase = true) == true -> 
-                    AuthError.INVALID_CREDENTIALS
-                error.message?.contains("Invalid login credentials", ignoreCase = true) == true -> 
-                    AuthError.INVALID_CREDENTIALS
-                error.message?.contains("network", ignoreCase = true) == true -> 
-                    AuthError.NETWORK_ERROR
-                error.message?.contains("connection", ignoreCase = true) == true -> 
-                    AuthError.NETWORK_ERROR
-                error.message?.contains("timeout", ignoreCase = true) == true -> 
-                    AuthError.NETWORK_ERROR
-                error.message?.contains("unreachable", ignoreCase = true) == true -> 
-                    AuthError.NETWORK_ERROR
-                error is java.net.UnknownHostException -> 
-                    AuthError.NETWORK_ERROR
-                error is java.net.SocketTimeoutException -> 
-                    AuthError.NETWORK_ERROR
-                error is java.io.IOException -> 
-                    AuthError.NETWORK_ERROR
-                else -> 
-                    AuthError.UNKNOWN_ERROR
+            return when (error) {
+                is RestException -> {
+                    val msg = error.message ?: ""
+                    when {
+                        msg.contains("email not confirmed", ignoreCase = true) -> AuthError.EMAIL_NOT_VERIFIED
+                        msg.contains("invalid login credentials", ignoreCase = true) -> AuthError.INVALID_CREDENTIALS
+                        msg.contains("invalid", ignoreCase = true) -> AuthError.INVALID_CREDENTIALS
+                        else -> AuthError.UNKNOWN_ERROR
+                    }
+                }
+                is HttpRequestException -> AuthError.NETWORK_ERROR
+                is java.net.UnknownHostException -> AuthError.NETWORK_ERROR
+                is java.net.SocketTimeoutException -> AuthError.NETWORK_ERROR
+                is java.io.IOException -> AuthError.NETWORK_ERROR
+                else -> {
+                    val msg = error.message ?: ""
+                    when {
+                        msg.contains("network", ignoreCase = true) -> AuthError.NETWORK_ERROR
+                        msg.contains("connection", ignoreCase = true) -> AuthError.NETWORK_ERROR
+                        msg.contains("timeout", ignoreCase = true) -> AuthError.NETWORK_ERROR
+                        msg.contains("unreachable", ignoreCase = true) -> AuthError.NETWORK_ERROR
+                        else -> AuthError.UNKNOWN_ERROR
+                    }
+                }
             }
         }
         
