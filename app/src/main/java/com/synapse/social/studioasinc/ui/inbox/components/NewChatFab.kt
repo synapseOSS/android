@@ -78,7 +78,7 @@ fun NewChatFab(
         }
         
         // Main FAB
-        LargeFloatingActionButton(
+        FloatingActionButton(
             onClick = {
                 if (expanded) {
                     onExpandChange(false)
@@ -94,7 +94,7 @@ fun NewChatFab(
                 imageVector = Icons.Default.Add,
                 contentDescription = "New Message",
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(24.dp)
                     .rotate(rotation)
             )
         }

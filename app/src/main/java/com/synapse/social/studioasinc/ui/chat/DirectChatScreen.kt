@@ -188,7 +188,8 @@ fun DirectChatScreen(
                 showMessageOptions = false
                 selectedMessage = null
             },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             val msg = selectedMessage!!
             Column(
@@ -679,15 +680,6 @@ fun DirectChatScreen(
                         visible = visible || !isNewMessage,
                         enter = fadeIn(
                             animationSpec = tween(150, easing = androidx.compose.animation.core.FastOutSlowInEasing)
-                        ) + scaleIn(
-                            initialScale = 0.92f,
-                            animationSpec = tween(150, easing = androidx.compose.animation.core.FastOutSlowInEasing)
-                        ),
-                        modifier = Modifier.animateItem(
-                            placementSpec = spring<IntOffset>(
-                                dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
-                                stiffness = androidx.compose.animation.core.Spring.StiffnessLow
-                            )
                         )
                     ) {
                         MessageItem(

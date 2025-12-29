@@ -79,6 +79,7 @@ fun SearchScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .statusBarsPadding()
         ) {
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -167,6 +168,9 @@ fun SearchContent(
     onRemoveHistoryItem: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
+        // TODO: Implement searching posts and other related content in future updates.
+        // Currently supports basic filtering.
+
         // Filters
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
