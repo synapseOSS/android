@@ -1,7 +1,10 @@
 package com.synapse.social.studioasinc.ui.navigation
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,7 +30,8 @@ fun HomeNavGraph(
     navController: NavHostController,
     onNavigateToProfile: (String) -> Unit,
     startDestination: String = HomeDestinations.Feed.route,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    bottomPadding: Dp = 0.dp
 ) {
     NavHost(
         navController = navController,
@@ -39,26 +43,36 @@ fun HomeNavGraph(
                 onPostClick = { postId -> navController.navigate(HomeDestinations.PostDetail.createRoute(postId)) },
                 onUserClick = { userId -> onNavigateToProfile(userId) },
                 onCommentClick = { postId -> navController.navigate(HomeDestinations.PostDetail.createRoute(postId)) },
-                onMediaClick = { }
+                onMediaClick = { },
+                contentPadding = PaddingValues(bottom = bottomPadding)
             )
         }
 
         composable(HomeDestinations.Reels.route) {
              ReelsScreen(
                  onUserClick = { userId -> onNavigateToProfile(userId) },
-                 onCommentClick = { }
+                 onCommentClick = { },
+                 contentPadding = PaddingValues(bottom = bottomPadding)
              )
         }
 
         composable(HomeDestinations.Notifications.route) {
              NotificationsScreen(
                  onNotificationClick = { notification -> },
-                 onUserClick = { userId -> onNavigateToProfile(userId) }
+                 onUserClick = { userId -> onNavigateToProfile(userId) },
+                 contentPadding = PaddingValues(bottom = bottomPadding)
              )
         }
 
         composable(HomeDestinations.PostDetail.route) { backStackEntry ->
              val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
+             // PostDetail typically doesn't show the bottom nav bar (or it slides away).
+             // Since we removed it from Scaffold and it's overlaid in HomeActivity/HomeScreen,
+             // it will slide away based on logic in HomeScreen.
+             // PostDetail takes full screen. We might not need to add padding here if the bar is hidden.
+             // But if the bar IS visible during transition, we might want it?
+             // Usually detail screens don't have the bottom bar.
+             // We don't pass contentPadding here.
              PostDetailScreen(
                  postId = postId,
                  onNavigateBack = { navController.popBackStack() },
