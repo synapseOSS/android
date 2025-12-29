@@ -1,6 +1,7 @@
 package com.synapse.social.studioasinc.ui.notifications
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -21,7 +23,8 @@ import com.synapse.social.studioasinc.ui.home.FeedLoading
 fun NotificationsScreen(
     viewModel: NotificationsViewModel = viewModel(),
     onNotificationClick: (UiNotification) -> Unit,
-    onUserClick: (String) -> Unit
+    onUserClick: (String) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val swipeRefreshState = rememberSwipeRefreshState(uiState.isLoading)
@@ -38,7 +41,10 @@ fun NotificationsScreen(
                     Text("No notifications", style = MaterialTheme.typography.bodyLarge)
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = contentPadding
+                ) {
                     items(uiState.notifications) { notification ->
                     NotificationItem(
                         notification = notification,
