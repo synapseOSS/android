@@ -30,7 +30,7 @@ class SearchActivity : BaseActivity() {
             SynapseTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    val viewModel: SearchViewModel = viewModel(factory = SearchViewModel.provideFactory())
+                    val viewModel: SearchViewModel = viewModel(factory = SearchViewModel.provideFactory(this))
 
                     SearchScreen(
                         viewModel = viewModel,

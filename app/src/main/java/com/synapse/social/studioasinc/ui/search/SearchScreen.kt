@@ -18,11 +18,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Comment
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.SmartDisplay
+import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -127,7 +130,10 @@ fun SearchScreen(
                         listState = listState,
                         onFilterSelect = viewModel::onFilterSelect,
                         onNavigateToProfile = onNavigateToProfile,
-                        onNavigateToPost = onNavigateToPost
+                        onNavigateToPost = onNavigateToPost,
+                        onHistoryItemClick = { viewModel.onSearch(it) },
+                        onClearHistory = { viewModel.clearHistory() },
+                        onRemoveHistoryItem = { viewModel.removeFromHistory(it) }
                     )
                 }
 
@@ -138,7 +144,10 @@ fun SearchScreen(
                         listState = listState,
                         onFilterSelect = viewModel::onFilterSelect,
                         onNavigateToProfile = onNavigateToProfile,
-                        onNavigateToPost = onNavigateToPost
+                        onNavigateToPost = onNavigateToPost,
+                        onHistoryItemClick = { viewModel.onSearch(it) },
+                        onClearHistory = { viewModel.clearHistory() },
+                        onRemoveHistoryItem = { viewModel.removeFromHistory(it) }
                     )
                 }
             }
@@ -152,7 +161,10 @@ fun SearchContent(
     listState: androidx.compose.foundation.lazy.LazyListState,
     onFilterSelect: (SearchFilter) -> Unit,
     onNavigateToProfile: (String) -> Unit,
-    onNavigateToPost: (String) -> Unit
+    onNavigateToPost: (String) -> Unit,
+    onHistoryItemClick: (String) -> Unit,
+    onClearHistory: () -> Unit,
+    onRemoveHistoryItem: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         // Filters
@@ -210,8 +222,17 @@ fun SearchContent(
             } else if (state.results.isEmpty() && state.query.isNotEmpty()) {
                 EmptySearchState(query = state.query)
             } else if (state.results.isEmpty() && state.query.isEmpty()) {
-                // Initial state suggestion or empty
-                Box(modifier = Modifier.fillMaxSize()) // Or put "Recent searches" here
+                // History
+                if (state.searchHistory.isNotEmpty()) {
+                    SearchHistoryList(
+                        history = state.searchHistory,
+                        onItemClick = onHistoryItemClick,
+                        onClearAll = onClearHistory,
+                        onRemoveItem = onRemoveHistoryItem
+                    )
+                } else {
+                     Box(modifier = Modifier.fillMaxSize())
+                }
             } else {
                 LazyColumn(
                     state = listState,
@@ -283,6 +304,71 @@ fun EmptySearchState(query: String) {
 }
 
 @Composable
+fun SearchHistoryList(
+    history: List<String>,
+    onItemClick: (String) -> Unit,
+    onClearAll: () -> Unit,
+    onRemoveItem: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 16.dp)
+    ) {
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.recent_searches),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Bold
+                )
+                TextButton(onClick = onClearAll) {
+                    Text(stringResource(R.string.clear_all))
+                }
+            }
+        }
+
+        items(history) { query ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onItemClick(query) }
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.History,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = query,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { onRemoveItem(query) }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Clear,
+                        contentDescription = stringResource(R.string.remove),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun UserResultItem(
     user: SearchResult.User,
     onClick: (String) -> Unit
@@ -312,12 +398,35 @@ fun UserResultItem(
         Spacer(modifier = Modifier.width(16.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = user.nickname?.takeIf { it.isNotEmpty() && it != "null" } ?: user.username,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = user.nickname?.takeIf { it.isNotEmpty() && it != "null" } ?: user.username,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (user.isVerified) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.Verified,
+                        contentDescription = "Verified",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                if (user.isBanned) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    SuggestionChip(
+                        onClick = { },
+                        label = { Text("BANNED", style = MaterialTheme.typography.labelSmall) },
+                        colors = SuggestionChipDefaults.suggestionChipColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            labelColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        modifier = Modifier.height(24.dp)
+                    )
+                }
+            }
             Text(
                 text = "@${user.username}",
                 style = MaterialTheme.typography.bodyMedium,
