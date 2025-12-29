@@ -323,6 +323,9 @@ class DirectChatViewModel @Inject constructor(
                 // 4. Now subscribe to the channel
                 channel.subscribe()
 
+                // Notify service that connection is established (since we manually subscribed)
+                realtimeService.updateConnectionState(com.synapse.social.studioasinc.chat.service.RealtimeState.Connected)
+
                 // 5. Observe Messages (Insert/Update/Delete)
                 launch {
                     try {

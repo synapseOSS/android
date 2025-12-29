@@ -260,6 +260,15 @@ data class SettingsCategory(
 )
 
 /**
+ * Settings Group model for grouping categories.
+ */
+data class SettingsGroup(
+    val id: String,
+    val title: String? = null,
+    val categories: List<SettingsCategory>
+)
+
+/**
  * User profile summary for display in the Settings Hub header.
  * Requirements: 1.5
  */

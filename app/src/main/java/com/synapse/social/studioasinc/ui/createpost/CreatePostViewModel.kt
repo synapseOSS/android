@@ -12,6 +12,7 @@ import com.synapse.social.studioasinc.model.MediaItem
 import com.synapse.social.studioasinc.model.MediaType
 import com.synapse.social.studioasinc.model.PollOption
 import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.model.User
 import com.synapse.social.studioasinc.FileUtils
 import com.synapse.social.studioasinc.util.MediaUploadManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,8 @@ data class CreatePostUiState(
     val isPostCreated: Boolean = false,
     val uploadProgress: Float = 0f,
     val isEditMode: Boolean = false,
-    val checkDraft: Boolean = true
+    val checkDraft: Boolean = true,
+    val currentUserProfile: User? = null
 )
 
 data class PollData(
@@ -77,6 +79,17 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
     init {
         // Load draft on init if not edit mode (edit mode loaded separately)
         // We defer draft loading until we know if it's edit mode
+        loadCurrentUser()
+    }
+
+    private fun loadCurrentUser() {
+        viewModelScope.launch {
+            authService.getCurrentUserId()?.let { uid ->
+                userRepository.getUserById(uid).onSuccess { user ->
+                    _uiState.update { it.copy(currentUserProfile = user) }
+                }
+            }
+        }
     }
 
     fun loadDraft() {

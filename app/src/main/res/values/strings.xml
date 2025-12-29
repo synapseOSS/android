@@ -943,6 +943,9 @@ Please explain the following message from %3$s in detail, considering the contex
     <!-- Search Screen Strings -->
     <string name="search_media_type_video">Video</string>
     <string name="search_media_type_photo">Photo</string>
+    <string name="recent_searches">Recent searches</string>
+    <string name="clear_all">Clear all</string>
+    <string name="remove">Remove</string>
 
     <string name="tab_chats">Chats</string>
     <string name="tab_calls">Calls</string>

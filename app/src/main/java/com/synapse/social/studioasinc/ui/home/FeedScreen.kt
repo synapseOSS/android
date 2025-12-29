@@ -1,6 +1,7 @@
 package com.synapse.social.studioasinc.ui.home
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,7 +43,8 @@ fun FeedScreen(
     onPostClick: (String) -> Unit,
     onUserClick: (String) -> Unit,
     onCommentClick: (String) -> Unit,
-    onMediaClick: (Int) -> Unit // Added missing parameter
+    onMediaClick: (Int) -> Unit, // Added missing parameter
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val posts = viewModel.posts.collectAsLazyPagingItems()
@@ -71,7 +73,8 @@ fun FeedScreen(
             FeedEmpty()
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = contentPadding
             ) {
                 items(
                     count = posts.itemCount,

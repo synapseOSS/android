@@ -494,7 +494,7 @@ class SupabaseRealtimeService {
         startPollingFallback(chatId)
     }
     
-    private fun updateConnectionState(newState: RealtimeState) {
+    fun updateConnectionState(newState: RealtimeState) {
         if (_connectionState.value != newState) {
             _connectionState.value = newState
             notifyConnectionCallbacks(newState)

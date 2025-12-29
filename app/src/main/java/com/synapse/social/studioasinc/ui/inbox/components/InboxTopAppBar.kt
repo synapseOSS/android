@@ -21,8 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.ui.inbox.theme.InboxDimens
 
 /**
@@ -32,7 +34,8 @@ import com.synapse.social.studioasinc.ui.inbox.theme.InboxDimens
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InboxTopAppBar(
-    title: String = "Google Messages",
+    title: String = "Synapse Chat",
+    avatarUrl: String? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     selectionMode: Boolean = false,
     selectedCount: Int = 0,
@@ -55,6 +58,7 @@ fun InboxTopAppBar(
         } else {
             InboxLargeTopAppBar(
                 title = title,
+                avatarUrl = avatarUrl,
                 scrollBehavior = scrollBehavior,
                 onSearchClick = onSearchClick,
                 onProfileClick = onProfileClick,
@@ -79,32 +83,12 @@ fun InboxTopAppBar(
 @Composable
 fun InboxLargeTopAppBar(
     title: String,
+    avatarUrl: String?,
     scrollBehavior: TopAppBarScrollBehavior?,
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // We use LargeTopAppBar but customize the title to be the "Google Messages" text
-    // and we place the Search Bar + Avatar in the 'actions' or we might need a custom layout
-    // if the search bar is supposed to be *below* the title in the expanded state.
-
-    // Looking at Google Messages:
-    // Expanded:
-    // [ Google Messages ] (Large Text)
-    // [ Search ...      ] (Avatar)
-
-    // Collapsed:
-    // [ Google Messages ] [ Search Icon ] [ Avatar ]
-
-    // Implementation:
-    // We can't easily put the Search Bar *inside* the standard LargeTopAppBar title slot nicely without it getting clipped or behaving oddly during collapse.
-    // A better approach for this specific custom behavior is to use a standard LargeTopAppBar
-    // where the "title" slot contains the Text, and the Search/Avatar are in the 'actions' slot?
-    // No, that doesn't match the "Search bar below title" layout.
-
-    // Alternative: The Search Bar + Avatar IS the title in expanded mode?
-    // Let's try to mimic it using the standard components first to ensure scrolling works.
-
     LargeTopAppBar(
         title = {
             Column(
@@ -118,32 +102,12 @@ fun InboxLargeTopAppBar(
             }
         },
         actions = {
-             // We render a pill-shaped search container in the actions area
-             // This mimics the "Search" button next to the Avatar
-
-             Surface(
-                 shape = CircleShape,
-                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                 modifier = Modifier
-                     .height(48.dp)
-                     .clickable(onClick = onSearchClick)
-             ) {
-                 Row(
-                     verticalAlignment = Alignment.CenterVertically,
-                     modifier = Modifier.padding(horizontal = 16.dp)
-                 ) {
-                     Icon(
-                         imageVector = Icons.Default.Search,
-                         contentDescription = "Search",
-                         modifier = Modifier.size(24.dp)
-                     )
-                     Spacer(modifier = Modifier.width(8.dp))
-
-                     // Avatar inside the pill? Or outside?
-                     // Google Messages: Search Icon is distinct, Avatar is distinct.
-                     // BUT, often the Search is a full bar.
-                     // Given "Right of Search Bar", let's assume they are siblings.
-                 }
+             // Search Icon Button
+             IconButton(onClick = onSearchClick) {
+                 Icon(
+                     imageVector = Icons.Default.Search,
+                     contentDescription = "Search"
+                 )
              }
 
              Spacer(modifier = Modifier.width(8.dp))
@@ -157,11 +121,20 @@ fun InboxLargeTopAppBar(
                      .clickable(onClick = onProfileClick),
                  contentAlignment = Alignment.Center
              ) {
-                 Text(
-                     text = "A", // Placeholder
-                     style = MaterialTheme.typography.titleMedium,
-                     color = MaterialTheme.colorScheme.onPrimary
-                 )
+                 if (avatarUrl != null) {
+                     AsyncImage(
+                         model = avatarUrl,
+                         contentDescription = "Profile",
+                         modifier = Modifier.fillMaxSize(),
+                         contentScale = ContentScale.Crop
+                     )
+                 } else {
+                     Text(
+                         text = "A", // Placeholder - Ideally current user's initial
+                         style = MaterialTheme.typography.titleMedium,
+                         color = MaterialTheme.colorScheme.onPrimary
+                     )
+                 }
              }
 
              Spacer(modifier = Modifier.width(16.dp))
