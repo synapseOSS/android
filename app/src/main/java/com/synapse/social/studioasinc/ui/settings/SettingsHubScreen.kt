@@ -32,7 +32,7 @@ fun SettingsHubScreen(
     onNavigateToCategory: (SettingsDestination) -> Unit
 ) {
     val userProfile by viewModel.userProfileSummary.collectAsState()
-    val categories by viewModel.settingsCategories.collectAsState()
+    val settingsGroups by viewModel.settingsGroups.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -95,32 +95,42 @@ fun SettingsHubScreen(
                     }
                 }
 
-                // Settings Categories - Grouped together
-                item {
+                // Settings Groups
+                items(settingsGroups) { group ->
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        categories.forEachIndexed { index, category ->
-                            val position = when {
-                                categories.size == 1 -> SettingsItemPosition.Single
-                                index == 0 -> SettingsItemPosition.Top
-                                index == categories.lastIndex -> SettingsItemPosition.Bottom
-                                else -> SettingsItemPosition.Middle
-                            }
+                        if (group.title != null) {
+                             SettingsHeaderItem(title = group.title)
+                        } else {
+                            // If no title, we might want to add a spacer, but the LazyColumn
+                            // already has spacedBy(SettingsSpacing.sectionSpacing)
+                        }
 
-                            SettingsNavigationItem(
-                                title = category.title,
-                                subtitle = category.subtitle,
-                                icon = category.icon,
-                                onClick = {
-                                    viewModel.onNavigateToCategory(category.destination)
-                                    onNavigateToCategory(category.destination)
-                                },
-                                position = position
-                            )
+                        // Render Group Items
+                        SettingsCard {
+                             group.categories.forEachIndexed { index, category ->
+                                val position = when {
+                                    group.categories.size == 1 -> SettingsItemPosition.Single
+                                    index == 0 -> SettingsItemPosition.Top
+                                    index == group.categories.lastIndex -> SettingsItemPosition.Bottom
+                                    else -> SettingsItemPosition.Middle
+                                }
 
-                            if (index < categories.size - 1) {
-                                SettingsDivider()
+                                SettingsNavigationItem(
+                                    title = category.title,
+                                    subtitle = category.subtitle,
+                                    icon = category.icon,
+                                    onClick = {
+                                        viewModel.onNavigateToCategory(category.destination)
+                                        onNavigateToCategory(category.destination)
+                                    },
+                                    position = position
+                                )
+
+                                if (index < group.categories.size - 1) {
+                                    SettingsDivider()
+                                }
                             }
                         }
                     }
