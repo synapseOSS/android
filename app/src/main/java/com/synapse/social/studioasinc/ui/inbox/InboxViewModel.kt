@@ -8,6 +8,8 @@ import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import com.synapse.social.studioasinc.ui.inbox.models.*
 import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
 import com.synapse.social.studioasinc.data.model.deletion.DeletionType
+import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.UserProfileManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
@@ -74,9 +76,22 @@ class InboxViewModel(
     private val _deletionStatus = MutableStateFlow<DeletionStatus?>(null)
     val deletionStatus: StateFlow<DeletionStatus?> = _deletionStatus.asStateFlow()
     
+    // Current user profile
+    private val _currentUserProfile = MutableStateFlow<User?>(null)
+    val currentUserProfile: StateFlow<User?> = _currentUserProfile.asStateFlow()
+
     init {
         loadChats()
         observeDeletionStatus()
+        loadCurrentUserProfile()
+    }
+
+    private fun loadCurrentUserProfile() {
+        viewModelScope.launch {
+            authService.getCurrentUserId()?.let { uid ->
+                _currentUserProfile.value = UserProfileManager.getUserProfile(uid)
+            }
+        }
     }
     
     /**

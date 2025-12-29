@@ -39,6 +39,7 @@ fun InboxScreen(
     viewModel: InboxViewModel = viewModel(factory = InboxViewModelFactory(messageDeletionViewModel = messageDeletionViewModel))
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val currentUserProfile by viewModel.currentUserProfile.collectAsState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     
     val pagerState = rememberPagerState(pageCount = { 3 })
@@ -148,7 +149,8 @@ fun InboxScreen(
                     )
                 } else {
                     InboxTopAppBar(
-                        title = "Google Messages",
+                        title = "Synapse Chat",
+                        avatarUrl = currentUserProfile?.avatar,
                         scrollBehavior = scrollBehavior,
                         selectionMode = selectionMode,
                         selectedCount = selectedCount,

@@ -20,11 +20,11 @@ class SearchActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        com.synapse.social.studioasinc.util.EdgeToEdgeUtils.setupEdgeToEdgeActivity(this)
+
         // Handle intents
         chatMode = intent.getBooleanExtra("mode", false) || intent.getStringExtra("mode") == "chat"
         origin = intent.getStringExtra("origin") ?: ""
-
-        // Edge-to-edge is handled in BaseActivity
 
         setContent {
             SynapseTheme {
