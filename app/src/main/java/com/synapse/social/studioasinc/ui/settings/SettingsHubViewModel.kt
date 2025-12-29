@@ -24,8 +24,8 @@ class SettingsHubViewModel(application: Application) : AndroidViewModel(applicat
     private val _userProfileSummary = MutableStateFlow<UserProfileSummary?>(null)
     val userProfileSummary: StateFlow<UserProfileSummary?> = _userProfileSummary.asStateFlow()
 
-    private val _settingsCategories = MutableStateFlow<List<SettingsCategory>>(emptyList())
-    val settingsCategories: StateFlow<List<SettingsCategory>> = _settingsCategories.asStateFlow()
+    private val _settingsGroups = MutableStateFlow<List<SettingsGroup>>(emptyList())
+    val settingsGroups: StateFlow<List<SettingsGroup>> = _settingsGroups.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -110,71 +110,102 @@ class SettingsHubViewModel(application: Application) : AndroidViewModel(applicat
      * Requirements: 1.1, 1.4
      */
     private fun loadSettingsCategories() {
-        _settingsCategories.value = listOf(
-            SettingsCategory(
-                id = "account",
-                title = "Account",
-                subtitle = "Profile, email, password, and account management",
-                icon = R.drawable.ic_person,
-                destination = SettingsDestination.Account
-            ),
-            SettingsCategory(
-                id = "privacy",
-                title = "Privacy & Security",
-                subtitle = "Control who can see your content and secure your account",
-                icon = R.drawable.ic_shield_lock,
-                destination = SettingsDestination.Privacy
-            ),
-            SettingsCategory(
-                id = "appearance",
-                title = "Appearance",
-                subtitle = "Theme, colors, and display preferences",
-                icon = R.drawable.ic_rounded_corner,
-                destination = SettingsDestination.Appearance
-            ),
-            SettingsCategory(
-                id = "notifications",
-                title = "Notifications",
-                subtitle = "Manage alerts and notification preferences",
-                icon = R.drawable.ic_notifications,
-                destination = SettingsDestination.Notifications
-            ),
-            SettingsCategory(
-                id = "chat",
-                title = "Chat",
-                subtitle = "Messaging behavior and privacy settings",
-                icon = R.drawable.ic_message,
-                destination = SettingsDestination.Chat
-            ),
-            SettingsCategory(
-                id = "ai",
-                title = "AI Settings",
-                subtitle = "Configure AI Persona and Assistant",
-                icon = R.drawable.star_shine_24px,
-                destination = SettingsDestination.AI
-            ),
-            SettingsCategory(
-                id = "storage",
-                title = "Storage & Data",
-                subtitle = "Cache, data usage, and storage providers",
-                icon = R.drawable.ic_sd_card_white,
-                destination = SettingsDestination.Storage
-            ),
-            SettingsCategory(
-                id = "language",
-                title = "Language & Region",
-                subtitle = "Language preferences and regional settings",
-                icon = R.drawable.ic_category,
-                destination = SettingsDestination.Language
-            ),
-            SettingsCategory(
-                id = "about",
-                title = "About & Support",
-                subtitle = "App info, help, and legal information",
-                icon = R.drawable.ic_info_48px,
-                destination = SettingsDestination.About
+        // Group A: Account, Privacy & Security
+        val groupA = SettingsGroup(
+            id = "group_a",
+            title = null,
+            categories = listOf(
+                SettingsCategory(
+                    id = "account",
+                    title = "Account",
+                    subtitle = "Profile, email, password, and account management",
+                    icon = R.drawable.ic_person,
+                    destination = SettingsDestination.Account
+                ),
+                SettingsCategory(
+                    id = "privacy",
+                    title = "Privacy & Security",
+                    subtitle = "Control who can see your content and secure your account",
+                    icon = R.drawable.ic_shield_lock,
+                    destination = SettingsDestination.Privacy
+                )
             )
         )
+
+        // Group B: Appearance, Notifications, Language & Region
+        val groupB = SettingsGroup(
+            id = "group_b",
+            title = null,
+            categories = listOf(
+                SettingsCategory(
+                    id = "appearance",
+                    title = "Appearance",
+                    subtitle = "Theme, colors, and display preferences",
+                    icon = R.drawable.ic_palette,
+                    destination = SettingsDestination.Appearance
+                ),
+                SettingsCategory(
+                    id = "notifications",
+                    title = "Notifications",
+                    subtitle = "Manage alerts and notification preferences",
+                    icon = R.drawable.ic_notifications,
+                    destination = SettingsDestination.Notifications
+                ),
+                SettingsCategory(
+                    id = "language",
+                    title = "Language & Region",
+                    subtitle = "Language preferences and regional settings",
+                    icon = R.drawable.ic_public,
+                    destination = SettingsDestination.Language
+                )
+            )
+        )
+
+        // Group C: Chat, AI Settings, Storage & Data
+        val groupC = SettingsGroup(
+            id = "group_c",
+            title = null,
+            categories = listOf(
+                SettingsCategory(
+                    id = "chat",
+                    title = "Chat",
+                    subtitle = "Messaging behavior and privacy settings",
+                    icon = R.drawable.ic_message,
+                    destination = SettingsDestination.Chat
+                ),
+                SettingsCategory(
+                    id = "ai",
+                    title = "AI Settings",
+                    subtitle = "Configure AI Persona and Assistant",
+                    icon = R.drawable.star_shine_24px,
+                    destination = SettingsDestination.AI
+                ),
+                SettingsCategory(
+                    id = "storage",
+                    title = "Storage & Data",
+                    subtitle = "Cache, data usage, and storage providers",
+                    icon = R.drawable.data_usage_24px,
+                    destination = SettingsDestination.Storage
+                )
+            )
+        )
+
+        // Group D: About & Support
+        val groupD = SettingsGroup(
+            id = "group_d",
+            title = null,
+            categories = listOf(
+                SettingsCategory(
+                    id = "about",
+                    title = "About & Support",
+                    subtitle = "App info, help, and legal information",
+                    icon = R.drawable.ic_info_48px,
+                    destination = SettingsDestination.About
+                )
+            )
+        )
+
+        _settingsGroups.value = listOf(groupA, groupB, groupC, groupD)
     }
 
     /**

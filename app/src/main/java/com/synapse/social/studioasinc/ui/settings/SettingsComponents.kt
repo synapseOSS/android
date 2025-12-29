@@ -105,7 +105,7 @@ fun SettingsToggleItem(
                     Text(
                         text = subtitle,
                         style = SettingsTypography.itemSubtitle,
-                        color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                        color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                     )
                 }
@@ -198,7 +198,7 @@ fun SettingsNavigationItem(
                     Text(
                         text = subtitle,
                         style = SettingsTypography.itemSubtitle,
-                        color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                        color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                     )
                 }
@@ -670,27 +670,7 @@ fun ProfileHeaderCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Name and email (Left side)
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = displayName,
-                    style = SettingsTypography.profileName,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = email,
-                    style = SettingsTypography.profileEmail,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Avatar with border (Right side)
+    // Avatar with border (Left side)
             Box(
                 modifier = Modifier.size(SettingsSpacing.avatarSize)
             ) {
@@ -735,6 +715,26 @@ fun ProfileHeaderCard(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     )
                 ) {}
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Name and email (Right side)
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center // Vertically centered
+            ) {
+                Text(
+                    text = displayName,
+                    style = SettingsTypography.profileName,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = email,
+                    style = SettingsTypography.profileEmail,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
