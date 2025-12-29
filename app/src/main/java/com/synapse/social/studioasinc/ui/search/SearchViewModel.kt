@@ -1,5 +1,7 @@
 package com.synapse.social.studioasinc.ui.search
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -30,13 +32,58 @@ enum class SearchFilter {
 }
 
 class SearchViewModel(
-    private val searchRepository: SearchRepository
+    private val searchRepository: SearchRepository,
+    private val sharedPreferences: SharedPreferences?
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private var searchJob: Job? = null
+    private val HISTORY_KEY = "search_history"
+
+    init {
+        loadHistory()
+    }
+
+    private fun loadHistory() {
+        val historyString = sharedPreferences?.getString(HISTORY_KEY, "") ?: ""
+        val historyList = if (historyString.isNotEmpty()) {
+            historyString.split(",").filter { it.isNotEmpty() }
+        } else {
+            emptyList()
+        }
+        _uiState.update { it.copy(searchHistory = historyList) }
+    }
+
+    private fun saveHistory(history: List<String>) {
+        val historyString = history.joinToString(",")
+        sharedPreferences?.edit()?.putString(HISTORY_KEY, historyString)?.apply()
+    }
+
+    fun addToHistory(query: String) {
+        if (query.isBlank()) return
+        val currentHistory = uiState.value.searchHistory.toMutableList()
+        currentHistory.remove(query) // Remove if exists to move to top
+        currentHistory.add(0, query)
+        if (currentHistory.size > 10) {
+            currentHistory.removeAt(currentHistory.lastIndex)
+        }
+        _uiState.update { it.copy(searchHistory = currentHistory) }
+        saveHistory(currentHistory)
+    }
+
+    fun removeFromHistory(query: String) {
+        val currentHistory = uiState.value.searchHistory.toMutableList()
+        currentHistory.remove(query)
+        _uiState.update { it.copy(searchHistory = currentHistory) }
+        saveHistory(currentHistory)
+    }
+
+    fun clearHistory() {
+        _uiState.update { it.copy(searchHistory = emptyList()) }
+        saveHistory(emptyList())
+    }
 
     fun onQueryChange(query: String) {
         _uiState.update { it.copy(query = query) }
@@ -66,6 +113,7 @@ class SearchViewModel(
 
     fun onSearch(query: String) {
          _uiState.update { it.copy(query = query) }
+         addToHistory(query)
          performSearch(query)
     }
 
@@ -123,11 +171,13 @@ class SearchViewModel(
 
     companion object {
         fun provideFactory(
+            context: Context,
             searchRepository: SearchRepository = SearchRepositoryImpl()
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return SearchViewModel(searchRepository) as T
+                val sharedPreferences = context.getSharedPreferences("synapse_search_prefs", Context.MODE_PRIVATE)
+                return SearchViewModel(searchRepository, sharedPreferences) as T
             }
         }
     }
