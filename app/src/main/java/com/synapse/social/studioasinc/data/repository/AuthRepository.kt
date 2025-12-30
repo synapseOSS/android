@@ -61,11 +61,13 @@ class AuthRepository {
                 return Result.failure(Exception("Email and password cannot be empty"))
             }
             
-            client.auth.signInWith(Email) {
+            val result = client.auth.signInWith(Email) {
                 this.email = email
                 this.password = password
             }
-            Result.success(client.auth.currentUserOrNull()?.id ?: "")
+            // Use the user ID from the signin result
+            val userId = result.user?.id ?: throw Exception("Failed to get user ID from signin result")
+            Result.success(userId)
         } catch (e: Exception) {
             android.util.Log.e("AuthRepository", "Sign in failed for email: $email", e)
             Result.failure(e)
