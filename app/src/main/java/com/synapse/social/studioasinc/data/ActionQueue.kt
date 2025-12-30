@@ -184,8 +184,8 @@ class ActionQueue(context: Context) {
             actionType = PendingAction.ActionType.FORWARD,
             messageId = messageId,
             parameters = mapOf(
-                "messageData" to kotlinx.serialization.json.Json.encodeToJsonElement(messageData),
-                "targetChatIds" to kotlinx.serialization.json.Json.encodeToJsonElement(targetChatIds)
+                "messageData" to kotlinx.serialization.json.JsonPrimitive(gson.toJson(messageData)),
+                "targetChatIds" to kotlinx.serialization.json.JsonPrimitive(gson.toJson(targetChatIds))
             )
         )
     }
