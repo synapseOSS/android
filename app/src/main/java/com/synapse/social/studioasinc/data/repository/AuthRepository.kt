@@ -33,12 +33,13 @@ class AuthRepository {
             if (!isSupabaseConfigured()) {
                 return Result.failure(Exception("Supabase not configured"))
             }
-            val result = client.auth.signUpWith(Email) {
+            client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
             }
-            // Use the user ID from the signup result, not current session
-            val userId = result.user?.id ?: throw Exception("Failed to get user ID from signup result")
+            // Get user ID after successful signup
+            val userId = client.auth.currentUserOrNull()?.id 
+                ?: throw Exception("Failed to get user ID after signup")
             Result.success(userId)
         } catch (e: Exception) {
             Result.failure(e)
@@ -61,12 +62,13 @@ class AuthRepository {
                 return Result.failure(Exception("Email and password cannot be empty"))
             }
             
-            val result = client.auth.signInWith(Email) {
+            client.auth.signInWith(Email) {
                 this.email = email
                 this.password = password
             }
-            // Use the user ID from the signin result
-            val userId = result.user?.id ?: throw Exception("Failed to get user ID from signin result")
+            // Get user ID after successful signin
+            val userId = client.auth.currentUserOrNull()?.id 
+                ?: throw Exception("Failed to get user ID after signin")
             Result.success(userId)
         } catch (e: Exception) {
             android.util.Log.e("AuthRepository", "Sign in failed for email: $email", e)
