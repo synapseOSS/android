@@ -131,6 +131,13 @@ class AuthRepository {
     }
 
     /**
+     * Ensure user profile exists, create if missing (public version for navigation)
+     */
+    suspend fun ensureProfileExistsPublic(userId: String, email: String) {
+        ensureProfileExists(userId, email)
+    }
+
+    /**
      * Ensure user profile exists, create if missing
      */
     private suspend fun ensureProfileExists(userId: String, email: String) {

@@ -152,6 +152,22 @@ fun AppNavGraph(
                 // Use manual factory for ProfileViewModel as it's not Hilt-annotated
                 val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(context))
 
+                // Ensure profile exists before loading
+                LaunchedEffect(userId) {
+                    try {
+                        val authRepository = AuthRepository()
+                        if (userId == currentUserId) {
+                            // For current user, ensure their profile exists
+                            val currentUser = SupabaseClient.client.auth.currentUserOrNull()
+                            if (currentUser != null) {
+                                authRepository.ensureProfileExistsPublic(currentUser.id, currentUser.email ?: "")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("AppNavGraph", "Failed to ensure profile exists", e)
+                    }
+                }
+
                 ProfileScreen(
                     userId = userId,
                     currentUserId = currentUserId,
