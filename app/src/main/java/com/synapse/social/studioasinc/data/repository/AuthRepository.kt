@@ -9,7 +9,6 @@ import io.github.jan.supabase.auth.user.UserSession
 // Google and Apple providers removed - not available in current Supabase version
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
-import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
