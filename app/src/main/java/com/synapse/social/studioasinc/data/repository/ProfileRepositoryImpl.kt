@@ -12,6 +12,7 @@ import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 
 @Serializable
