@@ -155,7 +155,7 @@ class ActionQueue(context: Context) {
             id = UUID.randomUUID().toString(),
             actionType = PendingAction.ActionType.EDIT,
             messageId = messageId,
-            parameters = mapOf("newContent" to newContent)
+            parameters = mapOf("newContent" to kotlinx.serialization.json.JsonPrimitive(newContent))
         )
     }
 
@@ -167,7 +167,7 @@ class ActionQueue(context: Context) {
             id = UUID.randomUUID().toString(),
             actionType = PendingAction.ActionType.DELETE,
             messageId = messageId,
-            parameters = mapOf("deleteForEveryone" to deleteForEveryone)
+            parameters = mapOf("deleteForEveryone" to kotlinx.serialization.json.JsonPrimitive(deleteForEveryone))
         )
     }
 
@@ -184,8 +184,8 @@ class ActionQueue(context: Context) {
             actionType = PendingAction.ActionType.FORWARD,
             messageId = messageId,
             parameters = mapOf(
-                "messageData" to messageData,
-                "targetChatIds" to targetChatIds
+                "messageData" to kotlinx.serialization.json.Json.encodeToJsonElement(messageData),
+                "targetChatIds" to kotlinx.serialization.json.Json.encodeToJsonElement(targetChatIds)
             )
         )
     }
