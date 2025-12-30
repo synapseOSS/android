@@ -33,13 +33,13 @@ class AuthRepository {
             if (!isSupabaseConfigured()) {
                 return Result.failure(Exception("Supabase not configured"))
             }
-            client.auth.signUpWith(Email) {
+            val user = client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
             }
-            // Get user ID after successful signup
-            val userId = client.auth.currentUserOrNull()?.id 
-                ?: throw Exception("Failed to get user ID after signup")
+            
+            // signUpWith returns a user object, get the ID from it
+            val userId = user?.id ?: throw Exception("Failed to get user ID from signup result")
             Result.success(userId)
         } catch (e: Exception) {
             Result.failure(e)
