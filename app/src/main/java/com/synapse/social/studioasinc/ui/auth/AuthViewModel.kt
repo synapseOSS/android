@@ -329,113 +329,33 @@ class AuthViewModel(
 
             _uiState.value = AuthUiState.Loading
 
-            val result = authRepository.signUp(email, password)
+            // Use atomic signup with profile creation
+            val result = authRepository.signUpWithProfile(email, password, username)
             result.fold(
                 onSuccess = { userId ->
-                    try {
-                        val client = com.synapse.social.studioasinc.SupabaseClient.client
-                        val userMap = mapOf(
-                            "uid" to userId,
-                            "username" to username,
-                            "email" to email,
-                            "created_at" to java.time.Instant.now().toString(),
-                            "join_date" to java.time.Instant.now().toString(),
-                            "account_premium" to false,
-                            "verify" to false,
-                            "banned" to false,
-                            "followers_count" to 0,
-                            "following_count" to 0,
-                            "posts_count" to 0,
-                            "user_level_xp" to 0
-                        )
+                    // Store user data
+                    sharedPreferences.edit()
+                        .putBoolean("show_profile_completion_dialog", true)
+                        .putString("user_id", userId)
+                        .putString("username", username)
+                        .putString("email", email)
+                        .apply()
 
-                        client.from("users").insert(userMap)
-
-                        // Store user data for recovery
+                    val currentUser = com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()
+                    if (currentUser?.emailConfirmedAt == null) {
                         sharedPreferences.edit()
-                            .putBoolean("show_profile_completion_dialog", true)
-                            .putString("user_id", userId)
-                            .putString("username", username)
-                            .putString("email", email)
+                            .putString(PREF_KEY_VERIFICATION_EMAIL, email)
                             .apply()
+                        _uiState.value = AuthUiState.EmailVerification(email = email)
+                        _navigationEvent.emit(AuthNavigationEvent.NavigateToEmailVerification)
 
-                        val currentUser = client.auth.currentUserOrNull()
-                        if (currentUser?.emailConfirmedAt == null) {
-                             sharedPreferences.edit()
-                                .putString(PREF_KEY_VERIFICATION_EMAIL, email)
-                                .apply()
-                             _uiState.value = AuthUiState.EmailVerification(email = email)
-                             _navigationEvent.emit(AuthNavigationEvent.NavigateToEmailVerification)
-
-                             launch {
-                                 checkEmailVerification(email)
-                             }
-                        } else {
-                            _uiState.value = AuthUiState.Success("Account created successfully")
-                            delay(500)
-                            _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
+                        launch {
+                            checkEmailVerification(email)
                         }
-                    } catch (e: Exception) {
-                        android.util.Log.e("AuthViewModel", "Profile creation failed", e)
-                        
-                        // Store auth user data for manual recovery
-                        sharedPreferences.edit()
-                            .putString("pending_profile_user_id", userId)
-                            .putString("pending_profile_username", username)
-                            .putString("pending_profile_email", email)
-                            .apply()
-                        
-                        // Attempt immediate recovery
-                        viewModelScope.launch {
-                            delay(2000) // Wait 2 seconds then retry
-                            try {
-                                val retryUserMap = mapOf(
-                                    "uid" to userId,
-                                    "username" to username,
-                                    "email" to email,
-                                    "created_at" to java.time.Instant.now().toString(),
-                                    "join_date" to java.time.Instant.now().toString(),
-                                    "account_premium" to false,
-                                    "verify" to false,
-                                    "banned" to false,
-                                    "followers_count" to 0,
-                                    "following_count" to 0,
-                                    "posts_count" to 0,
-                                    "user_level_xp" to 0
-                                )
-                                
-                                client.from("users").insert(retryUserMap)
-                                
-                                // Clear pending data on success
-                                sharedPreferences.edit()
-                                    .remove("pending_profile_user_id")
-                                    .remove("pending_profile_username")
-                                    .remove("pending_profile_email")
-                                    .apply()
-                                
-                                android.util.Log.d("AuthViewModel", "Profile recovery successful")
-                                
-                                // Navigate to verification or main
-                                val currentUser = client.auth.currentUserOrNull()
-                                if (currentUser?.emailConfirmedAt == null) {
-                                    _uiState.value = AuthUiState.EmailVerification(email = email)
-                                    _navigationEvent.emit(AuthNavigationEvent.NavigateToEmailVerification)
-                                } else {
-                                    _uiState.value = AuthUiState.Success("Account created successfully")
-                                    delay(500)
-                                    _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
-                                }
-                            } catch (retryException: Exception) {
-                                android.util.Log.e("AuthViewModel", "Profile recovery failed", retryException)
-                            }
-                        }
-                        
-                        _uiState.value = AuthUiState.SignUp(
-                            email = email,
-                            password = password,
-                            username = username,
-                            generalError = "Account created but profile setup failed. Try signing in."
-                        )
+                    } else {
+                        _uiState.value = AuthUiState.Success("Account created successfully")
+                        delay(500)
+                        _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
                     }
                 },
                 onFailure = { error ->
