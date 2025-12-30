@@ -8,6 +8,7 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.user.UserSession
 // Google and Apple providers removed - not available in current Supabase version
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -94,6 +95,9 @@ class AuthRepository {
             Result.failure(e)
         }
     }
+
+    /**
+     * Sign in an existing user with email and password.
      * @param email User's email address
      * @param password User's password
      * @return Result containing user ID on success, or error on failure
@@ -133,9 +137,10 @@ class AuthRepository {
         try {
             // Check if profile exists
             val existingProfile = client.from("users")
-                .select()
-                .eq("uid", userId)
-                .maybeSingle()
+                .select {
+                    filter { eq("uid", userId) }
+                }
+                .decodeSingleOrNull<kotlinx.serialization.json.JsonObject>()
                 
             if (existingProfile == null) {
                 // Profile doesn't exist, create it
