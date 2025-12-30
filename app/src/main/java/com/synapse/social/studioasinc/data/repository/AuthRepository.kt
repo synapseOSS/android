@@ -37,7 +37,9 @@ class AuthRepository {
                 this.email = email
                 this.password = password
             }
-            Result.success(client.auth.currentUserOrNull()?.id ?: "")
+            // Use the user ID from the signup result, not current session
+            val userId = result.user?.id ?: throw Exception("Failed to get user ID from signup result")
+            Result.success(userId)
         } catch (e: Exception) {
             Result.failure(e)
         }
