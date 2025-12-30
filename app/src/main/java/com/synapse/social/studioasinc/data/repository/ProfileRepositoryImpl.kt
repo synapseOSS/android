@@ -9,6 +9,7 @@ import com.synapse.social.studioasinc.model.PollOption
 import com.synapse.social.studioasinc.ui.profile.utils.NetworkOptimizer
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.*

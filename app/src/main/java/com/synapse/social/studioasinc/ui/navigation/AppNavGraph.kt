@@ -10,6 +10,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -28,6 +29,7 @@ import com.synapse.social.studioasinc.PostDetailActivity
 import com.synapse.social.studioasinc.ProfileEditActivity
 import com.synapse.social.studioasinc.SearchActivity
 import com.synapse.social.studioasinc.SettingsActivity
+import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.SupabaseClient
 import com.synapse.social.studioasinc.backend.SupabaseChatService
 import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
