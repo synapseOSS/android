@@ -95,14 +95,18 @@ class ProfileRepositoryImpl : ProfileRepository {
         }
         
         try {
+            android.util.Log.d("ProfileRepository", "Loading profile for userId: $userId")
             val response = NetworkOptimizer.withRetry {
                 client.from("users").select() { 
                     filter { eq(KEY_UID, userId) } 
                 }.decodeSingleOrNull<JsonObject>()
             }
             
+            android.util.Log.d("ProfileRepository", "Profile query response: $response")
+            
             if (response == null) {
-                emit(Result.failure(Exception("Profile not found")))
+                android.util.Log.e("ProfileRepository", "Profile not found for userId: $userId")
+                emit(Result.failure(Exception("Profile not found for user: $userId")))
                 return@flow
             }
             
@@ -134,9 +138,11 @@ class ProfileRepositoryImpl : ProfileRepository {
                 pronouns = response.getNullableString(KEY_PRONOUNS)
             )
             NetworkOptimizer.cache(cacheKey, profile)
+            android.util.Log.d("ProfileRepository", "Profile loaded successfully for userId: $userId")
             emit(Result.success(profile))
         } catch (e: Exception) {
-            emit(Result.failure(e))
+            android.util.Log.e("ProfileRepository", "Failed to load profile for userId: $userId", e)
+            emit(Result.failure(Exception("Failed to load profile: ${e.message}", e)))
         }
     }
 
