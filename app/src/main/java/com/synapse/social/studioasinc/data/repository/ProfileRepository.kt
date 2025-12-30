@@ -10,8 +10,8 @@ interface ProfileRepository {
     suspend fun unfollowUser(userId: String, targetUserId: String): Result<Unit>
     suspend fun getFollowers(userId: String, limit: Int = 20, offset: Int = 0): Result<List<UserProfile>>
     suspend fun getFollowing(userId: String, limit: Int = 20, offset: Int = 0): Result<List<UserProfile>>
-    suspend fun getProfilePosts(userId: String, limit: Int = 10, offset: Int = 0): Result<List<Any>>
-    suspend fun getProfilePhotos(userId: String, limit: Int = 20, offset: Int = 0): Result<List<Any>>
-    suspend fun getProfileReels(userId: String, limit: Int = 20, offset: Int = 0): Result<List<Any>>
+    suspend fun getProfilePosts(userId: String, limit: Int = 10, offset: Int = 0): Result<List<com.synapse.social.studioasinc.model.Post>>
+    suspend fun getProfilePhotos(userId: String, limit: Int = 20, offset: Int = 0): Result<List<com.synapse.social.studioasinc.ui.profile.components.MediaItem>>
+    suspend fun getProfileReels(userId: String, limit: Int = 20, offset: Int = 0): Result<List<com.synapse.social.studioasinc.ui.profile.components.MediaItem>>
     suspend fun isFollowing(userId: String, targetUserId: String): Result<Boolean>
 }

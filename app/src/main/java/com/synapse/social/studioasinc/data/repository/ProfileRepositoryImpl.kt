@@ -14,6 +14,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.*
 
+@Serializable
+data class FollowInsert(
+    val follower_id: String,
+    val following_id: String
+)
+
 /**
  * Implementation of ProfileRepository with Supabase backend integration.
  * 
@@ -224,7 +230,7 @@ class ProfileRepositoryImpl : ProfileRepository {
 
     override suspend fun followUser(userId: String, targetUserId: String): Result<Unit> = try {
         client.from("follows").upsert(
-            mapOf("follower_id" to userId, "following_id" to targetUserId)
+            FollowInsert(follower_id = userId, following_id = targetUserId)
         ) {
             onConflict = "follower_id, following_id"
             ignoreDuplicates = true
@@ -263,7 +269,7 @@ class ProfileRepositoryImpl : ProfileRepository {
         Result.failure(e)
     }
 
-    override suspend fun getProfilePosts(userId: String, limit: Int, offset: Int): Result<List<Any>> = try {
+    override suspend fun getProfilePosts(userId: String, limit: Int, offset: Int): Result<List<com.synapse.social.studioasinc.model.Post>> = try {
         val response = client.from("posts").select(
             columns = Columns.raw("*, users!posts_author_uid_fkey($KEY_UID, $KEY_USERNAME, $KEY_AVATAR, $KEY_VERIFY)")
         ) { 
@@ -307,10 +313,10 @@ class ProfileRepositoryImpl : ProfileRepository {
         Result.failure(e)
     }
 
-    override suspend fun getProfilePhotos(userId: String, limit: Int, offset: Int): Result<List<Any>> = 
+    override suspend fun getProfilePhotos(userId: String, limit: Int, offset: Int): Result<List<com.synapse.social.studioasinc.ui.profile.components.MediaItem>> = 
         getMediaItemsByType(userId, limit, offset, isVideo = false)
 
-    override suspend fun getProfileReels(userId: String, limit: Int, offset: Int): Result<List<Any>> = 
+    override suspend fun getProfileReels(userId: String, limit: Int, offset: Int): Result<List<com.synapse.social.studioasinc.ui.profile.components.MediaItem>> = 
         getMediaItemsByType(userId, limit, offset, isVideo = true)
 
     override suspend fun isFollowing(userId: String, targetUserId: String): Result<Boolean> = try {

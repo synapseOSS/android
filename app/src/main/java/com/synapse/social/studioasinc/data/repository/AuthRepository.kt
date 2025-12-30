@@ -12,6 +12,35 @@ import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class UserSettingsInsert(
+    val user_id: String
+)
+
+@Serializable
+data class UserPresenceInsert(
+    val user_id: String
+)
+
+@Serializable
+data class UserProfileInsert(
+    val uid: String,
+    val username: String,
+    val email: String,
+    val created_at: String,
+    val updated_at: String,
+    val join_date: String,
+    val account_premium: Boolean,
+    val verify: Boolean,
+    val banned: Boolean,
+    val followers_count: Int,
+    val following_count: Int,
+    val posts_count: Int,
+    val user_level_xp: Int,
+    val status: String
+)
 
 /**
  * Repository for handling authentication operations with Supabase.
@@ -67,21 +96,21 @@ class AuthRepository {
             authUserId = user?.id ?: throw Exception("Failed to get user ID from signup")
             
             // Step 2: IMMEDIATELY create profile - this MUST succeed
-            val userProfile = mapOf(
-                "uid" to authUserId,
-                "username" to username,
-                "email" to email,
-                "created_at" to java.time.Instant.now().toString(),
-                "updated_at" to java.time.Instant.now().toString(),
-                "join_date" to java.time.Instant.now().toString(),
-                "account_premium" to false,
-                "verify" to false,
-                "banned" to false,
-                "followers_count" to 0,
-                "following_count" to 0,
-                "posts_count" to 0,
-                "user_level_xp" to 500,
-                "status" to "offline"
+            val userProfile = UserProfileInsert(
+                uid = authUserId,
+                username = username,
+                email = email,
+                created_at = java.time.Instant.now().toString(),
+                updated_at = java.time.Instant.now().toString(),
+                join_date = java.time.Instant.now().toString(),
+                account_premium = false,
+                verify = false,
+                banned = false,
+                followers_count = 0,
+                following_count = 0,
+                posts_count = 0,
+                user_level_xp = 500,
+                status = "offline"
             )
             
             // This MUST succeed or we fail the entire signup
@@ -89,13 +118,13 @@ class AuthRepository {
             
             // Step 3: Create related records (these can fail without breaking signup)
             try {
-                client.from("user_settings").insert(mapOf("user_id" to authUserId))
+                client.from("user_settings").insert(UserSettingsInsert(user_id = authUserId))
             } catch (e: Exception) {
                 android.util.Log.w("AuthRepository", "user_settings creation failed, will retry later", e)
             }
             
             try {
-                client.from("user_presence").insert(mapOf("user_id" to authUserId))
+                client.from("user_presence").insert(UserPresenceInsert(user_id = authUserId))
             } catch (e: Exception) {
                 android.util.Log.w("AuthRepository", "user_presence creation failed, will retry later", e)
             }
@@ -188,21 +217,21 @@ class AuthRepository {
                 android.util.Log.w("AuthRepository", "Profile missing for user $userId, creating now...")
                 
                 // Create complete profile
-                val userProfile = mapOf(
-                    "uid" to userId,
-                    "username" to email.substringBefore("@"),
-                    "email" to email,
-                    "created_at" to java.time.Instant.now().toString(),
-                    "updated_at" to java.time.Instant.now().toString(),
-                    "join_date" to java.time.Instant.now().toString(),
-                    "account_premium" to false,
-                    "verify" to false,
-                    "banned" to false,
-                    "followers_count" to 0,
-                    "following_count" to 0,
-                    "posts_count" to 0,
-                    "user_level_xp" to 500,
-                    "status" to "offline"
+                val userProfile = UserProfileInsert(
+                    uid = userId,
+                    username = email.substringBefore("@"),
+                    email = email,
+                    created_at = java.time.Instant.now().toString(),
+                    updated_at = java.time.Instant.now().toString(),
+                    join_date = java.time.Instant.now().toString(),
+                    account_premium = false,
+                    verify = false,
+                    banned = false,
+                    followers_count = 0,
+                    following_count = 0,
+                    posts_count = 0,
+                    user_level_xp = 500,
+                    status = "offline"
                 )
                 
                 client.from("users").insert(userProfile)
@@ -221,13 +250,13 @@ class AuthRepository {
                 
                 // Create related records (non-critical)
                 try {
-                    client.from("user_settings").insert(mapOf("user_id" to userId))
+                    client.from("user_settings").insert(UserSettingsInsert(user_id = userId))
                 } catch (e: Exception) {
                     android.util.Log.w("AuthRepository", "user_settings creation failed", e)
                 }
                 
                 try {
-                    client.from("user_presence").insert(mapOf("user_id" to userId))
+                    client.from("user_presence").insert(UserPresenceInsert(user_id = userId))
                 } catch (e: Exception) {
                     android.util.Log.w("AuthRepository", "user_presence creation failed", e)
                 }

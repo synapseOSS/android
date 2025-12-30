@@ -13,12 +13,14 @@ package com.synapse.social.studioasinc.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 /**
  * Data class representing a message attachment.
  * Implements Parcelable for efficient and type-safe data transfer between activities.
  */
 @Parcelize
+@Serializable
 data class Attachment(
     var publicId: String? = null,
     var url: String? = null,
