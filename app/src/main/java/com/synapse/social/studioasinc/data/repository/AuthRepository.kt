@@ -80,8 +80,6 @@ class AuthRepository {
      * Create user account with profile - bulletproof approach
      */
     suspend fun signUpWithProfile(email: String, password: String, username: String): Result<String> {
-        var authUserId: String? = null
-        
         return try {
             if (!isSupabaseConfigured()) {
                 return Result.failure(Exception("Supabase not configured"))
@@ -93,11 +91,11 @@ class AuthRepository {
                 this.password = password
             }
             
-            authUserId = user?.id ?: throw Exception("Failed to get user ID from signup")
+            val authUserId = user?.id ?: throw Exception("Failed to get user ID from signup")
             
-            // Step 2: IMMEDIATELY create profile - this MUST succeed
+            // Step 2: IMMEDIATELY create profile with the SAME ID as auth user
             val userProfile = UserProfileInsert(
-                uid = authUserId,
+                uid = authUserId, // Use the auth user ID directly
                 username = username,
                 email = email,
                 created_at = java.time.Instant.now().toString(),
@@ -158,17 +156,6 @@ class AuthRepository {
             
         } catch (e: Exception) {
             android.util.Log.e("AuthRepository", "Sign up failed", e)
-            
-            // If profile creation failed but auth user was created, clean up
-            if (authUserId != null) {
-                try {
-                    client.auth.signOut()
-                    android.util.Log.d("AuthRepository", "Cleaned up orphaned auth user: $authUserId")
-                } catch (cleanupError: Exception) {
-                    android.util.Log.e("AuthRepository", "Failed to cleanup orphaned auth user", cleanupError)
-                }
-            }
-            
             Result.failure(e)
         }
     }
@@ -208,6 +195,15 @@ class AuthRepository {
     }
 
     /**
+     * Generate a unique username by appending user ID suffix if needed
+     */
+    private fun generateUniqueUsername(baseUsername: String, userId: String): String {
+        // Use first 8 characters of user ID as suffix to ensure uniqueness
+        val suffix = userId.take(8)
+        return "${baseUsername}_$suffix"
+    }
+
+    /**
      * Ensure user profile exists, create if missing (public version for navigation)
      */
     suspend fun ensureProfileExistsPublic(userId: String, email: String) {
@@ -229,10 +225,13 @@ class AuthRepository {
             if (existingProfile.isEmpty()) {
                 android.util.Log.w("AuthRepository", "Profile missing for user $userId, creating now...")
                 
-                // Create complete profile
+                // Create complete profile with unique username
+                val baseUsername = email.substringBefore("@")
+                val uniqueUsername = generateUniqueUsername(baseUsername, userId)
+                
                 val userProfile = UserProfileInsert(
                     uid = userId,
-                    username = email.substringBefore("@"),
+                    username = uniqueUsername,
                     email = email,
                     created_at = java.time.Instant.now().toString(),
                     updated_at = java.time.Instant.now().toString(),
@@ -282,6 +281,15 @@ class AuthRepository {
             android.util.Log.e("AuthRepository", "Failed to ensure profile exists for user: $userId", e)
             return false
         }
+    }
+
+    /**
+     * Generate a unique username by appending user ID suffix if needed
+     */
+    private fun generateUniqueUsername(baseUsername: String, userId: String): String {
+        // Use first 8 characters of user ID as suffix to ensure uniqueness
+        val suffix = userId.take(8)
+        return "${baseUsername}_$suffix"
     }
 
     /**
