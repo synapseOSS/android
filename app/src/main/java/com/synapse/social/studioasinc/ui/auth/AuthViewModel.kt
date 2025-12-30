@@ -72,6 +72,51 @@ class AuthViewModel(
         _uiState.value = AuthUiState.SignIn()
         setupInputValidation()
         observeAuthState()
+        checkForOrphanedProfile()
+    }
+
+    /**
+     * Check for orphaned auth users without profiles and attempt recovery
+     */
+    private fun checkForOrphanedProfile() {
+        viewModelScope.launch {
+            val pendingUserId = sharedPreferences.getString("pending_profile_user_id", null)
+            val pendingUsername = sharedPreferences.getString("pending_profile_username", null)
+            val pendingEmail = sharedPreferences.getString("pending_profile_email", null)
+            
+            if (pendingUserId != null && pendingUsername != null && pendingEmail != null) {
+                try {
+                    val client = com.synapse.social.studioasinc.SupabaseClient.client
+                    val userMap = mapOf(
+                        "uid" to pendingUserId,
+                        "username" to pendingUsername,
+                        "email" to pendingEmail,
+                        "created_at" to java.time.Instant.now().toString(),
+                        "join_date" to java.time.Instant.now().toString(),
+                        "account_premium" to false,
+                        "verify" to false,
+                        "banned" to false,
+                        "followers_count" to 0,
+                        "following_count" to 0,
+                        "posts_count" to 0,
+                        "user_level_xp" to 0
+                    )
+                    
+                    client.from("users").insert(userMap)
+                    
+                    // Clear pending data
+                    sharedPreferences.edit()
+                        .remove("pending_profile_user_id")
+                        .remove("pending_profile_username")
+                        .remove("pending_profile_email")
+                        .apply()
+                        
+                    android.util.Log.d("AuthViewModel", "Recovered orphaned profile for $pendingEmail")
+                } catch (e: Exception) {
+                    android.util.Log.e("AuthViewModel", "Failed to recover orphaned profile", e)
+                }
+            }
+        }
     }
 
     private fun observeAuthState() {
@@ -293,50 +338,75 @@ class AuthViewModel(
                             "uid" to userId,
                             "username" to username,
                             "email" to email,
-                            "created_at" to java.time.Instant.now().toString()
+                            "created_at" to java.time.Instant.now().toString(),
+                            "join_date" to java.time.Instant.now().toString(),
+                            "account_premium" to false,
+                            "verify" to false,
+                            "banned" to false,
+                            "followers_count" to 0,
+                            "following_count" to 0,
+                            "posts_count" to 0,
+                            "user_level_xp" to 0
                         )
 
                         client.from("users").insert(userMap)
 
+                        // Store user data for recovery
                         sharedPreferences.edit()
                             .putBoolean("show_profile_completion_dialog", true)
+                            .putString("user_id", userId)
+                            .putString("username", username)
+                            .putString("email", email)
                             .apply()
 
-                        val currentUser = com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()
+                        val currentUser = client.auth.currentUserOrNull()
                         if (currentUser?.emailConfirmedAt == null) {
-                             // If verification needed, go to verification
                              sharedPreferences.edit()
                                 .putString(PREF_KEY_VERIFICATION_EMAIL, email)
                                 .apply()
                              _uiState.value = AuthUiState.EmailVerification(email = email)
                              _navigationEvent.emit(AuthNavigationEvent.NavigateToEmailVerification)
 
-                             // Start polling for verification
                              launch {
                                  checkEmailVerification(email)
                              }
                         } else {
-                            _uiState.value = AuthUiState.Success("Sign up successful")
+                            _uiState.value = AuthUiState.Success("Account created successfully")
                             delay(500)
                             _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
                         }
                     } catch (e: Exception) {
-                        // If profile creation fails, we still created the auth user.
-                        // Might need to retry or ignore.
-                         _uiState.value = AuthUiState.SignUp(
+                        android.util.Log.e("AuthViewModel", "Profile creation failed", e)
+                        
+                        // Store auth user data for manual recovery
+                        sharedPreferences.edit()
+                            .putString("pending_profile_user_id", userId)
+                            .putString("pending_profile_username", username)
+                            .putString("pending_profile_email", email)
+                            .apply()
+                        
+                        _uiState.value = AuthUiState.SignUp(
                             email = email,
                             password = password,
                             username = username,
-                            generalError = "Failed to create profile: ${e.message}"
+                            generalError = "Account created but profile setup failed. Try signing in."
                         )
                     }
                 },
                 onFailure = { error ->
+                    val errorMessage = when {
+                        error.message?.contains("over_email_send_rate_limit") == true -> 
+                            "Too many email requests. Please wait and check your inbox."
+                        error.message?.contains("email") == true && error.message?.contains("already") == true ->
+                            "Email already registered. Try signing in instead."
+                        else -> error.message ?: "Sign up failed"
+                    }
+                    
                     _uiState.value = AuthUiState.SignUp(
                         email = email,
                         password = password,
                         username = username,
-                        generalError = error.message ?: "Sign up failed"
+                        generalError = errorMessage
                     )
                 }
             )
