@@ -144,10 +144,8 @@ class AuthRepository {
                 // If verification query fails, assume profile was created successfully
                 // since the insert didn't throw an exception
                 android.util.Log.w("AuthRepository", "Skipping verification due to query error, assuming profile created")
-                emptyList<Map<String, String>>().also { 
-                    android.util.Log.d("AuthRepository", "User and profile created successfully (verification skipped): $authUserId")
-                    return@try Result.success(authUserId)
-                }
+                android.util.Log.d("AuthRepository", "User and profile created successfully (verification skipped): $authUserId")
+                return Result.success(authUserId)
             }
                 
             if (verifyProfile.isEmpty()) {
