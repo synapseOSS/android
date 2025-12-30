@@ -76,45 +76,16 @@ class AuthViewModel(
     }
 
     /**
-     * Check for orphaned auth users without profiles and attempt recovery
+     * Check for orphaned auth users and ensure profiles exist
      */
     private fun checkForOrphanedProfile() {
         viewModelScope.launch {
-            val pendingUserId = sharedPreferences.getString("pending_profile_user_id", null)
-            val pendingUsername = sharedPreferences.getString("pending_profile_username", null)
-            val pendingEmail = sharedPreferences.getString("pending_profile_email", null)
+            // Check current user
+            val currentUserId = authRepository.getCurrentUserId()
+            val currentEmail = authRepository.getCurrentUserEmail()
             
-            if (pendingUserId != null && pendingUsername != null && pendingEmail != null) {
-                try {
-                    val client = com.synapse.social.studioasinc.SupabaseClient.client
-                    val userMap = mapOf(
-                        "uid" to pendingUserId,
-                        "username" to pendingUsername,
-                        "email" to pendingEmail,
-                        "created_at" to java.time.Instant.now().toString(),
-                        "join_date" to java.time.Instant.now().toString(),
-                        "account_premium" to false,
-                        "verify" to false,
-                        "banned" to false,
-                        "followers_count" to 0,
-                        "following_count" to 0,
-                        "posts_count" to 0,
-                        "user_level_xp" to 0
-                    )
-                    
-                    client.from("users").insert(userMap)
-                    
-                    // Clear pending data
-                    sharedPreferences.edit()
-                        .remove("pending_profile_user_id")
-                        .remove("pending_profile_username")
-                        .remove("pending_profile_email")
-                        .apply()
-                        
-                    android.util.Log.d("AuthViewModel", "Recovered orphaned profile for $pendingEmail")
-                } catch (e: Exception) {
-                    android.util.Log.e("AuthViewModel", "Failed to recover orphaned profile", e)
-                }
+            if (currentUserId != null && currentEmail != null) {
+                authRepository.ensureProfileExistsPublic(currentUserId, currentEmail)
             }
         }
     }
@@ -307,7 +278,7 @@ class AuthViewModel(
     }
 
     /**
-     * Handle sign-up button click
+     * Handle sign-up - robust client-side profile creation
      */
     fun onSignUpClick(email: String, password: String, username: String) {
         viewModelScope.launch {
@@ -315,7 +286,7 @@ class AuthViewModel(
                 return@launch
             }
 
-            // Check availability one last time before submitting
+            // Check username availability
             val availabilityResult = usernameRepository.checkAvailability(username)
             if (availabilityResult.isSuccess && availabilityResult.getOrNull() == false) {
                  _uiState.value = AuthUiState.SignUp(
@@ -329,13 +300,10 @@ class AuthViewModel(
 
             _uiState.value = AuthUiState.Loading
 
-            // Use atomic signup with profile creation
             val result = authRepository.signUpWithProfile(email, password, username)
             result.fold(
                 onSuccess = { userId ->
-                    // Store user data
                     sharedPreferences.edit()
-                        .putBoolean("show_profile_completion_dialog", true)
                         .putString("user_id", userId)
                         .putString("username", username)
                         .putString("email", email)
@@ -349,9 +317,7 @@ class AuthViewModel(
                         _uiState.value = AuthUiState.EmailVerification(email = email)
                         _navigationEvent.emit(AuthNavigationEvent.NavigateToEmailVerification)
 
-                        launch {
-                            checkEmailVerification(email)
-                        }
+                        launch { checkEmailVerification(email) }
                     } else {
                         _uiState.value = AuthUiState.Success("Account created successfully")
                         delay(500)
