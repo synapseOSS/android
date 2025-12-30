@@ -9,6 +9,7 @@ import io.github.jan.supabase.auth.user.UserSession
 // Google and Apple providers removed - not available in current Supabase version
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -100,12 +101,14 @@ class AuthRepository {
                 android.util.Log.w("AuthRepository", "user_presence creation failed, will retry later", e)
             }
             
-            // Verify profile was actually created
+            // Verify profile was actually created using simple query
             val verifyProfile = client.from("users")
-                .select { filter { eq("uid", authUserId) } }
-                .decodeSingleOrNull<kotlinx.serialization.json.JsonObject>()
+                .select(columns = Columns.raw("uid")) {
+                    filter { eq("uid", authUserId) }
+                }
+                .decodeList<Map<String, String>>()
                 
-            if (verifyProfile == null) {
+            if (verifyProfile.isEmpty()) {
                 throw Exception("Profile creation failed - verification check failed")
             }
             
@@ -175,12 +178,14 @@ class AuthRepository {
      */
     private suspend fun ensureProfileExistsWithVerification(userId: String, email: String): Boolean {
         return try {
-            // Check if profile exists
+            // Check if profile exists using raw query to avoid serialization issues
             val existingProfile = client.from("users")
-                .select { filter { eq("uid", userId) } }
-                .decodeSingleOrNull<kotlinx.serialization.json.JsonObject>()
+                .select(columns = Columns.raw("uid")) {
+                    filter { eq("uid", userId) }
+                }
+                .decodeList<Map<String, String>>()
                 
-            if (existingProfile == null) {
+            if (existingProfile.isEmpty()) {
                 android.util.Log.w("AuthRepository", "Profile missing for user $userId, creating now...")
                 
                 // Create complete profile
@@ -205,10 +210,12 @@ class AuthRepository {
                 
                 // Verify it was actually created
                 val verifyProfile = client.from("users")
-                    .select { filter { eq("uid", userId) } }
-                    .decodeSingleOrNull<kotlinx.serialization.json.JsonObject>()
+                    .select(columns = Columns.raw("uid")) {
+                        filter { eq("uid", userId) }
+                    }
+                    .decodeList<Map<String, String>>()
                     
-                if (verifyProfile == null) {
+                if (verifyProfile.isEmpty()) {
                     android.util.Log.e("AuthRepository", "Profile creation failed for user: $userId")
                     return false
                 }
@@ -544,14 +551,14 @@ class AuthRepository {
                 // In this app, auth ID IS the UID (users.uid = auth.users.id)
                 // Verify the user exists in the database
                 val result = client.from("users")
-                    .select(columns = io.github.jan.supabase.postgrest.query.Columns.raw("uid")) {
+                    .select(columns = Columns.raw("uid")) {
                         filter {
                             eq("uid", authId)
                         }
                     }
-                    .decodeSingleOrNull<kotlinx.serialization.json.JsonObject>()
+                    .decodeList<Map<String, String>>()
                 
-                if (result != null) {
+                if (result.isNotEmpty()) {
                     android.util.Log.d("AuthRepository", "User found in database with UID: $authId")
                     return authId
                 }
