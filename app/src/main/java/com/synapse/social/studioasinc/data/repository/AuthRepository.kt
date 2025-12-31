@@ -26,7 +26,6 @@ data class UserPresenceInsert(
 
 @Serializable
 data class UserProfileInsert(
-    val uid: String,
     val username: String,
     val email: String,
     val created_at: String,
@@ -40,6 +39,7 @@ data class UserProfileInsert(
     val posts_count: Int,
     val user_level_xp: Int,
     val status: String
+    // Remove uid field - let database handle it
 )
 
 /**
@@ -103,7 +103,7 @@ class AuthRepository {
             
             // Step 2: IMMEDIATELY create profile with the SAME ID as auth user
             val userProfile = UserProfileInsert(
-                uid = actualAuthUserId, // Use the actual current auth user ID
+                // Don't send uid - let database trigger handle it
                 username = username,
                 email = email,
                 created_at = java.time.Instant.now().toString(),
