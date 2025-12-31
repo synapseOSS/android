@@ -91,7 +91,7 @@ class AuthRepository {
                 this.password = password
             }
             
-            val authUserId = user?.id?.toString() ?: throw Exception("Failed to get user ID from signup")
+            val authUserId = user?.id ?: throw Exception("Failed to get user ID from signup")
             
             // Step 2: IMMEDIATELY create profile with the SAME ID as auth user
             val userProfile = UserProfileInsert(
