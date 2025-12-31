@@ -40,8 +40,22 @@ object SupabaseUserDataPusher {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val dataWithUid = userData.toMutableMap()
+                dataWithUid["id"] = uid
                 dataWithUid["uid"] = uid
                 dbService.insert("users", dataWithUid)
+                
+                // Create related records if they don't exist
+                try {
+                    dbService.insert("user_settings", mapOf("user_id" to uid))
+                } catch (e: Exception) {
+                    // Ignore if already exists
+                }
+                
+                try {
+                    dbService.insert("user_presence", mapOf("user_id" to uid))
+                } catch (e: Exception) {
+                    // Ignore if already exists
+                }
             } catch (e: Exception) {
                 // Handle error silently for now
             }
