@@ -284,15 +284,6 @@ class AuthRepository {
     }
 
     /**
-     * Generate a unique username by appending user ID suffix if needed
-     */
-    private fun generateUniqueUsername(baseUsername: String, userId: String): String {
-        // Use first 8 characters of user ID as suffix to ensure uniqueness
-        val suffix = userId.take(8)
-        return "${baseUsername}_$suffix"
-    }
-
-    /**
      * Legacy method for backward compatibility
      */
     private suspend fun ensureProfileExists(userId: String, email: String) {
