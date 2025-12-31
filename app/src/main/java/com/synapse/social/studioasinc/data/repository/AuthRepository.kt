@@ -238,7 +238,7 @@ class AuthRepository {
                 val uniqueUsername = generateUniqueUsername(baseUsername, userId)
                 
                 val userProfile = UserProfileInsert(
-                    uid = userId, // userId is already a string from getCurrentUserId()
+                    // Don't send uid - let database trigger handle it
                     username = uniqueUsername,
                     email = email,
                     created_at = java.time.Instant.now().toString(),
