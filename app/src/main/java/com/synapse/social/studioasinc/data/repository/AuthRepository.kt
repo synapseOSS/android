@@ -93,9 +93,17 @@ class AuthRepository {
             
             val authUserId = user?.id ?: throw Exception("Failed to get user ID from signup")
             
+            // DEBUG: Log what we got vs what's actually in auth
+            val currentAuthUser = client.auth.currentUserOrNull()
+            android.util.Log.d("AuthRepository", "signUpWith returned ID: $authUserId")
+            android.util.Log.d("AuthRepository", "currentUser ID: ${currentAuthUser?.id}")
+            
+            // Use the CURRENT user ID instead of signup response
+            val actualAuthUserId = currentAuthUser?.id ?: authUserId
+            
             // Step 2: IMMEDIATELY create profile with the SAME ID as auth user
             val userProfile = UserProfileInsert(
-                uid = authUserId, // Use the auth user ID as string
+                uid = actualAuthUserId, // Use the actual current auth user ID
                 username = username,
                 email = email,
                 created_at = java.time.Instant.now().toString(),
