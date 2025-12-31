@@ -112,7 +112,9 @@ class AuthRepository {
             )
             
             // This MUST succeed or we fail the entire signup
-            client.from("users").insert(userProfile)
+            client.from("users").insert(userProfile) {
+                // Don't specify columns, let Supabase handle it
+            }
             
             // Step 3: Create related records (these can fail without breaking signup)
             try {
