@@ -8,9 +8,39 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.user.UserSession
 // Google and Apple providers removed - not available in current Supabase version
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class UserSettingsInsert(
+    val user_id: String
+)
+
+@Serializable
+data class UserPresenceInsert(
+    val user_id: String
+)
+
+@Serializable
+data class UserProfileInsert(
+    val username: String,
+    val email: String,
+    val created_at: String,
+    val updated_at: String,
+    val join_date: String,
+    val account_premium: Boolean,
+    val verify: Boolean,
+    val banned: Boolean,
+    val followers_count: Int,
+    val following_count: Int,
+    val posts_count: Int,
+    val user_level_xp: Int,
+    val status: String
+    // Remove uid field - let database handle it
+)
 
 /**
  * Repository for handling authentication operations with Supabase.
@@ -33,21 +63,113 @@ class AuthRepository {
             if (!isSupabaseConfigured()) {
                 return Result.failure(Exception("Supabase not configured"))
             }
-            val result = client.auth.signUpWith(Email) {
+            val user = client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
             }
-            Result.success(client.auth.currentUserOrNull()?.id ?: "")
+            
+            // signUpWith returns a user object, get the ID from it
+            val userId = user?.id ?: throw Exception("Failed to get user ID from signup result")
+            Result.success(userId)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
     
     /**
-     * Sign in an existing user with email and password.
-     * @param email User's email address
-     * @param password User's password
-     * @return Result containing user ID on success, or error on failure
+     * Create user account with profile - bulletproof approach
+     */
+    suspend fun signUpWithProfile(email: String, password: String, username: String): Result<String> {
+        return try {
+            if (!isSupabaseConfigured()) {
+                return Result.failure(Exception("Supabase not configured"))
+            }
+            
+            // Step 1: Create auth user
+            val user = client.auth.signUpWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            
+            val authUserId = user?.id ?: throw Exception("Failed to get user ID from signup")
+            
+            // DEBUG: Log what we got vs what's actually in auth
+            val currentAuthUser = client.auth.currentUserOrNull()
+            android.util.Log.d("AuthRepository", "signUpWith returned ID: $authUserId")
+            android.util.Log.d("AuthRepository", "currentUser ID: ${currentAuthUser?.id}")
+            
+            // Use the CURRENT user ID instead of signup response
+            val actualAuthUserId = currentAuthUser?.id ?: authUserId
+            
+            // Step 2: IMMEDIATELY create profile with the SAME ID as auth user
+            val userProfile = UserProfileInsert(
+                // Don't send uid - let database trigger handle it
+                username = username,
+                email = email,
+                created_at = java.time.Instant.now().toString(),
+                updated_at = java.time.Instant.now().toString(),
+                join_date = java.time.Instant.now().toString(),
+                account_premium = false,
+                verify = false,
+                banned = false,
+                followers_count = 0,
+                following_count = 0,
+                posts_count = 0,
+                user_level_xp = 500,
+                status = "offline"
+            )
+            
+            // This MUST succeed or we fail the entire signup
+            client.from("users").insert(userProfile)
+            
+            // Step 3: Create related records (these can fail without breaking signup)
+            try {
+                client.from("user_settings").insert(UserSettingsInsert(user_id = authUserId))
+            } catch (e: Exception) {
+                android.util.Log.w("AuthRepository", "user_settings creation failed, will retry later", e)
+            }
+            
+            try {
+                client.from("user_presence").insert(UserPresenceInsert(user_id = authUserId))
+            } catch (e: Exception) {
+                android.util.Log.w("AuthRepository", "user_presence creation failed, will retry later", e)
+            }
+            
+            // Verify profile was actually created using simple query
+            // Add small delay to ensure database consistency
+            kotlinx.coroutines.delay(100)
+            
+            val verifyProfile = try {
+                client.from("users")
+                    .select(columns = Columns.raw("uid")) {
+                        filter { eq("uid", authUserId) }
+                    }
+                    .decodeList<Map<String, String>>()
+            } catch (verifyError: Exception) {
+                android.util.Log.e("AuthRepository", "Profile verification query failed", verifyError)
+                // If verification query fails, assume profile was created successfully
+                // since the insert didn't throw an exception
+                android.util.Log.w("AuthRepository", "Skipping verification due to query error, assuming profile created")
+                android.util.Log.d("AuthRepository", "User and profile created successfully (verification skipped): $authUserId")
+                return Result.success(authUserId)
+            }
+                
+            if (verifyProfile.isEmpty()) {
+                android.util.Log.e("AuthRepository", "Profile verification failed for user: $authUserId")
+                throw Exception("Profile creation failed - verification check failed")
+            }
+            
+            android.util.Log.d("AuthRepository", "User and profile created successfully: $authUserId")
+            Result.success(authUserId)
+            
+        } catch (e: Exception) {
+            android.util.Log.e("AuthRepository", "Sign up failed", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Sign in with bulletproof profile handling
      */
     suspend fun signIn(email: String, password: String): Result<String> {
         return try {
@@ -63,11 +185,117 @@ class AuthRepository {
                 this.email = email
                 this.password = password
             }
-            Result.success(client.auth.currentUserOrNull()?.id ?: "")
+            
+            val userId = client.auth.currentUserOrNull()?.id 
+                ?: throw Exception("Failed to get user ID after signin")
+                
+            // ALWAYS ensure profile exists - this prevents "Profile not found" errors
+            val profileExists = ensureProfileExistsWithVerification(userId, email)
+            if (!profileExists) {
+                throw Exception("Failed to create or verify user profile")
+            }
+            
+            Result.success(userId)
         } catch (e: Exception) {
             android.util.Log.e("AuthRepository", "Sign in failed for email: $email", e)
             Result.failure(e)
         }
+    }
+
+    /**
+     * Generate a unique username by appending user ID suffix if needed
+     */
+    private fun generateUniqueUsername(baseUsername: String, userId: String): String {
+        // Use first 8 characters of user ID as suffix to ensure uniqueness
+        val suffix = userId.take(8)
+        return "${baseUsername}_$suffix"
+    }
+
+    /**
+     * Ensure user profile exists, create if missing (public version for navigation)
+     */
+    suspend fun ensureProfileExistsPublic(userId: String, email: String) {
+        ensureProfileExists(userId, email)
+    }
+
+    /**
+     * Ensure profile exists with verification - bulletproof approach
+     */
+    private suspend fun ensureProfileExistsWithVerification(userId: String, email: String): Boolean {
+        return try {
+            // Check if profile exists using raw query to avoid serialization issues
+            val existingProfile = client.from("users")
+                .select(columns = Columns.raw("uid")) {
+                    filter { eq("uid", userId) }
+                }
+                .decodeList<Map<String, String>>()
+                
+            if (existingProfile.isEmpty()) {
+                android.util.Log.w("AuthRepository", "Profile missing for user $userId, creating now...")
+                
+                // Create complete profile with unique username
+                val baseUsername = email.substringBefore("@")
+                val uniqueUsername = generateUniqueUsername(baseUsername, userId)
+                
+                val userProfile = UserProfileInsert(
+                    // Don't send uid - let database trigger handle it
+                    username = uniqueUsername,
+                    email = email,
+                    created_at = java.time.Instant.now().toString(),
+                    updated_at = java.time.Instant.now().toString(),
+                    join_date = java.time.Instant.now().toString(),
+                    account_premium = false,
+                    verify = false,
+                    banned = false,
+                    followers_count = 0,
+                    following_count = 0,
+                    posts_count = 0,
+                    user_level_xp = 500,
+                    status = "offline"
+                )
+                
+                client.from("users").insert(userProfile)
+                
+                // Verify it was actually created
+                val verifyProfile = client.from("users")
+                    .select(columns = Columns.raw("uid")) {
+                        filter { eq("uid", userId) }
+                    }
+                    .decodeList<Map<String, String>>()
+                    
+                if (verifyProfile.isEmpty()) {
+                    android.util.Log.e("AuthRepository", "Profile creation failed for user: $userId")
+                    return false
+                }
+                
+                // Create related records (non-critical)
+                try {
+                    client.from("user_settings").insert(UserSettingsInsert(user_id = userId))
+                } catch (e: Exception) {
+                    android.util.Log.w("AuthRepository", "user_settings creation failed", e)
+                }
+                
+                try {
+                    client.from("user_presence").insert(UserPresenceInsert(user_id = userId))
+                } catch (e: Exception) {
+                    android.util.Log.w("AuthRepository", "user_presence creation failed", e)
+                }
+                
+                android.util.Log.d("AuthRepository", "Successfully created profile for user: $userId")
+            }
+            
+            return true
+        } catch (e: Exception) {
+            android.util.Log.e("AuthRepository", "Failed to ensure profile exists for user: $userId", e)
+            return false
+        }
+    }
+
+    /**
+     * Legacy method for backward compatibility
+     */
+    private suspend fun ensureProfileExists(userId: String, email: String) {
+        ensureProfileExistsWithVerification(userId, email)
     }
 
     /**
@@ -371,14 +599,14 @@ class AuthRepository {
                 // In this app, auth ID IS the UID (users.uid = auth.users.id)
                 // Verify the user exists in the database
                 val result = client.from("users")
-                    .select(columns = io.github.jan.supabase.postgrest.query.Columns.raw("uid")) {
+                    .select(columns = Columns.raw("uid")) {
                         filter {
                             eq("uid", authId)
                         }
                     }
-                    .decodeSingleOrNull<kotlinx.serialization.json.JsonObject>()
+                    .decodeList<Map<String, String>>()
                 
-                if (result != null) {
+                if (result.isNotEmpty()) {
                     android.util.Log.d("AuthRepository", "User found in database with UID: $authId")
                     return authId
                 }

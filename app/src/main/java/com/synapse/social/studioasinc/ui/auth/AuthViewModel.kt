@@ -72,6 +72,22 @@ class AuthViewModel(
         _uiState.value = AuthUiState.SignIn()
         setupInputValidation()
         observeAuthState()
+        checkForOrphanedProfile()
+    }
+
+    /**
+     * Check for orphaned auth users and ensure profiles exist
+     */
+    private fun checkForOrphanedProfile() {
+        viewModelScope.launch {
+            // Check current user
+            val currentUserId = authRepository.getCurrentUserId()
+            val currentEmail = authRepository.getCurrentUserEmail()
+            
+            if (currentUserId != null && currentEmail != null) {
+                authRepository.ensureProfileExistsPublic(currentUserId, currentEmail)
+            }
+        }
     }
 
     private fun observeAuthState() {
@@ -262,7 +278,7 @@ class AuthViewModel(
     }
 
     /**
-     * Handle sign-up button click
+     * Handle sign-up - robust client-side profile creation
      */
     fun onSignUpClick(email: String, password: String, username: String) {
         viewModelScope.launch {
@@ -270,7 +286,7 @@ class AuthViewModel(
                 return@launch
             }
 
-            // Check availability one last time before submitting
+            // Check username availability
             val availabilityResult = usernameRepository.checkAvailability(username)
             if (availabilityResult.isSuccess && availabilityResult.getOrNull() == false) {
                  _uiState.value = AuthUiState.SignUp(
@@ -284,64 +300,44 @@ class AuthViewModel(
 
             _uiState.value = AuthUiState.Loading
 
-            val result = authRepository.signUp(email, password)
+            val result = authRepository.signUpWithProfile(email, password, username)
             result.fold(
                 onSuccess = { userId ->
-                    try {
-                        val client = com.synapse.social.studioasinc.SupabaseClient.client
-                        val userMap = mapOf(
-                            "id" to userId,
-                            "uid" to userId,
-                            "username" to username,
-                            "email" to email,
-                            "created_at" to java.time.Instant.now().toString()
-                        )
+                    sharedPreferences.edit()
+                        .putString("user_id", userId)
+                        .putString("username", username)
+                        .putString("email", email)
+                        .apply()
 
-                        client.from("users").insert(userMap)
-                        
-                        // Create related records
-                        client.from("user_settings").insert(mapOf("user_id" to userId))
-                        client.from("user_presence").insert(mapOf("user_id" to userId))
-
+                    val currentUser = com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()
+                    if (currentUser?.emailConfirmedAt == null) {
                         sharedPreferences.edit()
-                            .putBoolean("show_profile_completion_dialog", true)
+                            .putString(PREF_KEY_VERIFICATION_EMAIL, email)
                             .apply()
+                        _uiState.value = AuthUiState.EmailVerification(email = email)
+                        _navigationEvent.emit(AuthNavigationEvent.NavigateToEmailVerification)
 
-                        val currentUser = com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()
-                        if (currentUser?.emailConfirmedAt == null) {
-                             // If verification needed, go to verification
-                             sharedPreferences.edit()
-                                .putString(PREF_KEY_VERIFICATION_EMAIL, email)
-                                .apply()
-                             _uiState.value = AuthUiState.EmailVerification(email = email)
-                             _navigationEvent.emit(AuthNavigationEvent.NavigateToEmailVerification)
-
-                             // Start polling for verification
-                             launch {
-                                 checkEmailVerification(email)
-                             }
-                        } else {
-                            _uiState.value = AuthUiState.Success("Sign up successful")
-                            delay(500)
-                            _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
-                        }
-                    } catch (e: Exception) {
-                        // If profile creation fails, we still created the auth user.
-                        // Might need to retry or ignore.
-                         _uiState.value = AuthUiState.SignUp(
-                            email = email,
-                            password = password,
-                            username = username,
-                            generalError = "Failed to create profile: ${e.message}"
-                        )
+                        launch { checkEmailVerification(email) }
+                    } else {
+                        _uiState.value = AuthUiState.Success("Account created successfully")
+                        delay(500)
+                        _navigationEvent.emit(AuthNavigationEvent.NavigateToMain)
                     }
                 },
                 onFailure = { error ->
+                    val errorMessage = when {
+                        error.message?.contains("over_email_send_rate_limit") == true -> 
+                            "Too many email requests. Please wait and check your inbox."
+                        error.message?.contains("email") == true && error.message?.contains("already") == true ->
+                            "Email already registered. Try signing in instead."
+                        else -> error.message ?: "Sign up failed"
+                    }
+                    
                     _uiState.value = AuthUiState.SignUp(
                         email = email,
                         password = password,
                         username = username,
-                        generalError = error.message ?: "Sign up failed"
+                        generalError = errorMessage
                     )
                 }
             )

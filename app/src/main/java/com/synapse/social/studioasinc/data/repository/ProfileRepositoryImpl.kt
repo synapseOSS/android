@@ -9,9 +9,17 @@ import com.synapse.social.studioasinc.model.PollOption
 import com.synapse.social.studioasinc.ui.profile.utils.NetworkOptimizer
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
+
+@Serializable
+data class FollowInsert(
+    val follower_id: String,
+    val following_id: String
+)
 
 /**
  * Implementation of ProfileRepository with Supabase backend integration.
@@ -95,14 +103,86 @@ class ProfileRepositoryImpl : ProfileRepository {
         }
         
         try {
+            android.util.Log.d("ProfileRepository", "Loading profile for userId: $userId")
             val response = NetworkOptimizer.withRetry {
                 client.from("users").select() { 
                     filter { eq(KEY_UID, userId) } 
                 }.decodeSingleOrNull<JsonObject>()
             }
             
+            android.util.Log.d("ProfileRepository", "Profile query response: $response")
+            
             if (response == null) {
-                emit(Result.failure(Exception("Profile not found")))
+                android.util.Log.e("ProfileRepository", "Profile not found for userId: $userId")
+                
+                // Try to create missing profile if this is the current user
+                try {
+                    val currentUser = client.auth.currentUserOrNull()
+                    if (currentUser != null && currentUser.id == userId) {
+                        android.util.Log.d("ProfileRepository", "Attempting to create missing profile for current user")
+                        
+                        val userMap = mapOf(
+                            "uid" to userId,
+                            "username" to (currentUser.email?.substringBefore("@") ?: "user"),
+                            "email" to (currentUser.email ?: ""),
+                            "created_at" to java.time.Instant.now().toString(),
+                            "join_date" to java.time.Instant.now().toString(),
+                            "account_premium" to false,
+                            "verify" to false,
+                            "banned" to false,
+                            "followers_count" to 0,
+                            "following_count" to 0,
+                            "posts_count" to 0,
+                            "user_level_xp" to 0
+                        )
+                        
+                        client.from("users").insert(userMap)
+                        android.util.Log.d("ProfileRepository", "Created missing profile, retrying query")
+                        
+                        // Retry the query
+                        val retryResponse = client.from("users").select() { 
+                            filter { eq(KEY_UID, userId) } 
+                        }.decodeSingleOrNull<JsonObject>()
+                        
+                        if (retryResponse != null) {
+                            // Continue with profile creation using retryResponse
+                            val postCount = try {
+                                client.from("posts").select(columns = Columns.raw("count")) {
+                                    filter { eq(KEY_AUTHOR_UID, userId) }
+                                    count(io.github.jan.supabase.postgrest.query.Count.EXACT)
+                                }.countOrNull() ?: 0
+                            } catch (e: Exception) {
+                                0
+                            }
+                            
+                            val profile = UserProfile(
+                                id = retryResponse.getString(KEY_UID, userId),
+                                username = retryResponse.getString(KEY_USERNAME),
+                                name = retryResponse.getNullableString(KEY_DISPLAY_NAME),
+                                bio = retryResponse.getNullableString(KEY_BIO),
+                                avatar = retryResponse.getNullableString(KEY_AVATAR)?.let { constructAvatarUrl(it) },
+                                coverImageUrl = retryResponse.getNullableString(KEY_COVER_IMAGE)?.let { constructMediaUrl(it) },
+                                isVerified = retryResponse.getBoolean(KEY_VERIFY),
+                                isPrivate = retryResponse.getBoolean(KEY_IS_PRIVATE),
+                                postCount = postCount.toInt(),
+                                followerCount = retryResponse.getInt(KEY_FOLLOWERS_COUNT),
+                                followingCount = retryResponse.getInt(KEY_FOLLOWING_COUNT),
+                                location = retryResponse.getNullableString(KEY_LOCATION),
+                                website = retryResponse.getNullableString(KEY_WEBSITE),
+                                gender = retryResponse.getNullableString(KEY_GENDER),
+                                pronouns = retryResponse.getNullableString(KEY_PRONOUNS)
+                            )
+                            NetworkOptimizer.cache(cacheKey, profile)
+                            android.util.Log.d("ProfileRepository", "Profile created and loaded successfully")
+                            emit(Result.success(profile))
+                            return@flow
+                        }
+                    }
+                } catch (createError: Exception) {
+                    android.util.Log.e("ProfileRepository", "Failed to create missing profile", createError)
+                }
+                
+                emit(Result.failure(Exception("Profile not found for user: $userId")))
                 return@flow
             }
             
@@ -134,9 +214,11 @@ class ProfileRepositoryImpl : ProfileRepository {
                 pronouns = response.getNullableString(KEY_PRONOUNS)
             )
             NetworkOptimizer.cache(cacheKey, profile)
+            android.util.Log.d("ProfileRepository", "Profile loaded successfully for userId: $userId")
             emit(Result.success(profile))
         } catch (e: Exception) {
-            emit(Result.failure(e))
+            android.util.Log.e("ProfileRepository", "Failed to load profile for userId: $userId", e)
+            emit(Result.failure(Exception("Failed to load profile: ${e.message}", e)))
         }
     }
 
@@ -149,7 +231,7 @@ class ProfileRepositoryImpl : ProfileRepository {
 
     override suspend fun followUser(userId: String, targetUserId: String): Result<Unit> = try {
         client.from("follows").upsert(
-            mapOf("follower_id" to userId, "following_id" to targetUserId)
+            FollowInsert(follower_id = userId, following_id = targetUserId)
         ) {
             onConflict = "follower_id, following_id"
             ignoreDuplicates = true
@@ -188,7 +270,7 @@ class ProfileRepositoryImpl : ProfileRepository {
         Result.failure(e)
     }
 
-    override suspend fun getProfilePosts(userId: String, limit: Int, offset: Int): Result<List<Any>> = try {
+    override suspend fun getProfilePosts(userId: String, limit: Int, offset: Int): Result<List<com.synapse.social.studioasinc.model.Post>> = try {
         val response = client.from("posts").select(
             columns = Columns.raw("*, users!posts_author_uid_fkey($KEY_UID, $KEY_USERNAME, $KEY_AVATAR, $KEY_VERIFY)")
         ) { 
@@ -232,10 +314,10 @@ class ProfileRepositoryImpl : ProfileRepository {
         Result.failure(e)
     }
 
-    override suspend fun getProfilePhotos(userId: String, limit: Int, offset: Int): Result<List<Any>> = 
+    override suspend fun getProfilePhotos(userId: String, limit: Int, offset: Int): Result<List<com.synapse.social.studioasinc.ui.profile.components.MediaItem>> = 
         getMediaItemsByType(userId, limit, offset, isVideo = false)
 
-    override suspend fun getProfileReels(userId: String, limit: Int, offset: Int): Result<List<Any>> = 
+    override suspend fun getProfileReels(userId: String, limit: Int, offset: Int): Result<List<com.synapse.social.studioasinc.ui.profile.components.MediaItem>> = 
         getMediaItemsByType(userId, limit, offset, isVideo = true)
 
     override suspend fun isFollowing(userId: String, targetUserId: String): Result<Boolean> = try {
