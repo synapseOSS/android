@@ -85,7 +85,7 @@ fun ReelItem(
 
             IconButton(onClick = onCommentClick) {
                 Icon(
-                    imageVector = Icons.Outlined.Comment,
+                    imageVector = Icons.AutoMirrored.Outlined.Comment,
                     contentDescription = "Comment",
                     tint = Color.White
                 )

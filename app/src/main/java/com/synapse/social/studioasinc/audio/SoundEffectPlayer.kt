@@ -23,6 +23,7 @@ class SoundEffectPlayer(context: Context) {  // Code by Ashik from StudioAsInc.
                 .setAudioAttributes(audioAttributes)
                 .build()
         } else {
+            @Suppress("DEPRECATION")
             SoundPool(5, android.media.AudioManager.STREAM_MUSIC, 0)
         }
     }

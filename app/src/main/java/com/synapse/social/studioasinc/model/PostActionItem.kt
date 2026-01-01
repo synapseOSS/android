@@ -4,7 +4,7 @@ import androidx.annotation.DrawableRes
 
 data class PostActionItem(
     val label: String,
-    @DrawableRes val icon: Int,
+    @get:DrawableRes val icon: Int,
     val isDestructive: Boolean = false,
     val action: () -> Unit
 )

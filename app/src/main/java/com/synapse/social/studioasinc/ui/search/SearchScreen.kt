@@ -188,7 +188,7 @@ fun SearchContent(
                                 imageVector = when(filter) {
                                     SearchFilter.ALL -> Icons.Default.Search
                                     SearchFilter.PEOPLE -> Icons.Outlined.Person
-                                    SearchFilter.POSTS -> Icons.Outlined.Comment
+                                    SearchFilter.POSTS -> Icons.AutoMirrored.Outlined.Comment
                                     SearchFilter.PHOTOS -> Icons.Outlined.Image
                                     SearchFilter.VIDEOS -> Icons.Outlined.SmartDisplay
                                 },
@@ -523,7 +523,7 @@ fun PostResultItem(
                 Spacer(modifier = Modifier.width(24.dp))
 
                 Icon(
-                    imageVector = Icons.Outlined.Comment,
+                    imageVector = Icons.AutoMirrored.Outlined.Comment,
                     contentDescription = "Comments",
                     modifier = Modifier.size(18.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant

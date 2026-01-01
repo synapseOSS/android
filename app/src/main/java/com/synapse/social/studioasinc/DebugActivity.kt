@@ -115,6 +115,7 @@ class DebugActivity : BaseActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onBackPressed() {
         super.onBackPressed()
         finish()

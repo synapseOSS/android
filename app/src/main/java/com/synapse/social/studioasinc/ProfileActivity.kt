@@ -138,6 +138,7 @@ class ProfileActivity : ComponentActivity() {
     }
     
     private fun navigateToUserProfile(userId: String) {
+        @Suppress("DEPRECATION")
         val intent = Intent(this, ProfileActivity::class.java)
         intent.putExtra("uid", userId)
         startActivity(intent)
@@ -169,6 +170,7 @@ class ProfileActivity : ComponentActivity() {
                 }
                 
                 // Show loading
+                @Suppress("DEPRECATION")
                 val progressDialog = ProgressDialog(this@ProfileActivity).apply {
                     setMessage("Starting chat...")
                     setCancelable(false)

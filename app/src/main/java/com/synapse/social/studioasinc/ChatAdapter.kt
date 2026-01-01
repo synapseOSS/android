@@ -769,8 +769,7 @@ class ChatAdapter(
             
             // Trigger haptic feedback on long-press
             holder.itemView.performHapticFeedback(
-                android.view.HapticFeedbackConstants.LONG_PRESS,
-                android.view.HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+                android.view.HapticFeedbackConstants.LONG_PRESS
             )
             
             // Enter multi-select mode if not already in it

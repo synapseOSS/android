@@ -394,7 +394,9 @@ class UserFollowsListActivity : BaseActivity() {
                 isAppearanceLightStatusBars = true
             }
         }
+        @Suppress("DEPRECATION")
         window.statusBarColor = statusColor
+        @Suppress("DEPRECATION")
         window.navigationBarColor = navigationColor
     }
 

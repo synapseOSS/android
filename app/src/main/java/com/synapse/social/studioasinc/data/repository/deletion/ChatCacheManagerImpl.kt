@@ -17,7 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
  * Requirements: 1.3, 2.3, 5.3, 5.4
  */
 class ChatCacheManagerImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ChatCacheManager {
 
     companion object {

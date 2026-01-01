@@ -62,14 +62,12 @@ class StoryAdapter(
                     val result = databaseService.getSingle("users", "uid", story.userId).getOrNull()?.let { Result.success(it) } ?: Result.failure(Exception("User not found"))
                     
                     result.onSuccess { userData ->
-                        if (userData != null) {
+                        run {
                             val displayName = userData["display_name"] as? String
                             val username = userData["username"] as? String
                             val nickname = userData["nickname"] as? String
                             
                             userNameText.text = displayName ?: username ?: nickname ?: "Unknown"
-                        } else {
-                            userNameText.text = "Unknown"
                         }
                     }.onFailure {
                         userNameText.text = "Unknown"

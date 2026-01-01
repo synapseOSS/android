@@ -81,7 +81,7 @@ fun AnimatedSendButton(
             label = "sendIconCrossfade"
         ) { isSend ->
             Icon(
-                imageVector = if (isSend) Icons.Rounded.Send else Icons.Rounded.Mic,
+                imageVector = if (isSend) Icons.AutoMirrored.Rounded.Send else Icons.Rounded.Mic,
                 contentDescription = if (isSend) "Send" else "Voice Message",
                 tint = iconColor,
                 modifier = Modifier

@@ -686,7 +686,7 @@ class ChatAdapter(
                         .load(attachment.thumbnailUrl ?: attachment.url)
                         .placeholder(R.drawable.ph_imgbluredsqure)
                         .error(R.drawable.ph_imgbluredsqure)
-                        .thumbnail(0.1f) // Load low-res first
+                        .thumbnail(Glide.with(context.applicationContext).load(attachment.thumbnailUrl ?: attachment.url).sizeMultiplier(0.1f)) // Load low-res first
                         .centerCrop()
                         .into(imgView)
                 } catch (e: Exception) {
@@ -883,7 +883,7 @@ class ChatAdapter(
                         .load(attachment.thumbnailUrl ?: attachment.url)
                         .placeholder(R.drawable.ph_imgbluredsqure)
                         .error(R.drawable.ph_imgbluredsqure)
-                        .thumbnail(0.1f) // Load low-res first
+                        .thumbnail(Glide.with(context.applicationContext).load(attachment.thumbnailUrl ?: attachment.url).sizeMultiplier(0.1f)) // Load low-res first
                         .centerCrop()
                         .into(videoThumbnail)
                 } catch (e: Exception) {

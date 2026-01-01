@@ -76,7 +76,7 @@ fun PostInteractionBar(
 
             IconButton(onClick = onCommentClick) {
                 Icon(
-                    imageVector = Icons.Outlined.Comment,
+                    imageVector = Icons.AutoMirrored.Outlined.Comment,
                     contentDescription = "Comment",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
