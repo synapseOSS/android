@@ -41,7 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.model.MediaItem
 import com.synapse.social.studioasinc.model.MediaType
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
@@ -198,7 +200,9 @@ fun CreatePostScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.ic_person),
+                            error = painterResource(R.drawable.ic_person)
                         )
                     } else {
                         // Placeholder Avatar
