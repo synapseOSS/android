@@ -34,13 +34,14 @@ fun ProfileMoreMenuBottomSheet(
                 text = "Share Profile",
                 onClick = { onShareProfile(); onDismiss() }
             )
-            MenuOption(
-                icon = Icons.Default.Visibility,
-                text = "View As...",
-                onClick = { onViewAs(); onDismiss() }
-            )
             
             if (isOwnProfile) {
+                MenuOption(
+                    icon = Icons.Default.Visibility,
+                    text = "View As...",
+                    onClick = { onViewAs(); onDismiss() }
+                )
+
                 MenuOption(
                     icon = Icons.Default.Lock,
                     text = "Lock Profile",
