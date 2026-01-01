@@ -28,7 +28,10 @@ for file in *.xml; do
         # Check for tools:listitem references
         listitem_refs=$(grep -r "tools:listitem=\"@layout/$name\"" ../.. --include="*.xml" 2>/dev/null | wc -l)
         
-        total_refs=$((direct_refs + binding_refs + include_refs + listitem_refs))
+        # Check for any XML attribute references to the layout
+        attr_refs=$(grep -r "@layout/$name" ../.. --include="*.xml" 2>/dev/null | wc -l)
+        
+        total_refs=$((direct_refs + binding_refs + include_refs + listitem_refs + attr_refs))
         
         if [ $total_refs -eq 0 ]; then
             echo "UNUSED: $file ($size bytes)"
