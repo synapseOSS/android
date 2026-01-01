@@ -37,6 +37,7 @@ import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
 import com.synapse.social.studioasinc.ui.components.post.PostOptionsBottomSheet
 import kotlinx.coroutines.launch
 
+@Suppress("DEPRECATION")
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = viewModel(),
@@ -83,7 +84,6 @@ fun FeedScreen(
                 ) { index ->
                     val post = posts[index]
                     if (post != null) {
-                    if (post != null) {
                         SharedPostItem(
                             post = post,
                             actions = PostActions(
@@ -97,7 +97,6 @@ fun FeedScreen(
                                 onMediaClick = onMediaClick
                             )
                         )
-                    }
                     }
                 }
 
@@ -118,24 +117,24 @@ fun FeedScreen(
                 }
             }
         }
-    }
-    }
 
-    selectedPost?.let { post ->
-        PostOptionsBottomSheet(
-            post = post,
-            isOwner = viewModel.isPostOwner(post),
-            commentsDisabled = viewModel.areCommentsDisabled(post),
-            onDismiss = { selectedPost = null },
-            onEdit = { viewModel.editPost(post) },
-            onDelete = { viewModel.deletePost(post) },
-            onShare = { viewModel.sharePost(post) },
-            onCopyLink = { viewModel.copyPostLink(post) },
-            onBookmark = { viewModel.bookmarkPost(post) },
-            onToggleComments = { viewModel.toggleComments(post) },
-            onReport = { viewModel.reportPost(post) },
-            onBlock = { viewModel.blockUser(post.authorUid) },
-            onRevokeVote = { viewModel.revokeVote(post) }
-        )
+        selectedPost?.let { post ->
+            PostOptionsBottomSheet(
+                post = post,
+                isOwner = viewModel.isPostOwner(post),
+                commentsDisabled = viewModel.areCommentsDisabled(post),
+                onDismiss = { selectedPost = null },
+                onEdit = { viewModel.editPost(post) },
+                onDelete = { viewModel.deletePost(post) },
+                onShare = { viewModel.sharePost(post) },
+                onCopyLink = { viewModel.copyPostLink(post) },
+                onBookmark = { viewModel.bookmarkPost(post) },
+                onToggleComments = { viewModel.toggleComments(post) },
+                onReport = { viewModel.reportPost(post) },
+                onBlock = { viewModel.blockUser(post.authorUid) },
+                onRevokeVote = { viewModel.revokeVote(post) }
+            )
+        }
+        }
     }
 }

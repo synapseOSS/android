@@ -52,6 +52,7 @@ fun EmptyChatState(
                 ),
             contentAlignment = Alignment.Center
         ) {
+            @Suppress("DEPRECATION")
             Icon(
                 imageVector = Icons.Outlined.Chat,
                 contentDescription = null,

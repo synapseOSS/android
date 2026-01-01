@@ -28,7 +28,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
  * Requirements: 1.2, 2.2, 4.1, 4.2
  */
 class RemoteChatRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : RemoteChatRepository {
     
     companion object {

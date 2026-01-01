@@ -80,6 +80,7 @@ fun AnimatedSendButton(
             animationSpec = tween(ChatAnimations.SendIconCrossfadeDuration),
             label = "sendIconCrossfade"
         ) { isSend ->
+            @Suppress("DEPRECATION")
             Icon(
                 imageVector = if (isSend) Icons.Rounded.Send else Icons.Rounded.Mic,
                 contentDescription = if (isSend) "Send" else "Voice Message",

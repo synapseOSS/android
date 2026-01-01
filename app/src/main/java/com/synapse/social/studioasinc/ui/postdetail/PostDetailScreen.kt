@@ -4,7 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.*
 import coil.compose.AsyncImage
@@ -169,7 +169,7 @@ fun PostDetailScreen(
                 title = { Text("Post") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
@@ -331,6 +331,7 @@ fun PostDetailScreen(
                                  onReactionLongPress = { showReactionPicker = true }
                              )
 
+                             @Suppress("DEPRECATION")
                              Divider()
                          }
                      }

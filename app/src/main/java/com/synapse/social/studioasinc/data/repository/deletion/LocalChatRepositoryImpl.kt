@@ -19,7 +19,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
  * Requirements: 1.1, 2.1, 5.1, 5.4
  */
 class LocalChatRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val chatDao: ChatDao = AppDatabase.getDatabase(context).chatDao()
 ) : LocalChatRepository {
 

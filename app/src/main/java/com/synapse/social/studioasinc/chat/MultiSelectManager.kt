@@ -313,8 +313,7 @@ class MultiSelectManager(
     private fun provideHapticFeedback() {
         try {
             activity.window.decorView.performHapticFeedback(
-                android.view.HapticFeedbackConstants.CONTEXT_CLICK,
-                android.view.HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+                android.view.HapticFeedbackConstants.LONG_PRESS
             )
         } catch (e: Exception) {
             // Haptic feedback not available on this device

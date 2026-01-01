@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@Suppress("UNCHECKED_CAST")
 class ChatAdapter(
     private val data: ArrayList<HashMap<String, Any?>>,
     private val repliedMessagesCache: HashMap<String, HashMap<String, Any?>>,
@@ -769,8 +770,7 @@ class ChatAdapter(
             
             // Trigger haptic feedback on long-press
             holder.itemView.performHapticFeedback(
-                android.view.HapticFeedbackConstants.LONG_PRESS,
-                android.view.HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+                android.view.HapticFeedbackConstants.LONG_PRESS
             )
             
             // Enter multi-select mode if not already in it

@@ -61,6 +61,7 @@ fun VoiceRecordingDialog(
                             // Start recording
                             try {
                                 audioFile = File(context.cacheDir, "voice_note_${System.currentTimeMillis()}.m4a")
+                                @Suppress("DEPRECATION")
                                 mediaRecorder = MediaRecorder().apply {
                                     setAudioSource(MediaRecorder.AudioSource.MIC)
                                     setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)

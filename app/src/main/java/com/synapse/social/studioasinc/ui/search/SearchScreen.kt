@@ -188,6 +188,7 @@ fun SearchContent(
                                 imageVector = when(filter) {
                                     SearchFilter.ALL -> Icons.Default.Search
                                     SearchFilter.PEOPLE -> Icons.Outlined.Person
+                                    @Suppress("DEPRECATION")
                                     SearchFilter.POSTS -> Icons.Outlined.Comment
                                     SearchFilter.PHOTOS -> Icons.Outlined.Image
                                     SearchFilter.VIDEOS -> Icons.Outlined.SmartDisplay
@@ -522,6 +523,7 @@ fun PostResultItem(
 
                 Spacer(modifier = Modifier.width(24.dp))
 
+                @Suppress("DEPRECATION")
                 Icon(
                     imageVector = Icons.Outlined.Comment,
                     contentDescription = "Comments",

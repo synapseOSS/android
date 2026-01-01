@@ -116,7 +116,7 @@ class SynapseApp : Application(), DefaultLifecycleObserver {
                 if (state.current.optedIn) {
                     val playerId = state.current.id
                     val userUid = mAuth.getCurrentUserId()
-                    if (userUid != null && playerId != null) {
+                    if (userUid != null) {
                         PushNotificationManager.savePlayerIdToSupabase(userUid, playerId)
                     }
                 }
