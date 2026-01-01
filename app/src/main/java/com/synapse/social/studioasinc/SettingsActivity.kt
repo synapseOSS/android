@@ -18,6 +18,7 @@ import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.settings.SettingsNavHost
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 /**
@@ -29,6 +30,7 @@ import kotlinx.coroutines.launch
  * 
  * Requirements: 1.2, 2.2, 6.6
  */
+@AndroidEntryPoint
 class SettingsActivity : ComponentActivity() {
 
     private val authRepository = AuthRepository()
