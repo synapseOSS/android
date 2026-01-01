@@ -163,7 +163,6 @@ object NotificationHelper {
      * @deprecated Use sendNotification instead.
      */
     @JvmStatic
-    @Deprecated("Use sendNotification instead.")
     @Deprecated("Use sendNotification instead")
     fun sendMessageAndNotifyIfNeeded(
         senderUid: String,
