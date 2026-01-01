@@ -153,6 +153,14 @@ class SettingsRepositoryImpl private constructor(
         settingsDataStore.setChatFontScale(scale)
     }
 
+    override suspend fun setChatThemePreset(preset: com.synapse.social.studioasinc.domain.model.ChatThemePreset) {
+        settingsDataStore.setChatThemePreset(preset)
+    }
+
+    override suspend fun setChatWallpaper(wallpaper: com.synapse.social.studioasinc.domain.model.ChatWallpaper) {
+        settingsDataStore.setChatWallpaper(wallpaper)
+    }
+
 
     // ========================================================================
     // Storage and Cache Management

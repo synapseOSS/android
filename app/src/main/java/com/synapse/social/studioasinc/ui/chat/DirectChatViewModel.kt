@@ -35,6 +35,8 @@ import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
 import com.synapse.social.studioasinc.AI.Gemini
 import com.synapse.social.studioasinc.data.repository.AiRepository
 import com.synapse.social.studioasinc.model.AiSummary
+import com.synapse.social.studioasinc.domain.model.ChatThemePreset
+import com.synapse.social.studioasinc.domain.model.ChatWallpaper
 
 /**
  * ViewModel for DirectChatScreen
@@ -52,6 +54,7 @@ class DirectChatViewModel @Inject constructor(
     private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
     private val aiRepository = AiRepository()
+    private val settingsRepository = com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl.getInstance(application)
     private var gemini: Gemini? = null
     
     // Enhanced typing and presence managers
@@ -159,7 +162,21 @@ class DirectChatViewModel @Inject constructor(
     init {
         loadCurrentUser()
         observeConnectionState()
+        observeSettings()
         initializeGemini()
+    }
+
+    private fun observeSettings() {
+        viewModelScope.launch {
+            settingsRepository.chatSettings.collect { settings ->
+                _uiState.update {
+                    it.copy(
+                        themePreset = settings.themePreset,
+                        wallpaper = settings.wallpaper
+                    )
+                }
+            }
+        }
     }
 
     private fun initializeGemini() {

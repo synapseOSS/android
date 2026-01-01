@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.synapse.social.studioasinc.domain.model.ChatThemePreset
 
 /**
  * Chat-specific theme extensions for Material 3 Expressive design
@@ -173,77 +174,97 @@ data class ChatThemeColors(
     val typingBackground: Color
 )
 
-private val LightChatColors = ChatThemeColors(
-    sentBubbleGradient = Brush.linearGradient(
-        colors = listOf(ChatColors.SentBubbleStart, ChatColors.SentBubbleEnd)
-    ),
-    sentBubbleText = ChatColors.SentBubbleText,
-    sentBubbleSecondaryText = ChatColors.SentBubbleSecondaryText,
-    
-    receivedBubble = ChatColors.ReceivedBubbleLight,
-    receivedBubbleText = ChatColors.ReceivedBubbleText,
-    receivedBubbleSecondaryText = ChatColors.ReceivedBubbleSecondaryText,
-    
-    statusSending = ChatColors.StatusSending,
-    statusSent = ChatColors.StatusSent,
-    statusDelivered = ChatColors.StatusDelivered,
-    statusRead = ChatColors.StatusRead,
-    statusFailed = ChatColors.StatusFailed,
-    
-    inputBarBackground = ChatColors.InputBarBackground,
-    inputFieldBackground = ChatColors.InputFieldBackground,
-    inputText = ChatColors.InputText,
-    inputPlaceholder = ChatColors.InputPlaceholder,
-    
-    replyAccent = ChatColors.ReplyAccent,
-    replyBackground = ChatColors.ReplyAccentLight,
-    sendButtonActive = ChatColors.SendButtonActive,
-    sendButtonInactive = ChatColors.SendButtonInactive,
-    
-    chatBackground = ChatColors.ChatBackgroundLight,
-    dateHeaderBackground = ChatColors.DateHeaderBackground,
-    dateHeaderText = ChatColors.DateHeaderText,
-    
-    typingDot = ChatColors.TypingDot,
-    typingBackground = ChatColors.TypingBackground
-)
+private fun getLightChatColors(preset: ChatThemePreset): ChatThemeColors {
+    val (primaryColor, secondaryColor) = when (preset) {
+        ChatThemePreset.DEFAULT -> ChatColors.SentBubbleStart to ChatColors.SentBubbleEnd
+        ChatThemePreset.OCEAN -> Color(0xFF1976D2) to Color(0xFF2196F3)
+        ChatThemePreset.FOREST -> Color(0xFF388E3C) to Color(0xFF4CAF50)
+        ChatThemePreset.SUNSET -> Color(0xFFF57C00) to Color(0xFFFF9800)
+        ChatThemePreset.MONOCHROME -> Color(0xFF424242) to Color(0xFF616161)
+    }
 
-private val DarkChatColors = ChatThemeColors(
-    sentBubbleGradient = Brush.linearGradient(
-        colors = listOf(ChatColors.SentBubbleStart, ChatColors.SentBubbleEnd)
-    ),
-    sentBubbleText = ChatColors.SentBubbleText,
-    sentBubbleSecondaryText = ChatColors.SentBubbleSecondaryText,
-    
-    receivedBubble = ChatColors.ReceivedBubbleDark,
-    receivedBubbleText = ChatColors.ReceivedBubbleTextDark,
-    receivedBubbleSecondaryText = ChatColors.ReceivedBubbleSecondaryTextDark,
-    
-    statusSending = ChatColors.StatusSending,
-    statusSent = ChatColors.StatusSent,
-    statusDelivered = ChatColors.StatusDelivered,
-    statusRead = ChatColors.StatusRead,
-    statusFailed = ChatColors.StatusFailed,
-    
-    inputBarBackground = ChatColors.InputBarBackgroundDark,
-    inputFieldBackground = ChatColors.InputFieldBackgroundDark,
-    inputText = ChatColors.InputTextDark,
-    inputPlaceholder = ChatColors.InputPlaceholder,
-    
-    replyAccent = ChatColors.ReplyAccent,
-    replyBackground = ChatColors.ReplyAccent.copy(alpha = 0.2f),
-    sendButtonActive = ChatColors.SendButtonActive,
-    sendButtonInactive = ChatColors.SendButtonInactive,
-    
-    chatBackground = ChatColors.ChatBackgroundDark,
-    dateHeaderBackground = ChatColors.DateHeaderBackgroundDark,
-    dateHeaderText = ChatColors.DateHeaderTextDark,
-    
-    typingDot = ChatColors.TypingDotLight,
-    typingBackground = ChatColors.TypingBackgroundDark
-)
+    return ChatThemeColors(
+        sentBubbleGradient = Brush.linearGradient(
+            colors = listOf(primaryColor, secondaryColor)
+        ),
+        sentBubbleText = ChatColors.SentBubbleText,
+        sentBubbleSecondaryText = ChatColors.SentBubbleSecondaryText,
 
-val LocalChatColors = staticCompositionLocalOf { LightChatColors }
+        receivedBubble = ChatColors.ReceivedBubbleLight,
+        receivedBubbleText = ChatColors.ReceivedBubbleText,
+        receivedBubbleSecondaryText = ChatColors.ReceivedBubbleSecondaryText,
+
+        statusSending = ChatColors.StatusSending,
+        statusSent = ChatColors.StatusSent,
+        statusDelivered = secondaryColor,
+        statusRead = secondaryColor,
+        statusFailed = ChatColors.StatusFailed,
+
+        inputBarBackground = ChatColors.InputBarBackground,
+        inputFieldBackground = ChatColors.InputFieldBackground,
+        inputText = ChatColors.InputText,
+        inputPlaceholder = ChatColors.InputPlaceholder,
+
+        replyAccent = primaryColor,
+        replyBackground = primaryColor.copy(alpha = 0.1f),
+        sendButtonActive = primaryColor,
+        sendButtonInactive = ChatColors.SendButtonInactive,
+
+        chatBackground = ChatColors.ChatBackgroundLight,
+        dateHeaderBackground = ChatColors.DateHeaderBackground,
+        dateHeaderText = ChatColors.DateHeaderText,
+
+        typingDot = ChatColors.TypingDot,
+        typingBackground = ChatColors.TypingBackground
+    )
+}
+
+private fun getDarkChatColors(preset: ChatThemePreset): ChatThemeColors {
+     val (primaryColor, secondaryColor) = when (preset) {
+        ChatThemePreset.DEFAULT -> ChatColors.SentBubbleStart to ChatColors.SentBubbleEnd
+        ChatThemePreset.OCEAN -> Color(0xFF1565C0) to Color(0xFF1E88E5)
+        ChatThemePreset.FOREST -> Color(0xFF2E7D32) to Color(0xFF43A047)
+        ChatThemePreset.SUNSET -> Color(0xFFEF6C00) to Color(0xFFF57C00)
+        ChatThemePreset.MONOCHROME -> Color(0xFF212121) to Color(0xFF424242)
+    }
+
+    return ChatThemeColors(
+        sentBubbleGradient = Brush.linearGradient(
+            colors = listOf(primaryColor, secondaryColor)
+        ),
+        sentBubbleText = ChatColors.SentBubbleText,
+        sentBubbleSecondaryText = ChatColors.SentBubbleSecondaryText,
+
+        receivedBubble = ChatColors.ReceivedBubbleDark,
+        receivedBubbleText = ChatColors.ReceivedBubbleTextDark,
+        receivedBubbleSecondaryText = ChatColors.ReceivedBubbleSecondaryTextDark,
+
+        statusSending = ChatColors.StatusSending,
+        statusSent = ChatColors.StatusSent,
+        statusDelivered = secondaryColor,
+        statusRead = secondaryColor,
+        statusFailed = ChatColors.StatusFailed,
+
+        inputBarBackground = ChatColors.InputBarBackgroundDark,
+        inputFieldBackground = ChatColors.InputFieldBackgroundDark,
+        inputText = ChatColors.InputTextDark,
+        inputPlaceholder = ChatColors.InputPlaceholder,
+
+        replyAccent = primaryColor,
+        replyBackground = primaryColor.copy(alpha = 0.2f),
+        sendButtonActive = primaryColor,
+        sendButtonInactive = ChatColors.SendButtonInactive,
+
+        chatBackground = ChatColors.ChatBackgroundDark,
+        dateHeaderBackground = ChatColors.DateHeaderBackgroundDark,
+        dateHeaderText = ChatColors.DateHeaderTextDark,
+
+        typingDot = ChatColors.TypingDotLight,
+        typingBackground = ChatColors.TypingBackgroundDark
+    )
+}
+
+val LocalChatColors = staticCompositionLocalOf { getLightChatColors(ChatThemePreset.DEFAULT) }
 
 /**
  * Provides chat-specific theme colors based on system theme
@@ -251,9 +272,10 @@ val LocalChatColors = staticCompositionLocalOf { LightChatColors }
 @Composable
 fun ChatTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    preset: ChatThemePreset = ChatThemePreset.DEFAULT,
     content: @Composable () -> Unit
 ) {
-    val chatColors = if (darkTheme) DarkChatColors else LightChatColors
+    val chatColors = if (darkTheme) getDarkChatColors(preset) else getLightChatColors(preset)
     
     CompositionLocalProvider(LocalChatColors provides chatColors) {
         content()
@@ -268,4 +290,17 @@ object ChatTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalChatColors.current
+
+    /**
+     * Get the primary color for a given theme preset (useful for previews).
+     */
+    fun getPreviewColor(preset: ChatThemePreset): Color {
+        return when (preset) {
+            ChatThemePreset.DEFAULT -> ChatColors.SentBubbleStart
+            ChatThemePreset.OCEAN -> Color(0xFF1976D2)
+            ChatThemePreset.FOREST -> Color(0xFF388E3C)
+            ChatThemePreset.SUNSET -> Color(0xFFF57C00)
+            ChatThemePreset.MONOCHROME -> Color(0xFF424242)
+        }
+    }
 }

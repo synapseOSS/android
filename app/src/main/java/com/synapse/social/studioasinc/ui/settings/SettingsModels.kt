@@ -1,6 +1,8 @@
 package com.synapse.social.studioasinc.ui.settings
 
 import androidx.annotation.DrawableRes
+import com.synapse.social.studioasinc.domain.model.ChatThemePreset
+import com.synapse.social.studioasinc.domain.model.ChatWallpaper
 
 /**
  * Data models and enums for the Settings feature.
@@ -170,6 +172,7 @@ enum class MediaAutoDownload {
     }
 }
 
+
 // ============================================================================
 // Data Classes
 // ============================================================================
@@ -240,7 +243,9 @@ data class ChatSettings(
     val readReceiptsEnabled: Boolean = true,
     val typingIndicatorsEnabled: Boolean = true,
     val mediaAutoDownload: MediaAutoDownload = MediaAutoDownload.WIFI_ONLY,
-    val chatFontScale: Float = 1.0f
+    val chatFontScale: Float = 1.0f,
+    val themePreset: ChatThemePreset = ChatThemePreset.DEFAULT,
+    val wallpaper: ChatWallpaper = ChatWallpaper()
 )
 
 // ============================================================================

@@ -99,6 +99,8 @@ sealed class SettingsDestination(val route: String) {
         const val ROUTE_LANGUAGE = "settings_language"
         const val ROUTE_ABOUT = "settings_about"
         const val ROUTE_CHAT_HISTORY_DELETION = "settings_chat_history_deletion"
+        const val ROUTE_CHAT_THEME = "settings_chat_theme"
+        const val ROUTE_CHAT_WALLPAPER = "settings_chat_wallpaper"
         const val ROUTE_LICENSES = "settings_licenses"
         const val ROUTE_AI = "settings_ai"
         const val ROUTE_AI_PERSONA_EDITOR = "settings_ai_persona_editor"
