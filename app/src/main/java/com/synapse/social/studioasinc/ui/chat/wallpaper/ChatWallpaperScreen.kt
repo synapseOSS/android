@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -183,10 +185,12 @@ fun ChatWallpaperScreen(
                                        .size(56.dp)
                                        .clip(CircleShape)
                                        .background(color)
-                                       .border(
-                                            width = if (color == Color.White) 1.dp else 0.dp,
-                                            color = Color.LightGray,
-                                            shape = CircleShape
+                                       .then(
+                                            Modifier.border(
+                                                width = if (color == Color.White) 1.dp else 0.dp,
+                                                color = Color.LightGray,
+                                                shape = CircleShape
+                                            )
                                        )
                                        .clickable { viewModel.setSolidColor(hexColor) },
                                    contentAlignment = Alignment.Center
