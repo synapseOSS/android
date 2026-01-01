@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.AndroidEntryPoint
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
+import com.synapse.social.studioasinc.ui.chat.theme.ChatTheme
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import com.synapse.social.studioasinc.util.ActivityTransitions
 import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
@@ -53,18 +54,25 @@ class ChatActivity : ComponentActivity() {
             val dynamicColor = appearanceSettings.dynamicColorEnabled && 
                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
             
+            val uiState by viewModel.uiState.collectAsState()
+
             SynapseTheme(
                 darkTheme = darkTheme,
                 dynamicColor = dynamicColor,
                 enableEdgeToEdge = true
             ) {
-                chatId?.let { nonNullChatId ->
-                    DirectChatScreen(
-                        chatId = nonNullChatId,
-                        otherUserId = otherUserId,
-                        onBackClick = { finishWithPremiumTransition() },
-                        viewModel = viewModel
-                    )
+                ChatTheme(
+                    darkTheme = darkTheme,
+                    preset = uiState.themePreset
+                ) {
+                    chatId?.let { nonNullChatId ->
+                        DirectChatScreen(
+                            chatId = nonNullChatId,
+                            otherUserId = otherUserId,
+                            onBackClick = { finishWithPremiumTransition() },
+                            viewModel = viewModel
+                        )
+                    }
                 }
             }
         }

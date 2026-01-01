@@ -134,7 +134,27 @@ fun SettingsNavHost(
                 onNavigateToChatPrivacy = onNavigateToChatPrivacy,
                 onNavigateToChatHistoryDeletion = {
                     navController.navigate(SettingsDestination.ROUTE_CHAT_HISTORY_DELETION)
+                },
+                onNavigateToChatCustomization = {
+                    navController.navigate(SettingsDestination.ROUTE_CHAT_THEME)
+                },
+                onNavigateToChatWallpapers = {
+                    navController.navigate(SettingsDestination.ROUTE_CHAT_WALLPAPER)
                 }
+            )
+        }
+
+        // Chat Customization Screen (Themes)
+        composable(route = SettingsDestination.ROUTE_CHAT_THEME) {
+            com.synapse.social.studioasinc.ui.chat.theme.ChatCustomizationScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        // Chat Wallpaper Screen
+        composable(route = SettingsDestination.ROUTE_CHAT_WALLPAPER) {
+            com.synapse.social.studioasinc.ui.chat.wallpaper.ChatWallpaperScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 

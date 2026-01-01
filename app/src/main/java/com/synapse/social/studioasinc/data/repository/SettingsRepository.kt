@@ -186,6 +186,18 @@ interface SettingsRepository {
      * @param scale The font scale multiplier (0.8f to 1.4f)
      */
     suspend fun setChatFontScale(scale: Float)
+
+    /**
+     * Sets the chat theme preset.
+     * @param preset The theme preset to apply
+     */
+    suspend fun setChatThemePreset(preset: com.synapse.social.studioasinc.domain.model.ChatThemePreset)
+
+    /**
+     * Sets the chat wallpaper.
+     * @param wallpaper The wallpaper configuration to apply
+     */
+    suspend fun setChatWallpaper(wallpaper: com.synapse.social.studioasinc.domain.model.ChatWallpaper)
     
     // ========================================================================
     // Storage and Cache Management

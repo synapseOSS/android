@@ -53,6 +53,7 @@ import com.synapse.social.studioasinc.ui.chat.components.topbar.SelectionModeTop
 import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
 import com.synapse.social.studioasinc.ui.chat.RealtimeConnectionState
 import com.synapse.social.studioasinc.util.CallUtils
+import com.synapse.social.studioasinc.domain.model.WallpaperType
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -68,6 +69,7 @@ fun DirectChatScreen(
     val messages by viewModel.messages.collectAsState()
     val availableChats by viewModel.availableChats.collectAsState()
     val smartReplies by viewModel.smartReplies.collectAsState()
+    val chatWallpaper = uiState.wallpaper
 
     // Derived State
     val listState = rememberLazyListState()
@@ -645,7 +647,34 @@ fun DirectChatScreen(
                 .padding(top = paddingValues.calculateTopPadding())
                 .imePadding() // Push content up when keyboard opens
         ) {
-            // Background Image/Gradient could go here
+            // Background Image/Gradient
+            when (chatWallpaper.type) {
+                WallpaperType.SOLID_COLOR -> {
+                    val color = try {
+                        Color(android.graphics.Color.parseColor(chatWallpaper.value))
+                    } catch (e: Exception) {
+                        MaterialTheme.colorScheme.surface
+                    }
+                    Box(modifier = Modifier.fillMaxSize().background(color))
+                }
+                WallpaperType.IMAGE_URI -> {
+                     if (chatWallpaper.value != null) {
+                        AsyncImage(
+                            model = chatWallpaper.value,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                     } else {
+                        // Fallback
+                        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+                     }
+                }
+                else -> {
+                    // Default behavior (using Theme background)
+                    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+                }
+            }
 
             // Messages List
             LazyColumn(

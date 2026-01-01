@@ -3,6 +3,8 @@ package com.synapse.social.studioasinc.ui.chat
 import androidx.compose.ui.text.input.TextFieldValue
 import com.synapse.social.studioasinc.data.model.UserProfile
 import com.synapse.social.studioasinc.model.SearchResult
+import com.synapse.social.studioasinc.domain.model.ChatThemePreset
+import com.synapse.social.studioasinc.domain.model.ChatWallpaper
 
 /**
  * UI State definitions for Direct Chat Compose screen
@@ -43,7 +45,10 @@ data class ChatUiState(
     // Enhanced presence tracking
     val otherUserOnline: Boolean = false,
     val otherUserLastSeen: Long = 0L,
-    val otherUserActivity: String = "offline"
+    val otherUserActivity: String = "offline",
+    // Theme & Wallpaper
+    val themePreset: ChatThemePreset = ChatThemePreset.DEFAULT,
+    val wallpaper: ChatWallpaper = ChatWallpaper()
 )
 
 /**
