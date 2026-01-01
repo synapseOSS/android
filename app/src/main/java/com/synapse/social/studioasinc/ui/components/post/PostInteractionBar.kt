@@ -75,8 +75,9 @@ fun PostInteractionBar(
             Spacer(modifier = Modifier.width(8.dp))
 
             IconButton(onClick = onCommentClick) {
+                @Suppress("DEPRECATION")
                 Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.Comment,
+                    imageVector = Icons.Outlined.Comment,
                     contentDescription = "Comment",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

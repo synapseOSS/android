@@ -52,8 +52,9 @@ fun EmptyChatState(
                 ),
             contentAlignment = Alignment.Center
         ) {
+            @Suppress("DEPRECATION")
             Icon(
-                imageVector = Icons.AutoMirrored.Outlined.Chat,
+                imageVector = Icons.Outlined.Chat,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
