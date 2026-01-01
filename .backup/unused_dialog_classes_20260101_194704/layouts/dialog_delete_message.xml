@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/dialog_background">
+
+    <!-- Warning Icon -->
+    <ImageView
+        android:id="@+id/warning_icon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/ic_warning"
+        android:contentDescription="@string/warning_icon"
+        app:tint="@color/warning_color" />
+
+    <!-- Confirmation Message -->
+    <TextView
+        android:id="@+id/confirmation_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/delete_message_confirmation"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- RadioGroup for Delete Options -->
+    <RadioGroup
+        android:id="@+id/delete_options_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp">
+
+        <!-- Delete for Me Option -->
+        <RadioButton
+            android:id="@+id/radio_delete_for_me"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/delete_for_me"
+            android:textSize="16sp"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingVertical="8dp"
+            android:checked="true" />
+
+        <TextView
+            android:id="@+id/delete_for_me_explanation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/delete_for_me_explanation"
+            android:textSize="14sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:paddingStart="32dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Delete for Everyone Option -->
+        <RadioButton
+            android:id="@+id/radio_delete_for_everyone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/delete_for_everyone"
+            android:textSize="16sp"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingVertical="8dp" />
+
+        <TextView
+            android:id="@+id/delete_for_everyone_explanation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/delete_for_everyone_explanation"
+            android:textSize="14sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:paddingStart="32dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp" />
+
+    </RadioGroup>
+
+    <!-- Button Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="16dp">
+
+        <!-- Cancel Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:textColor="?attr/colorOnSurface"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Delete Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/delete"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/error_color"
+            style="@style/Widget.Material3.Button" />
+
+    </LinearLayout>
+
+</LinearLayout>
