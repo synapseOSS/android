@@ -5,21 +5,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,22 +25,19 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.synapse.social.studioasinc.model.Post
 import com.synapse.social.studioasinc.ui.components.post.PostActions
 import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
 import com.synapse.social.studioasinc.ui.components.post.PostOptionsBottomSheet
-import kotlinx.coroutines.launch
 
-@Suppress("DEPRECATION")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = viewModel(),
     onPostClick: (String) -> Unit,
     onUserClick: (String) -> Unit,
     onCommentClick: (String) -> Unit,
-    onMediaClick: (Int) -> Unit, // Added missing parameter
+    onMediaClick: (Int) -> Unit,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -52,24 +45,28 @@ fun FeedScreen(
     var selectedPost by remember { mutableStateOf<Post?>(null) }
 
     val isRefreshing = posts.loadState.refresh is LoadState.Loading
-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
+    val pullToRefreshState = rememberPullToRefreshState()
 
-    SwipeRefresh(
-        state = swipeRefreshState,
-        onRefresh = {
-            posts.refresh()
-            viewModel.refresh()
-        }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullToRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    posts.refresh()
+                    viewModel.refresh()
+                }
+            )
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (posts.loadState.refresh is LoadState.Loading && posts.itemCount == 0) {
-                FeedLoading()
-            } else if (posts.loadState.refresh is LoadState.Error) {
-                val e = posts.loadState.refresh as LoadState.Error
-                FeedError(
-                    message = e.error.localizedMessage ?: "Unknown error",
-                    onRetry = { posts.retry() }
-                )
+        if (posts.loadState.refresh is LoadState.Loading && posts.itemCount == 0) {
+            FeedLoading()
+        } else if (posts.loadState.refresh is LoadState.Error) {
+            val e = posts.loadState.refresh as LoadState.Error
+            FeedError(
+                message = e.error.localizedMessage ?: "Unknown error",
+                onRetry = { posts.retry() }
+            )
         } else if (posts.itemCount == 0 && posts.loadState.refresh is LoadState.NotLoading) {
             FeedEmpty()
         } else {
@@ -106,17 +103,22 @@ fun FeedScreen(
 
                 if (posts.loadState.append is LoadState.Error) {
                     item {
-                         // Small retry button at bottom
                         val e = posts.loadState.append as LoadState.Error
                         FeedError(
                             message = "Error loading more",
                             onRetry = { posts.retry() },
-                            modifier = Modifier.fillMaxWidth().height(100.dp) // Restrict height for list footer
+                            modifier = Modifier.fillMaxWidth().height(100.dp)
                         )
                     }
                 }
             }
         }
+
+        PullToRefreshDefaults.Indicator(
+            state = pullToRefreshState,
+            isRefreshing = isRefreshing,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
 
         selectedPost?.let { post ->
             PostOptionsBottomSheet(
@@ -134,7 +136,6 @@ fun FeedScreen(
                 onBlock = { viewModel.blockUser(post.authorUid) },
                 onRevokeVote = { viewModel.revokeVote(post) }
             )
-        }
         }
     }
 }
