@@ -104,6 +104,7 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun saveDraft() {
+        if (_uiState.value.isPostCreated) return
         if (_uiState.value.isEditMode) return
         
         val text = _uiState.value.postText
@@ -360,7 +361,17 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
 
             result.onSuccess {
                     clearDraft()
-                    _uiState.update { it.copy(isLoading = false, isPostCreated = true) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isPostCreated = true,
+                            postText = "",
+                            mediaItems = emptyList(),
+                            pollData = null,
+                            location = null,
+                            youtubeUrl = null
+                        )
+                    }
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = "Failed: ${e.message}") }

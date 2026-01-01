@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.data.repository.ReactionRepository
 import com.synapse.social.studioasinc.model.Post
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
@@ -17,6 +18,8 @@ private val json = Json { ignoreUnknownKeys = true }
 class PostPagingSource(
     private val queryBuilder: PostgrestQueryBuilder
 ) : PagingSource<Int, Post>() {
+
+    private val reactionRepository = ReactionRepository()
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
         val position = params.key ?: 0
@@ -40,7 +43,7 @@ class PostPagingSource(
 
             Log.d("PostPagingSource", "Loaded ${response.size} posts")
 
-            val posts = response.map { jsonElement ->
+            val parsedPosts = response.map { jsonElement ->
                 val post = json.decodeFromJsonElement<Post>(jsonElement)
                 val userData = jsonElement["users"]?.jsonObject
                 post.username = userData?.get("username")?.jsonPrimitive?.contentOrNull
@@ -51,10 +54,13 @@ class PostPagingSource(
                 post
             }
 
+            // Populate reactions
+            val postsWithReactions = reactionRepository.populatePostReactions(parsedPosts)
+
             LoadResult.Page(
-                data = posts,
+                data = postsWithReactions,
                 prevKey = if (position == 0) null else (position - pageSize).coerceAtLeast(0),
-                nextKey = if (posts.isEmpty()) null else position + pageSize
+                nextKey = if (postsWithReactions.isEmpty()) null else position + pageSize
             )
         } catch (e: Exception) {
             Log.e("PostPagingSource", "Error loading posts", e)
