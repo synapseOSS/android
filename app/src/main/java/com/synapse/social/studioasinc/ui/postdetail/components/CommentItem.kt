@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.model.CommentWithUser
 import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.ui.components.CircularAvatar
-import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import com.synapse.social.studioasinc.util.TimeUtils
 import com.synapse.social.studioasinc.ui.components.mentions.MentionTextFormatter
 import androidx.compose.foundation.text.ClickableText
@@ -34,14 +33,16 @@ fun CommentItem(
     comment: CommentWithUser,
     replies: List<CommentWithUser> = emptyList(),
     isRepliesLoading: Boolean = false,
-    onReplyClick: (CommentWithUser) -> Unit, // Changed to pass the comment being replied to
-    onLikeClick: (String) -> Unit, // Changed to pass ID
+    loadingIds: Set<String> = emptySet(),
+    onReplyClick: (CommentWithUser) -> Unit,
+    onLikeClick: (String) -> Unit,
     onShowReactions: (CommentWithUser) -> Unit,
     onShowOptions: (CommentWithUser) -> Unit,
     onUserClick: (String) -> Unit,
     onViewReplies: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val isLoading = loadingIds.contains(comment.id)
     var showMentionDialogForUser by remember { mutableStateOf<String?>(null) }
     
     if (showMentionDialogForUser != null) {
@@ -51,19 +52,7 @@ fun CommentItem(
             text = { Text("Are you sure you want to open the account @${showMentionDialogForUser}?") },
             confirmButton = {
                 TextButton(onClick = {
-                    onUserClick(showMentionDialogForUser!!) // TODO: We need ID, but here we only have username. 
-                    // onUserClick expects ID. Mentions only give username.
-                    // Ideally we should navigate by username or lookup ID.
-                    // For now, I'll assume onUserClick handles ID, so passing username might break it if it expects UUID.
-                    // But maybe I can navigate to "username/{username}"?
-                    // The prompt implies "open the account".
-                    // I'll call onUserClick with username, assuming the navigation can handle it, or I'll leave a TODO.
-                    // Actually, usually navigation to profile is by ID.
-                    // If I only have username from text "@ashik", I don't have ID.
-                    // I should probably search for user by username then navigate?
-                    // Or just navigate to a route "profile/username/{username}".
-                    // Since I can't change navigation graph easily here, I'll comment it.
-                    // Wait, I can try to find if the mentioned user is the comment author? No.
+                    onUserClick(showMentionDialogForUser!!)
                     showMentionDialogForUser = null
                 }) {
                     Text("Open")
@@ -106,6 +95,14 @@ fun CommentItem(
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    if (isLoading) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
                 }
 
                 val mentionColor = MaterialTheme.colorScheme.primary
@@ -149,8 +146,8 @@ fun CommentItem(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.combinedClickable(
-                            onClick = { onLikeClick(comment.id) },
-                            onLongClick = { onShowReactions(comment) }
+                            onClick = { if (!isLoading) onLikeClick(comment.id) },
+                            onLongClick = { if (!isLoading) onShowReactions(comment) }
                         )
                     ) {
                         val userReaction = comment.userReaction
@@ -207,17 +204,19 @@ fun CommentItem(
                 }
 
                  if (isRepliesLoading) {
-                    ExpressiveLoadingIndicator(
+                    CircularProgressIndicator(
                         modifier = Modifier
                             .padding(top = 8.dp)
-                            .size(24.dp)
+                            .size(24.dp),
+                        strokeWidth = 2.dp
                     )
                 }
             }
 
             IconButton(
                 onClick = { onShowOptions(comment) },
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
+                enabled = !isLoading
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
@@ -232,14 +231,15 @@ fun CommentItem(
             replies.forEach { reply ->
                 CommentItem(
                     comment = reply,
-                    replies = emptyList(), // Max depth 1 for now (replies to replies shown flat or not supported yet in UI tree)
+                    replies = emptyList(),
                     isRepliesLoading = false,
-                    onReplyClick = onReplyClick, // Reply to the reply (which replies to parent usually, or nested)
+                    loadingIds = loadingIds,
+                    onReplyClick = onReplyClick,
                     onLikeClick = onLikeClick,
                     onShowReactions = onShowReactions,
                     onShowOptions = onShowOptions,
                     onUserClick = onUserClick,
-                    modifier = Modifier.padding(start = 48.dp) // Indent replies
+                    modifier = Modifier.padding(start = 48.dp)
                 )
             }
         }

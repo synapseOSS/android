@@ -43,6 +43,13 @@ fun PostDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val pagingItems = viewModel.commentsPagingFlow.collectAsState().value.collectAsLazyPagingItems()
 
+    // Observe refresh trigger to reload list without full screen reload
+    LaunchedEffect(uiState.refreshTrigger) {
+        if (uiState.refreshTrigger > 0) {
+            pagingItems.refresh()
+        }
+    }
+
     var showMediaViewer by remember { mutableStateOf(false) }
     var selectedMediaIndex by remember { mutableStateOf(0) }
     var showPostOptions by remember { mutableStateOf(false) }
@@ -196,11 +203,12 @@ fun PostDetailScreen(
              }
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
+        // Only show full screen loader if we have no data and are loading
+        if (uiState.isLoading && uiState.post == null) {
              Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
                  ExpressiveLoadingIndicator()
              }
-        } else if (uiState.error != null) {
+        } else if (uiState.error != null && uiState.post == null) {
              Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
                  Text("Error: ${uiState.error}")
              }
@@ -209,6 +217,9 @@ fun PostDetailScreen(
              if (postDetail != null) {
                  CommentsList(
                      comments = pagingItems,
+                     repliesState = uiState.replies,
+                     replyLoadingState = uiState.replyLoading,
+                     commentActionsLoading = uiState.commentActionsLoading,
                      onReplyClick = { viewModel.setReplyTo(it) },
                      onLikeClick = { viewModel.toggleCommentReaction(it, ReactionType.LIKE) },
                      onShowReactions = { showReactionPickerForComment = it },

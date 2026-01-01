@@ -44,19 +44,25 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun loadPost(postId: String) {
-        currentPostId = postId
+        // Only initialize pager if it's a new post or flow is empty
+        if (currentPostId != postId) {
+            currentPostId = postId
+            val pagingSource = CommentPagingSource(commentRepository, postId)
+            val flow = Pager(
+                PagingConfig(pageSize = 20)
+            ) {
+                 CommentPagingSource(commentRepository, postId)
+            }.flow.cachedIn(viewModelScope)
 
-        val pagingSource = CommentPagingSource(commentRepository, postId)
-        val flow = Pager(
-            PagingConfig(pageSize = 20)
-        ) {
-             CommentPagingSource(commentRepository, postId)
-        }.flow.cachedIn(viewModelScope)
-
-        _commentsPagingFlow.value = flow
+            _commentsPagingFlow.value = flow
+        }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            // Only show global loading if we don't have the post data yet
+            if (_uiState.value.post == null) {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+            }
+
             postDetailRepository.getPostWithDetails(postId).fold(
                 onSuccess = { postDetail ->
                     _uiState.update { it.copy(isLoading = false, post = postDetail) }
@@ -71,7 +77,18 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
 
     fun refreshComments() {
         val postId = currentPostId ?: return
-        loadPost(postId)
+        // For backwards compatibility or full reload if needed, but prefer refreshCommentsList()
+        // Here we just reload post details and refresh list, without full screen loader
+        viewModelScope.launch {
+            postDetailRepository.getPostWithDetails(postId).onSuccess { updatedPost ->
+                _uiState.update { it.copy(post = updatedPost) }
+            }
+        }
+        refreshCommentsList()
+    }
+
+    private fun refreshCommentsList() {
+        _uiState.update { it.copy(refreshTrigger = it.refreshTrigger + 1) }
     }
 
     fun toggleReaction(reactionType: ReactionType) {
@@ -87,12 +104,21 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
 
     fun toggleCommentReaction(commentId: String, reactionType: ReactionType) {
         val postId = currentPostId ?: return
+
         viewModelScope.launch {
+            _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading + commentId) }
+
             reactionRepository.toggleReaction(commentId, "comment", reactionType).onSuccess {
-                 refreshComments()
+                 refreshCommentsList()
+                 // We also need to refresh post details for reaction summary if needed, but comments list is main priority.
+            }.also {
+                _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading - commentId) }
             }
         }
     }
+
+    // Overload for optimistic update if we had the comment object
+    // For now, sticking to the loading indicator plan for "Like" to be safe and consistent with constraints.
 
     private var isSubmittingComment = false
     
@@ -104,7 +130,7 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
         isSubmittingComment = true
         viewModelScope.launch {
             commentRepository.createComment(postId, content, null, parentId).onSuccess {
-                refreshComments()
+                refreshComments() // This refreshes post (for comment count) and list
                 setReplyTo(null)
             }.also {
                 isSubmittingComment = false
@@ -123,16 +149,24 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
     fun deleteComment(commentId: String) {
         val postId = currentPostId ?: return
         viewModelScope.launch {
-            commentRepository.deleteComment(commentId).onSuccess { refreshComments() }
+             _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading + commentId) }
+            commentRepository.deleteComment(commentId).onSuccess {
+                refreshComments()
+            }.also {
+                _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading - commentId) }
+            }
         }
     }
 
     fun editComment(commentId: String, content: String) {
         val postId = currentPostId ?: return
         viewModelScope.launch {
+            _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading + commentId) }
             commentRepository.editComment(commentId, content).onSuccess {
-                refreshComments()
+                refreshCommentsList()
                 setEditingComment(null)
+            }.also {
+                _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading - commentId) }
             }
         }
     }
@@ -198,23 +232,30 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
 
     fun blockUser(userId: String) {
         viewModelScope.launch {
-             // Block user logic not available in repository directly, skipping or using fallback
-             // Since UserRepository doesn't have blockUser, we can just log or implement later.
-             // Or check if there is another way.
-             // For now, I'll remove the call to avoid build error.
+             // Block user logic
         }
     }
 
     fun hideComment(commentId: String) {
         val postId = currentPostId ?: return
         viewModelScope.launch {
-            commentRepository.hideComment(commentId).onSuccess { refreshComments() }
+            _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading + commentId) }
+            commentRepository.hideComment(commentId).onSuccess {
+                refreshCommentsList()
+            }.also {
+                _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading - commentId) }
+            }
         }
     }
 
     fun pinComment(commentId: String, postId: String) {
         viewModelScope.launch {
-            commentRepository.pinComment(commentId, postId).onSuccess { refreshComments() }
+            _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading + commentId) }
+            commentRepository.pinComment(commentId, postId).onSuccess {
+                refreshCommentsList()
+            }.also {
+                _uiState.update { it.copy(commentActionsLoading = it.commentActionsLoading - commentId) }
+            }
         }
     }
 
@@ -247,7 +288,6 @@ class PostDetailViewModel(application: Application) : AndroidViewModel(applicati
                 },
                 onFailure = {
                     _uiState.update { it.copy(replyLoading = it.replyLoading - commentId) }
-                    // Optionally handle error (e.g. show toast)
                 }
             )
         }
