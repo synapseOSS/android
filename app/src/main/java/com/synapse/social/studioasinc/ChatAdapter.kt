@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@Suppress("UNCHECKED_CAST")
 class ChatAdapter(
     private val data: ArrayList<HashMap<String, Any?>>,
     private val repliedMessagesCache: HashMap<String, HashMap<String, Any?>>,

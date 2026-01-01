@@ -65,6 +65,7 @@ fun DeletionConfirmationDialog(
     onConfirm: () -> Unit,
     onCancel: () -> Unit
 ) {
+    @Suppress("DEPRECATION")
     AlertDialog(
         onDismissRequest = onCancel,
         properties = DialogProperties(
@@ -378,6 +379,7 @@ fun DeletionProgressDialog(
         }
     }
     
+    @Suppress("DEPRECATION")
     AlertDialog(
         onDismissRequest = { 
             // Only allow dismissal if operation is complete or cancellable
@@ -576,6 +578,7 @@ private fun CancelDeletionConfirmationDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    @Suppress("DEPRECATION")
     AlertDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -689,6 +692,7 @@ fun SelectiveDeletionDialog(
     val selectedChatInfos = availableChats.filter { it.chatId in selectedChats }
     val totalSelectedMessages = selectedChatInfos.sumOf { it.messageCount }
     
+    @Suppress("DEPRECATION")
     AlertDialog(
         onDismissRequest = onCancel,
         properties = DialogProperties(
@@ -853,6 +857,8 @@ fun RetryFailedOperationsDialog(
     
     val selectedOps = failedOperations.filter { it.id in selectedOperations }
     
+    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION")
     AlertDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(

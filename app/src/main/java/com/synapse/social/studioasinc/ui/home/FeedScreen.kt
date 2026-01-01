@@ -37,6 +37,7 @@ import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
 import com.synapse.social.studioasinc.ui.components.post.PostOptionsBottomSheet
 import kotlinx.coroutines.launch
 
+@Suppress("DEPRECATION")
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = viewModel(),
@@ -82,7 +83,6 @@ fun FeedScreen(
                     contentType = posts.itemContentType { "post" }
                 ) { index ->
                     val post = posts[index]
-                    if (post != null) {
                     if (post != null) {
                         SharedPostItem(
                             post = post,

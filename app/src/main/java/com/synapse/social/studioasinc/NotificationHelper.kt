@@ -164,6 +164,7 @@ object NotificationHelper {
      */
     @JvmStatic
     @Deprecated("Use sendNotification instead.")
+    @Deprecated("Use sendNotification instead")
     fun sendMessageAndNotifyIfNeeded(
         senderUid: String,
         recipientUid: String,

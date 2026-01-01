@@ -169,7 +169,7 @@ fun PostDetailScreen(
                 title = { Text("Post") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
@@ -331,6 +331,7 @@ fun PostDetailScreen(
                                  onReactionLongPress = { showReactionPicker = true }
                              )
 
+                             @Suppress("DEPRECATION")
                              Divider()
                          }
                      }
