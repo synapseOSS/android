@@ -552,9 +552,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         
-        // Update the ChatAdapter with the new message states
-        val messageStates = event.messageIds.associateWith { MessageState.READ }
-        updateAdapterMessageStates(messageStates)
+        // Message states are automatically updated through StateFlow - no adapter update needed
         
         // Also update the legacy LiveData for backward compatibility
         // Convert ChatMessageImpl to Message for existing UI
@@ -1064,46 +1062,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         return ChatServiceBridge(com.synapse.social.studioasinc.backend.SupabaseChatService())
     }
 
-    // ChatAdapter integration methods
-
-    /**
-     * Reference to the ChatAdapter for real-time updates
-     */
-    private var chatAdapter: com.synapse.social.studioasinc.ChatAdapter? = null
-
-    /**
-     * Set the ChatAdapter reference for real-time message state updates
-     * 
-     * @param adapter The ChatAdapter instance to update
-     */
-    fun setChatAdapter(adapter: com.synapse.social.studioasinc.ChatAdapter) {
-        chatAdapter = adapter
-    }
-
-    /**
-     * Update message state in the adapter with animation
-     * Called when read receipts are received from other users
-     * 
-     * Requirements: 4.3
-     * 
-     * @param messageId The message ID to update
-     * @param newState The new message state (sent, delivered, read, failed)
-     */
-    fun updateAdapterMessageState(messageId: String, newState: String) {
-        chatAdapter?.updateMessageState(messageId, newState)
-    }
-
-    /**
-     * Update multiple message states in the adapter efficiently
-     * Used for batch read receipt updates
-     * 
-     * Requirements: 4.3
-     * 
-     * @param messageStates Map of message ID to new state
-     */
-    fun updateAdapterMessageStates(messageStates: Map<String, String>) {
-        chatAdapter?.updateMessageStates(messageStates)
-    }
+    // Legacy ChatAdapter integration methods removed - using Compose UI state instead
     
     /**
      * Called when chat preferences change to update managers accordingly.
