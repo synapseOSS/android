@@ -98,7 +98,6 @@ fun FeedScreen(
                             )
                         )
                     }
-                    }
                 }
 
                 if (posts.loadState.append is LoadState.Loading) {
@@ -118,24 +117,24 @@ fun FeedScreen(
                 }
             }
         }
-    }
-    }
 
-    selectedPost?.let { post ->
-        PostOptionsBottomSheet(
-            post = post,
-            isOwner = viewModel.isPostOwner(post),
-            commentsDisabled = viewModel.areCommentsDisabled(post),
-            onDismiss = { selectedPost = null },
-            onEdit = { viewModel.editPost(post) },
-            onDelete = { viewModel.deletePost(post) },
-            onShare = { viewModel.sharePost(post) },
-            onCopyLink = { viewModel.copyPostLink(post) },
-            onBookmark = { viewModel.bookmarkPost(post) },
-            onToggleComments = { viewModel.toggleComments(post) },
-            onReport = { viewModel.reportPost(post) },
-            onBlock = { viewModel.blockUser(post.authorUid) },
-            onRevokeVote = { viewModel.revokeVote(post) }
-        )
+        selectedPost?.let { post ->
+            PostOptionsBottomSheet(
+                post = post,
+                isOwner = viewModel.isPostOwner(post),
+                commentsDisabled = viewModel.areCommentsDisabled(post),
+                onDismiss = { selectedPost = null },
+                onEdit = { viewModel.editPost(post) },
+                onDelete = { viewModel.deletePost(post) },
+                onShare = { viewModel.sharePost(post) },
+                onCopyLink = { viewModel.copyPostLink(post) },
+                onBookmark = { viewModel.bookmarkPost(post) },
+                onToggleComments = { viewModel.toggleComments(post) },
+                onReport = { viewModel.reportPost(post) },
+                onBlock = { viewModel.blockUser(post.authorUid) },
+                onRevokeVote = { viewModel.revokeVote(post) }
+            )
+        }
+        }
     }
 }

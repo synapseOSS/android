@@ -4,7 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.*
 import coil.compose.AsyncImage

@@ -1,11 +1,15 @@
 package com.synapse.social.studioasinc.di
 
+import android.content.Context
 import com.synapse.social.studioasinc.data.local.ChatDao
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.ChatRepository
+import com.synapse.social.studioasinc.data.repository.SettingsRepository
+import com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.jan.supabase.SupabaseClient as SupabaseClientType
 import javax.inject.Singleton
@@ -27,5 +31,11 @@ object RepositoryModule {
         client: SupabaseClientType
     ): ChatRepository {
         return ChatRepository(chatDao, client)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSettingsRepository(@ApplicationContext context: Context): SettingsRepository {
+        return SettingsRepositoryImpl.getInstance(context)
     }
 }
