@@ -78,6 +78,14 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel<ProfileViewModel>()
 ) {
     val state by viewModel.state.collectAsState()
+
+    // Calculate effective ownership state based on View As mode
+    // If in View As mode, we simulate NOT being the owner
+    val effectiveIsOwnProfile = state.isOwnProfile && state.viewAsMode == null
+
+    // Create an effective state for UI components to consume
+    val effectiveState = state.copy(isOwnProfile = effectiveIsOwnProfile)
+
     val listState = rememberLazyListState()
     var isRefreshing by remember { mutableStateOf(false) }
     var showCustomizationDialog by remember { mutableStateOf(false) }
@@ -142,7 +150,7 @@ fun ProfileScreen(
                 }
                 is ProfileUiState.Success -> {
                     ProfileContent(
-                        state = state,
+                        state = effectiveState,
                         profile = profileState.profile,
                         listState = listState,
                         scrollProgress = scrollProgress.value,
@@ -186,7 +194,7 @@ fun ProfileScreen(
     if (state.showMoreMenu) {
         val profile = (state.profileState as? ProfileUiState.Success)?.profile
         ProfileMoreMenuBottomSheet(
-            isOwnProfile = state.isOwnProfile,
+            isOwnProfile = effectiveIsOwnProfile,
             onDismiss = { viewModel.toggleMoreMenu() },
             onShareProfile = { viewModel.showShareSheet() },
             onViewAs = { viewModel.showViewAsSheet() },
@@ -332,7 +340,7 @@ fun ProfileScreen(
         val post = selectedPost!!
         PostOptionsBottomSheet(
             post = post,
-            isOwner = post.authorUid == currentUserId,
+            isOwner = (post.authorUid == currentUserId) && (state.viewAsMode == null),
             commentsDisabled = post.postDisableComments == "true",
             onDismiss = {
                 showPostOptions = false
