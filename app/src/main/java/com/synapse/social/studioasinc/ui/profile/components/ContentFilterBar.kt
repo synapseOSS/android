@@ -48,7 +48,8 @@ fun ContentFilterBar(
     showLabels: Boolean = false
 ) {
     val density = LocalDensity.current
-    var tabWidth by remember { mutableStateOf(0.dp) }
+    // Fixed tab width to prevent measurement issues
+    val tabWidth = 120.dp
     
     // Calculate indicator offset based on selected filter
     // Order matches enum declaration: PHOTOS, POSTS, REELS
@@ -74,10 +75,8 @@ fun ContentFilterBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp)
-                    .onGloballyPositioned { coordinates ->
-                        tabWidth = with(density) { (coordinates.size.width / 3).toDp() }
-                    },
+                    .height(52.dp),
+                    // Removed onGloballyPositioned to prevent measurement issues
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {

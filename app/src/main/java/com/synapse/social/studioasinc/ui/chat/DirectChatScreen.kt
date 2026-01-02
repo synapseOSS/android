@@ -81,9 +81,9 @@ fun DirectChatScreen(
         }
     }
     
-    // Dynamic Layout Measurements
+    // Fixed Layout Measurements - prevents circular dependency
     val localDensity = LocalDensity.current
-    var inputBarHeightDp by remember { mutableStateOf(100.dp) }
+    val inputBarHeightDp = 100.dp // Fixed height to prevent measurement loops
 
     // Bottom Sheet State
     var showMessageOptions by remember { mutableStateOf(false) }
@@ -790,9 +790,7 @@ fun DirectChatScreen(
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .onGloballyPositioned { coordinates ->
-                            inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
-                        }
+                        // Removed onGloballyPositioned to break circular dependency
                 ) {
                     // Smart Replies
                     if (smartReplies.isNotEmpty()) {
