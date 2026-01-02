@@ -307,52 +307,7 @@ fun MessageItem(
                             )
                         }
 
-                        // Link Preview
-                        message.linkPreview?.let { preview ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Surface(
-                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(modifier = Modifier.padding(8.dp)) {
-                                    preview.imageUrl?.let { imgUrl ->
-                                        AsyncImage(
-                                            model = imgUrl,
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .heightIn(max = 120.dp)
-                                                .clip(RoundedCornerShape(8.dp)),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                    }
-                                    preview.title?.let { title ->
-                                        Text(
-                                            text = title,
-                                            style = MaterialTheme.typography.titleSmall,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                    preview.description?.let { desc ->
-                                        Text(
-                                            text = desc,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                    Text(
-                                        text = preview.domain,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                                    )
-                                }
-                            }
-                        }
+
 
                         // Timestamp & Status
                         Row(

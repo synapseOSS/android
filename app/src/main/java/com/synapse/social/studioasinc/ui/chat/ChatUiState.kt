@@ -33,9 +33,7 @@ data class ChatUiState(
     val mentionSuggestions: List<SearchResult.User> = emptyList(),
     val isRecordingVoice: Boolean = false,
     val attachments: List<AttachmentUiModel> = emptyList(),
-    // Link preview state
-    val linkPreviewLoading: Boolean = false,
-    val detectedLinkPreview: LinkPreviewData? = null,
+
     // Pending attachments for media picker
     val pendingAttachments: List<PendingAttachment> = emptyList(),
     val isUploadingMedia: Boolean = false,
@@ -111,7 +109,7 @@ data class MessageUiModel(
     val replyTo: ReplyPreviewData? = null,
     val forwardedFrom: ForwardedData? = null,
     val attachments: List<AttachmentUiModel>? = null,
-    val linkPreview: LinkPreviewData? = null,
+
     val voiceData: VoiceMessageData? = null,
     val position: MessagePosition = MessagePosition.Single,
     val isAnimating: Boolean = false,
@@ -150,7 +148,6 @@ enum class MessageType {
     Video,
     Voice,
     File,
-    LinkPreview,
     Deleted
 }
 
@@ -206,16 +203,7 @@ enum class AttachmentType {
     Unknown
 }
 
-/**
- * Link preview data
- */
-data class LinkPreviewData(
-    val url: String,
-    val title: String?,
-    val description: String?,
-    val imageUrl: String?,
-    val domain: String
-)
+
 
 /**
  * Voice message specific data

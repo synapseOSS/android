@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
-import com.synapse.social.studioasinc.backend.LinkPreviewService
+
 import com.synapse.social.studioasinc.backend.SupabaseStorageService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.AppDatabase
@@ -74,10 +74,6 @@ class DirectChatViewModel @Inject constructor(
     val availableChats: StateFlow<List<ChatForwardUiModel>> = _availableChats.asStateFlow()
 
     private var loadChatsJob: Job? = null
-    private var linkPreviewJob: Job? = null
-    
-    // Link Preview Service
-    private val linkPreviewService = LinkPreviewService()
     
     // Messages list (Source of Truth: Realtime/DB)
     private val _dbMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
@@ -287,8 +283,7 @@ class DirectChatViewModel @Inject constructor(
                         launch { chatRepository.markMessagesAsRead(chatId, currentUserId!!) }
                     }
 
-                    // Fetch link previews for messages containing URLs
-                    fetchLinkPreviewsForMessages(uiMessages)
+
                     
                     // Start realtime observation
                     observeRealtimeMessages(chatId)
@@ -463,8 +458,7 @@ class DirectChatViewModel @Inject constructor(
             }
         }
         
-        // Fetch link preview if message contains URL
-        fetchLinkPreviewForMessage(uiMessage)
+
 
         // Generate smart replies if the message is from the other user
         if (!uiMessage.isFromCurrentUser) {
@@ -599,8 +593,6 @@ class DirectChatViewModel @Inject constructor(
                 } else {
                      _uiState.update { it.copy(mentionSuggestions = emptyList()) }
                 }
-                // Debounced link detection
-                detectLinksDebounced(intent.text.text)
             }
             is ChatIntent.InsertMention -> {
                 val currentInput = _uiState.value.inputText
@@ -705,79 +697,6 @@ class DirectChatViewModel @Inject constructor(
                 sendMediaMessage()
             }
             else -> { /* TODO: Implement other intents */ }
-        }
-    }
-
-    /**
-     * Debounced link detection - triggers link preview fetch after user stops typing
-     */
-    private fun detectLinksDebounced(text: String) {
-        linkPreviewJob?.cancel()
-        
-        // Clear preview if text is empty or no links
-        if (text.isBlank() || !LinkDetectionService.containsUrl(text)) {
-            _uiState.update { it.copy(detectedLinkPreview = null, linkPreviewLoading = false) }
-            return
-        }
-        
-        linkPreviewJob = viewModelScope.launch {
-            delay(500) // 500ms debounce
-            
-            val url = LinkDetectionService.extractFirstUrl(text) ?: return@launch
-            
-            // Don't refetch if same URL
-            if (_uiState.value.detectedLinkPreview?.url == url) return@launch
-            
-            _uiState.update { it.copy(linkPreviewLoading = true) }
-            
-            linkPreviewService.fetchLinkPreview(url)
-                .onSuccess { preview ->
-                    _uiState.update { 
-                        it.copy(detectedLinkPreview = preview, linkPreviewLoading = false)
-                    }
-                }
-                .onFailure {
-                    _uiState.update { it.copy(linkPreviewLoading = false) }
-                }
-        }
-    }
-
-    /**
-     * Fetch link preview for a single message and update it in the message list
-     */
-    private fun fetchLinkPreviewForMessage(message: MessageUiModel) {
-        // Skip if no URL or already has preview
-        if (message.linkPreview != null) return
-        
-        val url = LinkDetectionService.extractFirstUrl(message.content) ?: return
-        
-        viewModelScope.launch {
-            linkPreviewService.fetchLinkPreview(url)
-                .onSuccess { preview ->
-                    // Update the message with the fetched preview
-                    _dbMessages.update { current ->
-                        current.map { msg ->
-                            if (msg.id == message.id) msg.copy(linkPreview = preview) else msg
-                        }
-                    }
-                    // Also update optimistic messages if applicable
-                    _optimisticMessages.update { current ->
-                        current.map { msg ->
-                            if (msg.id == message.id) msg.copy(linkPreview = preview) else msg
-                        }
-                    }
-                }
-        }
-    }
-    
-    /**
-     * Fetch link previews for all messages containing URLs (batch processing)
-     */
-    private fun fetchLinkPreviewsForMessages(messages: List<MessageUiModel>) {
-        viewModelScope.launch {
-            messages.forEach { message ->
-                fetchLinkPreviewForMessage(message)
-            }
         }
     }
 

@@ -177,7 +177,6 @@ fun MessageContentDispatcher(
         message.messageType == MessageType.Image -> MediaMessageContent(message, onMediaClick = onMediaClick)
         message.messageType == MessageType.Video -> VideoMessageContent(message, onVideoClick = { onMediaClick(0) })
         message.messageType == MessageType.Voice -> VoiceMessageContent(message)
-        message.messageType == MessageType.LinkPreview -> LinkPreviewContent(message)
         else -> TextMessageContent(message) // Fallback
     }
 }
