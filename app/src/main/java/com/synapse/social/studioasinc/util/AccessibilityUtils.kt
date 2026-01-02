@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.utils
+package com.synapse.social.studioasinc.util
 
 import android.view.View
 import android.widget.ImageView
