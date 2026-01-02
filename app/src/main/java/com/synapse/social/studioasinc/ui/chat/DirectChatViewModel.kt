@@ -825,6 +825,14 @@ class DirectChatViewModel @Inject constructor(
                 }
                 
                 val content = caption ?: uploadedUrls.first()
+                
+                // DEBUG: Log image message sending details
+                android.util.Log.d("DirectChatViewModel", "=== SENDING IMAGE MESSAGE ===")
+                android.util.Log.d("DirectChatViewModel", "Message type: $type")
+                android.util.Log.d("DirectChatViewModel", "Content: $content")
+                android.util.Log.d("DirectChatViewModel", "Uploaded URLs: $uploadedUrls")
+                android.util.Log.d("DirectChatViewModel", "Pending attachments count: ${pending.size}")
+                
                 chatRepository.sendMessage(
                     chatId = chatId,
                     senderId = senderId,
@@ -1094,6 +1102,14 @@ class DirectChatViewModel @Inject constructor(
     private fun Message.toUiModel(currentUserId: String?): MessageUiModel {
         val isMe = this.senderId == currentUserId
 
+        // DEBUG: Log message conversion details
+        android.util.Log.d("DirectChatViewModel", "=== CONVERTING MESSAGE TO UI MODEL ===")
+        android.util.Log.d("DirectChatViewModel", "Message ID: ${this.id}")
+        android.util.Log.d("DirectChatViewModel", "Message type: ${this.messageType}")
+        android.util.Log.d("DirectChatViewModel", "Content: ${this.content}")
+        android.util.Log.d("DirectChatViewModel", "Attachments count: ${this.attachments?.size ?: 0}")
+        android.util.Log.d("DirectChatViewModel", "Is media message: ${this.isMediaMessage()}")
+
         // Map Reply Preview if exists
         val replyPreview = if (this.replyToId != null) {
             // In a real app, we'd need to fetch the original message or look it up in cache
@@ -1103,6 +1119,7 @@ class DirectChatViewModel @Inject constructor(
 
         // Handle attachments: Use existing list OR create synthetic one from content if it's a media message
         val uiAttachments = if (!this.attachments.isNullOrEmpty()) {
+            android.util.Log.d("DirectChatViewModel", "Using existing attachments: ${this.attachments.size}")
             this.attachments.map {
                 AttachmentUiModel(
                     id = it.id,
@@ -1113,8 +1130,9 @@ class DirectChatViewModel @Inject constructor(
                     fileSize = it.fileSize
                 )
             }
-        } else if (this.isMediaMessage() && this.content.startsWith("http")) {
-            // Synthetic attachment from content URL
+        } else if (this.isMediaMessage()) {
+            android.util.Log.d("DirectChatViewModel", "Creating synthetic attachment from content for media message")
+            // Create synthetic attachment for any media message, regardless of URL format
             listOf(AttachmentUiModel(
                 id = this.id, // Use message ID for attachment ID
                 url = this.content,
@@ -1124,8 +1142,11 @@ class DirectChatViewModel @Inject constructor(
                 thumbnailUrl = null // No thumbnail available
             ))
         } else {
+            android.util.Log.d("DirectChatViewModel", "No attachments found for message")
             emptyList()
         }
+
+        android.util.Log.d("DirectChatViewModel", "Final UI attachments count: ${uiAttachments.size}")
 
         return MessageUiModel(
             id = this.id,

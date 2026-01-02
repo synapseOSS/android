@@ -398,6 +398,12 @@ fun AttachmentView(
     attachment: com.synapse.social.studioasinc.ui.chat.AttachmentUiModel,
     onClick: (String, AttachmentType) -> Unit
 ) {
+    // DEBUG: Log attachment rendering
+    android.util.Log.d("MessageItem", "=== RENDERING ATTACHMENT ===")
+    android.util.Log.d("MessageItem", "Attachment type: ${attachment.type}")
+    android.util.Log.d("MessageItem", "Attachment URL: ${attachment.url}")
+    android.util.Log.d("MessageItem", "Thumbnail URL: ${attachment.thumbnailUrl}")
+    
     when (attachment.type) {
         AttachmentType.Image -> {
             AsyncImage(
