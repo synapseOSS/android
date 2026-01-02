@@ -1,0 +1,35 @@
+{
+  "name": "Synapse Android Project",
+  "type": "android",
+  "language": "kotlin",
+  "buildSystem": "gradle",
+  "sourceDirectories": [
+    "app/src/main/java",
+    "app/src/main/kotlin"
+  ],
+  "testDirectories": [
+    "app/src/test/java",
+    "app/src/androidTest/java"
+  ],
+  "resourceDirectories": [
+    "app/src/main/res"
+  ],
+  "buildFiles": [
+    "build.gradle",
+    "app/build.gradle",
+    "settings.gradle"
+  ],
+  "dependencies": {
+    "kotlin": "2.2.21",
+    "compose": "2024.11.00",
+    "hilt": "2.57.2",
+    "room": "2.7.1"
+  },
+  "features": {
+    "lsp": true,
+    "autocomplete": true,
+    "syntaxHighlighting": true,
+    "errorDetection": true,
+    "refactoring": true
+  }
+}

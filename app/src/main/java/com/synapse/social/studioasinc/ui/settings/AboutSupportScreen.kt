@@ -147,8 +147,9 @@ fun AboutSupportScreen(
                         subtitle = "FAQs and support resources",
                         icon = R.drawable.ic_info_48px,
                         onClick = {
-                            viewModel.navigateToHelpCenter()
-                            // TODO: Navigate to help center when implemented
+                            val url = viewModel.getHelpCenterUrl()
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            context.startActivity(intent)
                         }
                     )
                     SettingsDivider()

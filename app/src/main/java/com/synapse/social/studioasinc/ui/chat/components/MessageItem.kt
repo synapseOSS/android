@@ -63,6 +63,7 @@ fun MessageItem(
     onReply: (MessageUiModel) -> Unit,
     onLongClick: (MessageUiModel) -> Unit,
     onAttachmentClick: (String, AttachmentType) -> Unit,
+    onProfileClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Swipe to reply state
@@ -79,8 +80,7 @@ fun MessageItem(
             text = { Text("Are you sure you want to open the account @${showMentionDialogForUser}?") },
             confirmButton = {
                 TextButton(onClick = {
-                    // TODO: Open Profile Navigation
-                    // onProfileClick(showMentionDialogForUser!!)
+                    onProfileClick(showMentionDialogForUser!!)
                     showMentionDialogForUser = null
                 }) {
                     Text("Open")
