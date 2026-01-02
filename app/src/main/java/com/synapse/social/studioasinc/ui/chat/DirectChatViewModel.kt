@@ -65,6 +65,10 @@ class DirectChatViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
+    // Screen visibility state for read receipts
+    private val _isScreenActive = MutableStateFlow(false)
+    val isScreenActive: StateFlow<Boolean> = _isScreenActive.asStateFlow()
+
     // Available chats for forwarding
     private val _availableChats = MutableStateFlow<List<ChatForwardUiModel>>(emptyList())
     val availableChats: StateFlow<List<ChatForwardUiModel>> = _availableChats.asStateFlow()
@@ -278,8 +282,8 @@ class DirectChatViewModel @Inject constructor(
                     _dbMessages.value = uiMessages
                     _uiState.update { it.copy(isLoading = false, error = null) }
                     
-                    // Mark messages as read
-                    if (currentUserId != null) {
+                    // Mark messages as read only if screen is active
+                    if (currentUserId != null && _isScreenActive.value) {
                         launch { chatRepository.markMessagesAsRead(chatId, currentUserId!!) }
                     }
 
@@ -452,8 +456,8 @@ class DirectChatViewModel @Inject constructor(
             if (current.any { it.id == uiMessage.id }) current else current + uiMessage
         }
 
-        // Mark as read if from other user (since we are active in chat)
-        if (!uiMessage.isFromCurrentUser && currentUserId != null) {
+        // Mark as read if from other user and screen is active
+        if (!uiMessage.isFromCurrentUser && currentUserId != null && _isScreenActive.value) {
             viewModelScope.launch {
                 chatRepository.markMessagesAsRead(message.chatId, currentUserId!!)
             }
@@ -1321,6 +1325,20 @@ class DirectChatViewModel @Inject constructor(
                 com.synapse.social.studioasinc.chat.ActiveStatusManager.PresenceListener {
                 override fun onPresenceChanged(userId: String, presence: com.synapse.social.studioasinc.chat.ActiveStatusManager.UserPresence) {}
             })
+        }
+    }
+
+    /**
+     * Set screen active state for read receipt management
+     */
+    fun setScreenActive(isActive: Boolean) {
+        _isScreenActive.value = isActive
+        
+        // Mark messages as read when screen becomes active
+        if (isActive && currentChatId != null && currentUserId != null) {
+            viewModelScope.launch {
+                chatRepository.markMessagesAsRead(currentChatId!!, currentUserId!!)
+            }
         }
     }
 

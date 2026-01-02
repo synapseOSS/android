@@ -37,8 +37,8 @@ data class FeedUiState(
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    application: Application,
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    application: Application
 ) : AndroidViewModel(application) {
     private val authRepository: AuthRepository = AuthRepository()
 

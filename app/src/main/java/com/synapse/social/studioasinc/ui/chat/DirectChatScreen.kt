@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.DisposableEffect
 import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.util.FileUtils
 import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
@@ -150,6 +151,14 @@ fun DirectChatScreen(
     // Effect: Load Chat
     LaunchedEffect(chatId) {
         viewModel.loadChat(chatId)
+    }
+
+    // Track screen visibility for read receipts
+    DisposableEffect(Unit) {
+        viewModel.setScreenActive(true)
+        onDispose {
+            viewModel.setScreenActive(false)
+        }
     }
 
     // Effect: Auto-scroll to bottom when new user message is added
