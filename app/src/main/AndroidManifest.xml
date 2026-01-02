@@ -134,7 +134,7 @@
 			android:hardwareAccelerated="true"
 			android:supportsPictureInPicture="true"
 			android:screenOrientation="portrait"
-			android:windowSoftInputMode="stateHidden"
+			android:windowSoftInputMode="adjustResize"
 			android:launchMode="singleTop"
 			android:exported="true">
 			<!-- Deep link for chat notifications -->
