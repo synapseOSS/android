@@ -27,6 +27,7 @@ data class PostCardState(
     val likeCount: Int,
     val commentCount: Int,
     val isBookmarked: Boolean,
+    val hideLikeCount: Boolean = false,
     val mediaUrls: List<String> = emptyList(), // Extract from post
     val isVideo: Boolean = false,
     val pollQuestion: String? = null,
@@ -85,6 +86,7 @@ fun PostCard(
                 likeCount = state.likeCount,
                 commentCount = state.commentCount,
                 isBookmarked = state.isBookmarked,
+                hideLikeCount = state.hideLikeCount,
                 onLikeClick = onLikeClick,
                 onCommentClick = onCommentClick,
                 onShareClick = onShareClick,

@@ -318,6 +318,7 @@ fun PostDetailScreen(
                                  likeCount = postDetail.reactionSummary.values.sum(),
                                  commentCount = postDetail.post.commentsCount,
                                  isBookmarked = false,
+                                 hideLikeCount = postDetail.post.postHideLikeCount == "true",
                                  onLikeClick = { viewModel.toggleReaction(ReactionType.LIKE) },
                                  onCommentClick = { /* Focus input */ },
                                  onShareClick = {

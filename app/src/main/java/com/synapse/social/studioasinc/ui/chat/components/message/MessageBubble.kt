@@ -207,7 +207,7 @@ fun ReceivedMessageBubble(
         )
         
         // Right padding to balance
-        Spacer(modifier = Modifier.width(48.dp))
+        Spacer(modifier = Modifier.width(16.dp))
     }
 }
 
