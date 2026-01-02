@@ -15,7 +15,7 @@ class ProfileViewModelFactory(private val context: Context) : ViewModelProvider.
         if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
             val profileRepository: ProfileRepository = ProfileRepositoryImpl()
             val postDao = AppDatabase.getDatabase(context).postDao()
-            val postRepository = PostRepository(postDao)
+            val postRepository = PostRepository(postDao, com.synapse.social.studioasinc.SupabaseClient.client)
             val postInteractionRepository = PostInteractionRepository()
             val profileActionRepository = ProfileActionRepository()
             val storyRepository = StoryRepositoryImpl()

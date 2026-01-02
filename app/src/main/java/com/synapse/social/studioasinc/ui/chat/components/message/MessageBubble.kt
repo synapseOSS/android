@@ -194,8 +194,8 @@ fun ReceivedMessageBubble(
                 // UserAvatar(url = avatarUrl, size = ChatSpacing.AvatarSize)
             }
         } else {
-            // Spacer for alignment when avatar not shown
-            Spacer(modifier = Modifier.width(ChatSpacing.AvatarSize + 8.dp))
+            // Minimal spacer for alignment when avatar not shown
+            Spacer(modifier = Modifier.width(8.dp))
         }
         
         MessageBubble(

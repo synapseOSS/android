@@ -3,6 +3,7 @@ package com.synapse.social.studioasinc.di
 import android.content.Context
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.local.ChatDao
+import com.synapse.social.studioasinc.data.local.PostDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,5 +24,15 @@ object DatabaseModule {
     @Provides
     fun provideChatDao(database: AppDatabase): ChatDao {
         return database.chatDao()
+    }
+
+    @Provides
+    fun providePostDao(database: AppDatabase): PostDao {
+        return database.postDao()
+    }
+
+    @Provides
+    fun provideUserDao(database: AppDatabase): com.synapse.social.studioasinc.data.local.UserDao {
+        return database.userDao()
     }
 }

@@ -15,11 +15,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 // TODO: Ensure polls display correctly in Home Feed - verify PagingData flow and PostEventBus sync
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    application: Application,
+    private val postRepository: PostRepository
+) : AndroidViewModel(application) {
     private val authRepository: AuthRepository = AuthRepository()
-    private val postRepository: PostRepository = PostRepository(AppDatabase.getDatabase(application).postDao())
 
     val posts: Flow<PagingData<Post>> = postRepository.getPostsPaged()
         .cachedIn(viewModelScope)
