@@ -36,8 +36,6 @@ android {
     namespace = "com.synapse.social.studioasinc"
     compileSdk = 36 // Keep 36
 
-    useLibrary 'org.apache.http.legacy'
-
     signingConfigs {
         debug {
             // Use default debug keystore

@@ -114,13 +114,6 @@
 			android:screenOrientation="portrait"
 			android:windowSoftInputMode="stateHidden" />
 		<activity
-			android:name=".UserFollowsListActivity"
-			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
-			android:hardwareAccelerated="true"
-			android:supportsPictureInPicture="true"
-			android:screenOrientation="portrait"
-			android:windowSoftInputMode="stateHidden" />
-		<activity
 			android:name=".FollowListActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
 			android:hardwareAccelerated="true"
@@ -176,12 +169,6 @@
 				<data android:scheme="synapse" android:host="login" />
 			</intent-filter>
 		</activity>
-		<activity
-			android:name=".DisappearingMessageSettingsActivity"
-			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
-			android:hardwareAccelerated="true"
-			android:supportsPictureInPicture="true"
-			android:windowSoftInputMode="stateHidden" />
 		<activity
 			android:name=".ChatPrivacySettingsActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
