@@ -132,22 +132,23 @@ fun MessageItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetX.roundToInt(), 0) }
-                .padding(horizontal = 8.dp, vertical = 2.dp),
+                .padding(horizontal = 4.dp, vertical = 2.dp), // Reduced from 8dp to 4dp
             horizontalArrangement = if (message.isFromCurrentUser) Arrangement.End else Arrangement.Start
         ) {
-            if (!message.isFromCurrentUser) {
-                // Avatar for other user
-                AsyncImage(
-                    model = message.senderAvatarUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .align(Alignment.Bottom),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-            }
+            // Remove avatar completely for received messages
+            // if (!message.isFromCurrentUser) {
+            //     // Avatar for other user
+            //     AsyncImage(
+            //         model = message.senderAvatarUrl,
+            //         contentDescription = null,
+            //         modifier = Modifier
+            //             .size(32.dp)
+            //             .clip(CircleShape)
+            //             .align(Alignment.Bottom),
+            //         contentScale = ContentScale.Crop
+            //     )
+            //     Spacer(modifier = Modifier.width(4.dp))
+            // }
 
             // Message Bubble
             Column(
@@ -191,8 +192,8 @@ fun MessageItem(
                     if (isSelectionMode) {
                         Box(
                             modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(24.dp),
+                                .padding(end = 4.dp) // Reduced from 8dp to 4dp
+                                .size(20.dp), // Reduced from 24dp to 20dp
                             contentAlignment = Alignment.Center
                         ) {
                             if (message.isSelected) {
@@ -200,7 +201,7 @@ fun MessageItem(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = "Selected",
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp) // Reduced from 24dp to 20dp
                                 )
                             } else {
                                 // Empty circle placeholder
@@ -211,7 +212,7 @@ fun MessageItem(
                                         2.dp,
                                         MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                                     ),
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp) // Reduced from 24dp to 20dp
                                 ) {}
                             }
                         }

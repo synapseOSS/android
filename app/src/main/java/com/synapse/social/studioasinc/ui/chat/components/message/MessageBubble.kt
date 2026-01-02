@@ -188,7 +188,7 @@ fun ReceivedMessageBubble(
             Box(
                 modifier = Modifier
                     .size(ChatSpacing.AvatarSize)
-                    .padding(end = 8.dp)
+                    .padding(end = 4.dp) // Reduced from 8dp to 4dp
             ) {
                 // Avatar composable would go here
                 // UserAvatar(url = avatarUrl, size = ChatSpacing.AvatarSize)

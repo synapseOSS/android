@@ -153,7 +153,7 @@ fun MessageItem(
     } else {
         ReceivedMessageBubble(
             message = message,
-            showAvatar = message.position == MessagePosition.Last || message.position == MessagePosition.Single,
+            showAvatar = false, // Disabled avatar completely
             avatarUrl = message.senderAvatarUrl,
             onClick = onMessageClick,
             onLongClick = onLongClick

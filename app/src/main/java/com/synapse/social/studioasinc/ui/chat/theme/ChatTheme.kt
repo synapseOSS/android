@@ -65,12 +65,12 @@ object ChatBubbleCorners {
 object ChatSpacing {
     val MessageGrouped = 2.dp        // Between grouped messages
     val MessageUngrouped = 12.dp     // Between different senders
-    val MessageHorizontalPadding = 8.dp
+    val MessageHorizontalPadding = 4.dp  // Reduced from 8dp to 4dp
     val BubblePaddingHorizontal = 12.dp
     val BubblePaddingVertical = 8.dp
     val ReplyBarHeight = 52.dp
     val InputBarMinHeight = 56.dp
-    val AvatarSize = 32.dp
+    val AvatarSize = 24.dp  // Reduced from 32dp to 24dp
     val DateHeaderVerticalPadding = 16.dp
 }
 
