@@ -2,12 +2,16 @@ package com.synapse.social.studioasinc.di
 
 import android.content.Context
 import com.synapse.social.studioasinc.data.local.ChatDao
+import com.synapse.social.studioasinc.data.local.PostDao
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.ChatRepository
+import com.synapse.social.studioasinc.data.repository.PostRepository
 import com.synapse.social.studioasinc.data.repository.SettingsRepository
 import com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl
 import com.synapse.social.studioasinc.data.repository.UserRepository
 import com.synapse.social.studioasinc.data.local.UserDao
+import com.synapse.social.studioasinc.chat.service.SyraAiChatServiceUpdated
+import com.synapse.social.studioasinc.settings.ApiKeySettingsService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,5 +49,26 @@ object RepositoryModule {
     @Singleton
     fun provideUserRepository(userDao: UserDao): UserRepository {
         return UserRepository(userDao)
+    }
+
+    @Provides
+    @Singleton
+    fun providePostRepository(
+        postDao: PostDao,
+        client: SupabaseClientType
+    ): PostRepository {
+        return PostRepository(postDao, client)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSyraAiChatServiceUpdated(client: SupabaseClientType): SyraAiChatServiceUpdated {
+        return SyraAiChatServiceUpdated(client)
+    }
+
+    @Provides
+    @Singleton
+    fun provideApiKeySettingsService(client: SupabaseClientType): ApiKeySettingsService {
+        return ApiKeySettingsService(client)
     }
 }
