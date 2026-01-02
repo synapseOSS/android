@@ -20,7 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
@@ -33,7 +33,7 @@ import com.synapse.social.studioasinc.ui.components.post.PostOptionsBottomSheet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
-    viewModel: FeedViewModel = viewModel(),
+    viewModel: FeedViewModel = hiltViewModel(),
     onPostClick: (String) -> Unit,
     onUserClick: (String) -> Unit,
     onCommentClick: (String) -> Unit,
