@@ -67,13 +67,7 @@
 			android:supportsPictureInPicture="true"
 			android:screenOrientation="portrait"
 			android:windowSoftInputMode="stateHidden" />
-		<activity
-			android:name=".DebugActivity"
-			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
-			android:hardwareAccelerated="true"
-			android:supportsPictureInPicture="true"
-			android:screenOrientation="portrait"
-			android:windowSoftInputMode="stateHidden" />
+
 		<activity
 			android:name=".PostDetailActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden"
