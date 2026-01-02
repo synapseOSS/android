@@ -1,1 +1,0 @@
-Manages the UI for a single post view. Displays post content, media, reactions, and comments. Bridges `PostDetailViewModel` (See `/docs/post_detail_view_model/summary.md`) logic with `ActivityPostDetailBinding` and handles navigation to user profiles or full-screen media. Coordinates `CommentDetailAdapter` and `MediaPagerAdapter`.

@@ -1,1 +1,0 @@
-Displays a list of users (either followers or following) based on intent extras. Acts as a standalone controller, directly interacting with `SupabaseFollowService` to fetch data and `FollowListAdapter` to render it. It also handles navigation to user profiles and direct chat creation. See `/docs/supabase_follow_service/summary.md` and `/docs/follow_list_adapter/summary.md`.

@@ -1,1 +1,0 @@
-Orchestrates data fetching and state management for `PostDetailActivity` (See `/docs/post_detail_activity/summary.md`). Aggregates data from `PostDetailRepository`, `CommentRepository`, `ReactionRepository`, `PollRepository`, and others to expose `PostDetailState` and `CommentsState` via `StateFlow`. Handles user interactions like liking, commenting, and voting.
