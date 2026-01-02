@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.jan.supabase.auth.auth
 import com.synapse.social.studioasinc.ui.auth.components.ProfileCompletionDialogFragment
 import com.synapse.social.studioasinc.ui.home.HomeScreen
@@ -12,6 +13,7 @@ import com.synapse.social.studioasinc.ui.theme.ThemeManager
 import com.synapse.social.studioasinc.util.ActivityTransitions
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class HomeActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
