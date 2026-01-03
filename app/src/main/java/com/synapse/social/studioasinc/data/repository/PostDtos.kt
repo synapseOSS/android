@@ -222,8 +222,8 @@ fun PostSelectDto.toDomain(constructMediaUrl: (String) -> String, constructAvata
         post.isVerified = u.isVerified ?: false
     }
 
-    // Populate latest comment data
-    this.comments?.firstOrNull()?.let { comment ->
+    // Populate latest comment data - Sort by createdAt desc to get the latest since we can't limit/order in embedding
+    this.comments?.sortedByDescending { it.createdAt }?.firstOrNull()?.let { comment ->
         post.latestCommentText = comment.comment
         post.latestCommentAuthor = comment.user?.username
     }

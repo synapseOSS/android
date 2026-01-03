@@ -232,9 +232,6 @@ class PostRepository @Inject constructor(
                     """.trimIndent())
                 ) {
                     range(offset.toLong(), (offset + pageSize - 1).toLong())
-                    // Limit the embedded resource "latest_comments" to 1 and order by created_at desc
-                    param("latest_comments.limit", "1")
-                    param("latest_comments.order", "created_at.desc")
                 }
                 .decodeList<PostSelectDto>()
 
@@ -318,9 +315,6 @@ class PostRepository @Inject constructor(
                     """.trimIndent())
                 ) {
                     filter { eq("author_uid", userId) }
-                    // Limit the embedded resource "latest_comments" to 1 and order by created_at desc
-                    param("latest_comments.limit", "1")
-                    param("latest_comments.order", "created_at.desc")
                 }
                 .decodeList<PostSelectDto>()
             

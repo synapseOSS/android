@@ -38,9 +38,6 @@ class PostPagingSource(
                     ) {
                         order("timestamp", order = Order.DESCENDING)
                         range(position.toLong(), (position + pageSize - 1).toLong())
-                        // Limit the embedded resource "latest_comments" to 1 and order by created_at desc
-                        param("latest_comments.limit", "1")
-                        param("latest_comments.order", "created_at.desc")
                     }
                     .decodeList<JsonObject>()
             }
@@ -59,10 +56,15 @@ class PostPagingSource(
                 // Manually parse the latest comment since decoding strictly to Post won't catch the embedded list
                 val commentsArray = jsonElement["latest_comments"]?.jsonArray
                 if (!commentsArray.isNullOrEmpty()) {
-                    val firstComment = commentsArray[0].jsonObject
-                    post.latestCommentText = firstComment["comment"]?.jsonPrimitive?.contentOrNull
-                    val commentUser = firstComment["users"]?.jsonObject
-                    post.latestCommentAuthor = commentUser?.get("username")?.jsonPrimitive?.contentOrNull
+                    // Sort comments by createdAt descending to find the latest
+                    val latestComment = commentsArray.map { it.jsonObject }
+                        .maxByOrNull { it["created_at"]?.jsonPrimitive?.contentOrNull ?: "" }
+
+                    if (latestComment != null) {
+                        post.latestCommentText = latestComment["comment"]?.jsonPrimitive?.contentOrNull
+                        val commentUser = latestComment["users"]?.jsonObject
+                        post.latestCommentAuthor = commentUser?.get("username")?.jsonPrimitive?.contentOrNull
+                    }
                 }
 
                 post
