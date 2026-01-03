@@ -32,7 +32,8 @@ class PostPagingSource(
                     .select(
                         columns = Columns.raw("""
                             *,
-                            users!posts_author_uid_fkey(username, avatar, verify)
+                            users!posts_author_uid_fkey(username, avatar, verify),
+                            latest_comments:comments(id, content, user_id, created_at, users(username))
                         """.trimIndent())
                     ) {
                         order("timestamp", order = Order.DESCENDING)
@@ -51,6 +52,22 @@ class PostPagingSource(
                     SupabaseClient.constructStorageUrl(SupabaseClient.BUCKET_USER_AVATARS, avatarPath)
                 }
                 post.isVerified = userData?.get("verify")?.jsonPrimitive?.booleanOrNull ?: false
+
+                // Manually parse the latest comment since decoding strictly to Post won't catch the embedded list
+                val commentsArray = jsonElement["latest_comments"]?.jsonArray
+                if (!commentsArray.isNullOrEmpty()) {
+                    // Sort comments by createdAt descending to find the latest
+                    val latestComment = commentsArray.map { it.jsonObject }
+                        .maxByOrNull { it["created_at"]?.jsonPrimitive?.contentOrNull ?: "" }
+
+                    if (latestComment != null) {
+                        // Fixed: Map 'content' column to latestCommentText
+                        post.latestCommentText = latestComment["content"]?.jsonPrimitive?.contentOrNull
+                        val commentUser = latestComment["users"]?.jsonObject
+                        post.latestCommentAuthor = commentUser?.get("username")?.jsonPrimitive?.contentOrNull
+                    }
+                }
+
                 post
             }
 

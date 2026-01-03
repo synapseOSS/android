@@ -116,7 +116,11 @@ data class Post(
     @SerialName("author_is_verified")
     var isVerified: Boolean = false,
     @Transient
-    var userPollVote: Int? = null
+    var userPollVote: Int? = null,
+    @Transient
+    var latestCommentText: String? = null,
+    @Transient
+    var latestCommentAuthor: String? = null
 ) {
     fun determinePostType() {
         postType = when {

@@ -50,6 +50,20 @@ data class UserSummaryDto(
 )
 
 @Serializable
+data class CommentUserDto(
+    val username: String? = null
+)
+
+@Serializable
+data class CommentSelectDto(
+    val id: String,
+    @SerialName("content") val comment: String? = null, // Mapped to 'content' column
+    @SerialName("user_id") val userId: String,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("users") val user: CommentUserDto? = null
+)
+
+@Serializable
 data class PostSelectDto(
     val id: String,
     val key: String? = null,
@@ -83,7 +97,10 @@ data class PostSelectDto(
     @SerialName("youtube_url") val youtubeUrl: String? = null,
 
     // Nested user data from join
-    @SerialName("users") val user: UserSummaryDto? = null
+    @SerialName("users") val user: UserSummaryDto? = null,
+
+    // Nested latest comment
+    @SerialName("latest_comments") val comments: List<CommentSelectDto>? = null
 )
 
 // Mappers
@@ -203,6 +220,12 @@ fun PostSelectDto.toDomain(constructMediaUrl: (String) -> String, constructAvata
         post.username = u.username
         post.avatarUrl = u.avatarUrl?.let { constructAvatarUrl(it) }
         post.isVerified = u.isVerified ?: false
+    }
+
+    // Populate latest comment data - Sort by createdAt desc to get the latest since we can't limit/order in embedding
+    this.comments?.sortedByDescending { it.createdAt }?.firstOrNull()?.let { comment ->
+        post.latestCommentText = comment.comment
+        post.latestCommentAuthor = comment.user?.username
     }
 
     return post

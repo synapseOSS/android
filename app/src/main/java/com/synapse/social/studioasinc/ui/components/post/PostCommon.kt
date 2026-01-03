@@ -63,7 +63,9 @@ object PostMapper {
             isVideo = post.postType == "VIDEO",
             pollQuestion = post.pollQuestion,
             pollOptions = mappedPollOptions,
-            userPollVote = post.userPollVote
+            userPollVote = post.userPollVote,
+            topCommentAuthor = post.latestCommentAuthor,
+            topCommentText = post.latestCommentText
         )
     }
 }

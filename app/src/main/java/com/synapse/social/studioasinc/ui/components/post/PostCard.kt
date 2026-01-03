@@ -32,7 +32,9 @@ data class PostCardState(
     val isVideo: Boolean = false,
     val pollQuestion: String? = null,
     val pollOptions: List<PollOption>? = null,
-    val userPollVote: Int? = null // Track user's vote for poll
+    val userPollVote: Int? = null, // Track user's vote for poll
+    val topCommentAuthor: String? = null,
+    val topCommentText: String? = null
 )
 
 @Composable
@@ -66,7 +68,7 @@ fun PostCard(
         Column {
             PostHeader(
                 user = state.user,
-                timestamp = state.post.publishDate ?: "",
+                timestamp = com.synapse.social.studioasinc.util.TimeUtils.getTimeAgo(state.post.publishDate ?: ""),
                 onUserClick = onUserClick,
                 onOptionsClick = onOptionsClick
             )
@@ -96,12 +98,12 @@ fun PostCard(
                 } else null
             )
 
-            // Comment Preview Section (Task 2.6) - simplified integration
+            // Comment Preview Section
             if (state.commentCount > 0) {
                  CommentPreview(
                     commentCount = state.commentCount,
-                    topCommentAuthor = "User1", // Placeholder
-                    topCommentText = "Nice post!", // Placeholder
+                    topCommentAuthor = state.topCommentAuthor,
+                    topCommentText = state.topCommentText,
                     onViewAllClick = onCommentClick
                 )
             }
