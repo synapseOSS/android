@@ -53,7 +53,7 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 // Add proper migrations to preserve user data
                 .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                .fallbackToDestructiveMigration() // Allow destructive migration as fallback
+                .fallbackToDestructiveMigration(true) // Allow destructive migration as fallback
                 .build()
                 INSTANCE = instance
                 instance

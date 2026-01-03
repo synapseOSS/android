@@ -84,6 +84,7 @@ fun ReelItem(
             Spacer(modifier = Modifier.size(16.dp))
 
             IconButton(onClick = onCommentClick) {
+                @Suppress("DEPRECATION")
                 Icon(
                     imageVector = Icons.Outlined.Comment,
                     contentDescription = "Comment",

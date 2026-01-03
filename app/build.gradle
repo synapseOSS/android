@@ -36,8 +36,6 @@ android {
     namespace = "com.synapse.social.studioasinc"
     compileSdk = 36 // Keep 36
 
-    useLibrary 'org.apache.http.legacy'
-
     signingConfigs {
         debug {
             // Use default debug keystore
@@ -203,7 +201,7 @@ dependencies {
     implementation composeBom
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.ui:ui-graphics'
-    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material3:material3:1.3.1'
     implementation 'androidx.compose.material:material-icons-extended'
     implementation 'androidx.compose.ui:ui-tooling-preview'
     implementation 'androidx.activity:activity-compose:1.12.1'

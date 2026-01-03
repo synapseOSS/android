@@ -18,6 +18,8 @@ import com.synapse.social.studioasinc.util.MediaUploadManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -62,10 +64,13 @@ data class PostSettings(
     val disableComments: Boolean = false
 )
 
-class CreatePostViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class CreatePostViewModel @Inject constructor(
+    application: Application,
+    private val postRepository: PostRepository,
+    private val userRepository: com.synapse.social.studioasinc.data.repository.UserRepository
+) : AndroidViewModel(application) {
 
-    private val postRepository = PostRepository(AppDatabase.getDatabase(application).postDao())
-    private val userRepository = com.synapse.social.studioasinc.data.repository.UserRepository(AppDatabase.getDatabase(application).userDao())
     private val authService = SupabaseAuthenticationService()
     private val prefs = application.getSharedPreferences("create_post_draft", Context.MODE_PRIVATE)
 
@@ -104,6 +109,7 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun saveDraft() {
+        if (_uiState.value.isPostCreated) return
         if (_uiState.value.isEditMode) return
         
         val text = _uiState.value.postText
@@ -360,7 +366,17 @@ class CreatePostViewModel(application: Application) : AndroidViewModel(applicati
 
             result.onSuccess {
                     clearDraft()
-                    _uiState.update { it.copy(isLoading = false, isPostCreated = true) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isPostCreated = true,
+                            postText = "",
+                            mediaItems = emptyList(),
+                            pollData = null,
+                            location = null,
+                            youtubeUrl = null
+                        )
+                    }
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = "Failed: ${e.message}") }

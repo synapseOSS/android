@@ -251,18 +251,31 @@ fun AnimatedPollOptionItem(
                 )
             }
             
-            // Right section: Percentage
-            if (percentageText.isNotEmpty()) {
-                Text(
-                    text = percentageText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (option.isSelected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (option.isSelected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
+            // Right section: Vote count and Percentage
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (hasVoted && option.voteCount > 0) {
+                    Text(
+                        text = "${option.voteCount}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (percentageText.isNotEmpty()) {
+                    Text(
+                        text = percentageText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (option.isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (option.isSelected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
             }
         }
     }

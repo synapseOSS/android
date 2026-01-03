@@ -1,6 +1,7 @@
 package com.synapse.social.studioasinc.data.repository
 
 import com.synapse.social.studioasinc.model.ReactionType
+import com.synapse.social.studioasinc.SupabaseClient
 
 /**
  * @deprecated Use [PostRepository.toggleReaction] instead.
@@ -21,9 +22,12 @@ import com.synapse.social.studioasinc.model.ReactionType
     message = "Use PostRepository.toggleReaction() instead. The reactions table is now the single source of truth.",
     replaceWith = ReplaceWith("PostRepository(postDao).toggleReaction(postId, userId, ReactionType.LIKE)")
 )
-class LikeRepository(private val postDao: com.synapse.social.studioasinc.data.local.PostDao) {
+class LikeRepository(
+    private val postDao: com.synapse.social.studioasinc.data.local.PostDao,
+    private val client: io.github.jan.supabase.SupabaseClient = SupabaseClient.client
+) {
     
-    private val postRepository = PostRepository(postDao)
+    private val postRepository = PostRepository(postDao, client)
     
     /**
      * @deprecated Use [PostRepository.toggleReaction] with [ReactionType.LIKE]

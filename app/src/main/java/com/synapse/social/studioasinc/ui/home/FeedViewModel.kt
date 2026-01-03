@@ -13,6 +13,8 @@ import com.synapse.social.studioasinc.model.Post
 import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.home.User
 import com.synapse.social.studioasinc.ui.components.post.PostCardState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.synapse.social.studioasinc.util.ScrollPositionState
 import com.synapse.social.studioasinc.ui.components.post.PostEventBus
 import com.synapse.social.studioasinc.ui.components.post.PostEvent
@@ -33,9 +35,12 @@ data class FeedUiState(
     val error: String? = null
 )
 
-class FeedViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class FeedViewModel @Inject constructor(
+    private val postRepository: PostRepository,
+    application: Application
+) : AndroidViewModel(application) {
     private val authRepository: AuthRepository = AuthRepository()
-    private val postRepository: PostRepository = PostRepository(AppDatabase.getDatabase(application).postDao())
 
     private val _uiState = MutableStateFlow(FeedUiState())
     val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()

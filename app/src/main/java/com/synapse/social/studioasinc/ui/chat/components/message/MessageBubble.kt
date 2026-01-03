@@ -178,36 +178,39 @@ fun ReceivedMessageBubble(
     onLongClick: () -> Unit = {},
     content: @Composable () -> Unit
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        // Avatar space (for group chats, shown on last message of group)
-        if (showAvatar) {
+    if (showAvatar) {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            // Avatar space (for group chats, shown on last message of group)
             Box(
                 modifier = Modifier
                     .size(ChatSpacing.AvatarSize)
-                    .padding(end = 8.dp)
+                    .padding(end = 4.dp) // Reduced from 8dp to 4dp
             ) {
                 // Avatar composable would go here
                 // UserAvatar(url = avatarUrl, size = ChatSpacing.AvatarSize)
             }
-        } else {
-            // Spacer for alignment when avatar not shown
-            Spacer(modifier = Modifier.width(ChatSpacing.AvatarSize + 8.dp))
+            
+            MessageBubble(
+                message = message.copy(isFromCurrentUser = false),
+                modifier = Modifier.weight(1f, fill = false),
+                onClick = onClick,
+                onLongClick = onLongClick,
+                content = content
+            )
         }
-        
+    } else {
+        // No avatar - use direct MessageBubble without extra spacing
         MessageBubble(
             message = message.copy(isFromCurrentUser = false),
-            modifier = Modifier.weight(1f, fill = false),
+            modifier = modifier,
             onClick = onClick,
             onLongClick = onLongClick,
             content = content
         )
-        
-        // Right padding to balance
-        Spacer(modifier = Modifier.width(48.dp))
     }
 }
 

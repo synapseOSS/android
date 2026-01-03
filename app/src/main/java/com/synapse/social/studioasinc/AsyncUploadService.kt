@@ -3,10 +3,12 @@ package com.synapse.social.studioasinc
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.*
@@ -168,7 +170,9 @@ object AsyncUploadService {
                 .setAutoCancel(true) // Auto cancel when tapped
                 .setPriority(NotificationCompat.PRIORITY_LOW)
             
-            NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error showing upload notification: ${e.message}")
         }
@@ -188,7 +192,9 @@ object AsyncUploadService {
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             
-            NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+            }
             
             // Auto-dismiss success notification after 3 seconds
             Handler(Looper.getMainLooper()).postDelayed({
@@ -222,7 +228,9 @@ object AsyncUploadService {
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             
-            NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+            }
             
             // Auto-dismiss failure notification after 5 seconds
             Handler(Looper.getMainLooper()).postDelayed({

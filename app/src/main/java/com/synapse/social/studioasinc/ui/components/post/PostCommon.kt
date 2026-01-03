@@ -1,6 +1,7 @@
 package com.synapse.social.studioasinc.ui.components.post
 
 import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.home.User
 import com.synapse.social.studioasinc.data.model.UserProfile
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -53,10 +54,11 @@ object PostMapper {
         return PostCardState(
             post = post,
             user = user,
-            isLiked = post.hasUserReacted(),
+            isLiked = post.userReaction == ReactionType.LIKE,
             likeCount = post.likesCount,
             commentCount = post.commentsCount,
             isBookmarked = false, // To be populated if Model supports it
+            hideLikeCount = post.postHideLikeCount == "true",
             mediaUrls = mediaUrls,
             isVideo = post.postType == "VIDEO",
             pollQuestion = post.pollQuestion,

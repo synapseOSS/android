@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.DisposableEffect
 import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.util.FileUtils
 import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
@@ -53,6 +54,7 @@ import com.synapse.social.studioasinc.ui.chat.components.topbar.SelectionModeTop
 import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
 import com.synapse.social.studioasinc.ui.chat.RealtimeConnectionState
 import com.synapse.social.studioasinc.util.CallUtils
+import com.synapse.social.studioasinc.domain.model.WallpaperType
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -68,6 +70,7 @@ fun DirectChatScreen(
     val messages by viewModel.messages.collectAsState()
     val availableChats by viewModel.availableChats.collectAsState()
     val smartReplies by viewModel.smartReplies.collectAsState()
+    val chatWallpaper = uiState.wallpaper
 
     // Derived State
     val listState = rememberLazyListState()
@@ -78,9 +81,9 @@ fun DirectChatScreen(
         }
     }
     
-    // Dynamic Layout Measurements
+    // Fixed Layout Measurements - prevents circular dependency
     val localDensity = LocalDensity.current
-    var inputBarHeightDp by remember { mutableStateOf(100.dp) }
+    val inputBarHeightDp = 100.dp // Fixed height to prevent measurement loops
 
     // Bottom Sheet State
     var showMessageOptions by remember { mutableStateOf(false) }
@@ -148,6 +151,14 @@ fun DirectChatScreen(
     // Effect: Load Chat
     LaunchedEffect(chatId) {
         viewModel.loadChat(chatId)
+    }
+
+    // Track screen visibility for read receipts
+    DisposableEffect(Unit) {
+        viewModel.setScreenActive(true)
+        onDispose {
+            viewModel.setScreenActive(false)
+        }
     }
 
     // Effect: Auto-scroll to bottom when new user message is added
@@ -645,7 +656,34 @@ fun DirectChatScreen(
                 .padding(top = paddingValues.calculateTopPadding())
                 .imePadding() // Push content up when keyboard opens
         ) {
-            // Background Image/Gradient could go here
+            // Background Image/Gradient
+            when (chatWallpaper.type) {
+                WallpaperType.SOLID_COLOR -> {
+                    val color = try {
+                        Color(android.graphics.Color.parseColor(chatWallpaper.value))
+                    } catch (e: Exception) {
+                        MaterialTheme.colorScheme.surface
+                    }
+                    Box(modifier = Modifier.fillMaxSize().background(color))
+                }
+                WallpaperType.IMAGE_URI -> {
+                     if (chatWallpaper.value != null) {
+                        AsyncImage(
+                            model = chatWallpaper.value,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                     } else {
+                        // Fallback
+                        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+                     }
+                }
+                else -> {
+                    // Default behavior (using Theme background)
+                    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+                }
+            }
 
             // Messages List
             LazyColumn(
@@ -752,9 +790,7 @@ fun DirectChatScreen(
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .onGloballyPositioned { coordinates ->
-                            inputBarHeightDp = with(localDensity) { coordinates.size.height.toDp() }
-                        }
+                        // Removed onGloballyPositioned to break circular dependency
                 ) {
                     // Smart Replies
                     if (smartReplies.isNotEmpty()) {

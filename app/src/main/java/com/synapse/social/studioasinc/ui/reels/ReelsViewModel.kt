@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 data class ReelsUiState(
     val reels: List<Post> = emptyList(),
@@ -19,8 +21,11 @@ data class ReelsUiState(
     val error: String? = null
 )
 
-class ReelsViewModel(application: Application) : AndroidViewModel(application) {
-    private val postRepository: PostRepository = PostRepository(AppDatabase.getDatabase(application).postDao())
+@HiltViewModel
+class ReelsViewModel @Inject constructor(
+    application: Application,
+    private val postRepository: PostRepository
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(ReelsUiState())
     val uiState: StateFlow<ReelsUiState> = _uiState.asStateFlow()

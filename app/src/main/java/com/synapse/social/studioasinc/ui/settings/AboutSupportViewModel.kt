@@ -110,7 +110,6 @@ class AboutSupportViewModel(
      * Requirements: 9.2
      */
     fun getTermsOfServiceUrl(): String {
-        // TODO: Replace with actual Terms of Service URL
         return "https://synapse.social/terms"
     }
 
@@ -121,19 +120,28 @@ class AboutSupportViewModel(
      * Requirements: 9.3
      */
     fun getPrivacyPolicyUrl(): String {
-        // TODO: Replace with actual Privacy Policy URL
         return "https://synapse.social/privacy"
     }
 
     /**
      * Handles navigation to Help Center.
-     * This is a placeholder for future implementation.
+     * Returns the URL to be opened in a browser.
      * 
      * Requirements: 9.4
      */
     fun navigateToHelpCenter() {
         android.util.Log.d("AboutSupportViewModel", "Navigate to Help Center (placeholder)")
         // Navigation will be handled by the screen composable
+    }
+
+    /**
+     * Gets the Help Center URL.
+     * Returns the URL to be opened in a browser.
+     * 
+     * Requirements: 9.4
+     */
+    fun getHelpCenterUrl(): String {
+        return "https://synapse.social/help"
     }
 
     /**

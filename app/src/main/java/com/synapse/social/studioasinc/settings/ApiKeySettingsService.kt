@@ -195,7 +195,7 @@ class ApiKeySettingsService @Inject constructor(
             "gemini" -> "Google Gemini"
             "anthropic" -> "Anthropic Claude"
             "openrouter" -> "OpenRouter"
-            else -> provider.capitalize()
+            else -> provider.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
         }
     }
 

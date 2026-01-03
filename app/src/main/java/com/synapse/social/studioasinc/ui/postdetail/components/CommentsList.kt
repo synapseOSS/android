@@ -14,11 +14,11 @@ import com.synapse.social.studioasinc.model.CommentAction
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 
 @Composable
-
 fun CommentsList(
-    comments: LazyPagingItems<CommentWithUser>, // Updated to accept Paging Items
+    comments: LazyPagingItems<CommentWithUser>,
     repliesState: Map<String, List<CommentWithUser>> = emptyMap(),
     replyLoadingState: Set<String> = emptySet(),
+    commentActionsLoading: Set<String> = emptySet(),
     onReplyClick: (CommentWithUser) -> Unit,
     onLikeClick: (String) -> Unit,
     onViewReplies: (String) -> Unit = {},
@@ -82,6 +82,7 @@ fun CommentsList(
                     comment = comment,
                     replies = repliesState[comment.id] ?: emptyList(),
                     isRepliesLoading = replyLoadingState.contains(comment.id),
+                    loadingIds = commentActionsLoading,
                     onReplyClick = onReplyClick,
                     onLikeClick = onLikeClick,
                     onViewReplies = { onViewReplies(comment.id) },

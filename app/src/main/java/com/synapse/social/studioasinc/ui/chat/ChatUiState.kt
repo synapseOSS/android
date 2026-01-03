@@ -3,6 +3,8 @@ package com.synapse.social.studioasinc.ui.chat
 import androidx.compose.ui.text.input.TextFieldValue
 import com.synapse.social.studioasinc.data.model.UserProfile
 import com.synapse.social.studioasinc.model.SearchResult
+import com.synapse.social.studioasinc.domain.model.ChatThemePreset
+import com.synapse.social.studioasinc.domain.model.ChatWallpaper
 
 /**
  * UI State definitions for Direct Chat Compose screen
@@ -31,9 +33,7 @@ data class ChatUiState(
     val mentionSuggestions: List<SearchResult.User> = emptyList(),
     val isRecordingVoice: Boolean = false,
     val attachments: List<AttachmentUiModel> = emptyList(),
-    // Link preview state
-    val linkPreviewLoading: Boolean = false,
-    val detectedLinkPreview: LinkPreviewData? = null,
+
     // Pending attachments for media picker
     val pendingAttachments: List<PendingAttachment> = emptyList(),
     val isUploadingMedia: Boolean = false,
@@ -43,7 +43,10 @@ data class ChatUiState(
     // Enhanced presence tracking
     val otherUserOnline: Boolean = false,
     val otherUserLastSeen: Long = 0L,
-    val otherUserActivity: String = "offline"
+    val otherUserActivity: String = "offline",
+    // Theme & Wallpaper
+    val themePreset: ChatThemePreset = ChatThemePreset.DEFAULT,
+    val wallpaper: ChatWallpaper = ChatWallpaper()
 )
 
 /**
@@ -106,7 +109,7 @@ data class MessageUiModel(
     val replyTo: ReplyPreviewData? = null,
     val forwardedFrom: ForwardedData? = null,
     val attachments: List<AttachmentUiModel>? = null,
-    val linkPreview: LinkPreviewData? = null,
+
     val voiceData: VoiceMessageData? = null,
     val position: MessagePosition = MessagePosition.Single,
     val isAnimating: Boolean = false,
@@ -145,7 +148,6 @@ enum class MessageType {
     Video,
     Voice,
     File,
-    LinkPreview,
     Deleted
 }
 
@@ -201,16 +203,7 @@ enum class AttachmentType {
     Unknown
 }
 
-/**
- * Link preview data
- */
-data class LinkPreviewData(
-    val url: String,
-    val title: String?,
-    val description: String?,
-    val imageUrl: String?,
-    val domain: String
-)
+
 
 /**
  * Voice message specific data

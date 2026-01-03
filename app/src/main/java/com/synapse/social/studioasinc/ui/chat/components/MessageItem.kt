@@ -63,6 +63,7 @@ fun MessageItem(
     onReply: (MessageUiModel) -> Unit,
     onLongClick: (MessageUiModel) -> Unit,
     onAttachmentClick: (String, AttachmentType) -> Unit,
+    onProfileClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Swipe to reply state
@@ -79,8 +80,7 @@ fun MessageItem(
             text = { Text("Are you sure you want to open the account @${showMentionDialogForUser}?") },
             confirmButton = {
                 TextButton(onClick = {
-                    // TODO: Open Profile Navigation
-                    // onProfileClick(showMentionDialogForUser!!)
+                    onProfileClick(showMentionDialogForUser!!)
                     showMentionDialogForUser = null
                 }) {
                     Text("Open")
@@ -132,22 +132,23 @@ fun MessageItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetX.roundToInt(), 0) }
-                .padding(horizontal = 8.dp, vertical = 2.dp),
+                .padding(horizontal = 4.dp, vertical = 2.dp), // Reduced from 8dp to 4dp
             horizontalArrangement = if (message.isFromCurrentUser) Arrangement.End else Arrangement.Start
         ) {
-            if (!message.isFromCurrentUser) {
-                // Avatar for other user
-                AsyncImage(
-                    model = message.senderAvatarUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .align(Alignment.Bottom),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-            }
+            // Remove avatar completely for received messages
+            // if (!message.isFromCurrentUser) {
+            //     // Avatar for other user
+            //     AsyncImage(
+            //         model = message.senderAvatarUrl,
+            //         contentDescription = null,
+            //         modifier = Modifier
+            //             .size(32.dp)
+            //             .clip(CircleShape)
+            //             .align(Alignment.Bottom),
+            //         contentScale = ContentScale.Crop
+            //     )
+            //     Spacer(modifier = Modifier.width(4.dp))
+            // }
 
             // Message Bubble
             Column(
@@ -191,8 +192,8 @@ fun MessageItem(
                     if (isSelectionMode) {
                         Box(
                             modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(24.dp),
+                                .padding(end = 4.dp) // Reduced from 8dp to 4dp
+                                .size(20.dp), // Reduced from 24dp to 20dp
                             contentAlignment = Alignment.Center
                         ) {
                             if (message.isSelected) {
@@ -200,7 +201,7 @@ fun MessageItem(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = "Selected",
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp) // Reduced from 24dp to 20dp
                                 )
                             } else {
                                 // Empty circle placeholder
@@ -211,7 +212,7 @@ fun MessageItem(
                                         2.dp,
                                         MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                                     ),
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp) // Reduced from 24dp to 20dp
                                 ) {}
                             }
                         }
@@ -306,52 +307,7 @@ fun MessageItem(
                             )
                         }
 
-                        // Link Preview
-                        message.linkPreview?.let { preview ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Surface(
-                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(modifier = Modifier.padding(8.dp)) {
-                                    preview.imageUrl?.let { imgUrl ->
-                                        AsyncImage(
-                                            model = imgUrl,
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .heightIn(max = 120.dp)
-                                                .clip(RoundedCornerShape(8.dp)),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                    }
-                                    preview.title?.let { title ->
-                                        Text(
-                                            text = title,
-                                            style = MaterialTheme.typography.titleSmall,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                    preview.description?.let { desc ->
-                                        Text(
-                                            text = desc,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                    Text(
-                                        text = preview.domain,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                                    )
-                                }
-                            }
-                        }
+
 
                         // Timestamp & Status
                         Row(
@@ -398,6 +354,12 @@ fun AttachmentView(
     attachment: com.synapse.social.studioasinc.ui.chat.AttachmentUiModel,
     onClick: (String, AttachmentType) -> Unit
 ) {
+    // DEBUG: Log attachment rendering
+    android.util.Log.d("MessageItem", "=== RENDERING ATTACHMENT ===")
+    android.util.Log.d("MessageItem", "Attachment type: ${attachment.type}")
+    android.util.Log.d("MessageItem", "Attachment URL: ${attachment.url}")
+    android.util.Log.d("MessageItem", "Thumbnail URL: ${attachment.thumbnailUrl}")
+    
     when (attachment.type) {
         AttachmentType.Image -> {
             AsyncImage(

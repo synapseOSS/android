@@ -1,1 +1,0 @@
-Manages the UI state for a user list screen, exposing a `StateFlow<FollowListUiState>`. It handles data fetching via `SupabaseFollowService` and transforms raw `Map` data into type-safe `User` objects. Currently unused by `FollowListActivity`. See `/docs/supabase_follow_service/summary.md`.

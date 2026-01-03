@@ -1,1 +1,0 @@
-RecyclerView Adapter for rendering user items. Handles data binding for user avatars, names, and action buttons (follow/message). Manages click listeners and delegates follow logic to a `FollowButton` component. See `/docs/follow_list_activity/summary.md`.

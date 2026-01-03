@@ -162,8 +162,7 @@ class SwipeToReplyCallback(
                 val hapticThreshold = viewHolder.itemView.width * HAPTIC_FEEDBACK_THRESHOLD
                 if (abs(dX) >= hapticThreshold && !isVibrated) {
                     viewHolder.itemView.performHapticFeedback(
-                        HapticFeedbackConstants.KEYBOARD_TAP,
-                        HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+            HapticFeedbackConstants.LONG_PRESS
                     )
                     isVibrated = true
                 }

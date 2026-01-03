@@ -37,6 +37,7 @@ fun PostInteractionBar(
     likeCount: Int,
     commentCount: Int,
     isBookmarked: Boolean,
+    hideLikeCount: Boolean = false,
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit,
     onShareClick: () -> Unit,
@@ -64,7 +65,7 @@ fun PostInteractionBar(
                         onLongClick = { onReactionLongPress?.invoke() }
                     )
             )
-            if (likeCount > 0) {
+            if (likeCount > 0 && !hideLikeCount) {
                 Text(
                     text = formatCount(likeCount),
                     style = MaterialTheme.typography.labelLarge,
@@ -75,6 +76,7 @@ fun PostInteractionBar(
             Spacer(modifier = Modifier.width(8.dp))
 
             IconButton(onClick = onCommentClick) {
+                @Suppress("DEPRECATION")
                 Icon(
                     imageVector = Icons.Outlined.Comment,
                     contentDescription = "Comment",

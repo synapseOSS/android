@@ -28,7 +28,9 @@ fun ChatSettingsScreen(
     viewModel: ChatSettingsViewModel,
     onBackClick: () -> Unit,
     onNavigateToChatPrivacy: () -> Unit,
-    onNavigateToChatHistoryDeletion: () -> Unit = {}
+    onNavigateToChatHistoryDeletion: () -> Unit = {},
+    onNavigateToChatCustomization: () -> Unit = {},
+    onNavigateToChatWallpapers: () -> Unit = {}
 ) {
     val chatSettings by viewModel.chatSettings.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -146,7 +148,10 @@ fun ChatSettingsScreen(
                         title = "Chat Themes",
                         subtitle = "Customize chat bubble colors and backgrounds",
                         icon = R.drawable.ic_rounded_corner,
-                        onClick = { viewModel.navigateToChatCustomization() },
+                        onClick = {
+                             viewModel.navigateToChatCustomization()
+                             onNavigateToChatCustomization()
+                        },
                         enabled = !isLoading,
                         position = SettingsItemPosition.Top
                     )
@@ -158,7 +163,10 @@ fun ChatSettingsScreen(
                         title = "Chat Wallpapers",
                         subtitle = "Set custom backgrounds for conversations",
                         icon = R.drawable.ic_image,
-                        onClick = { viewModel.navigateToChatWallpapers() },
+                        onClick = {
+                            viewModel.navigateToChatWallpapers()
+                            onNavigateToChatWallpapers()
+                        },
                         enabled = !isLoading,
                         position = SettingsItemPosition.Middle
                     )

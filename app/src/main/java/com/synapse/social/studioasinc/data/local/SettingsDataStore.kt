@@ -20,6 +20,9 @@ import com.synapse.social.studioasinc.ui.settings.NotificationPreferences
 import com.synapse.social.studioasinc.ui.settings.PrivacySettings
 import com.synapse.social.studioasinc.ui.settings.ProfileVisibility
 import com.synapse.social.studioasinc.ui.settings.ThemeMode
+import com.synapse.social.studioasinc.domain.model.ChatThemePreset
+import com.synapse.social.studioasinc.domain.model.ChatWallpaper
+import com.synapse.social.studioasinc.domain.model.WallpaperType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -89,6 +92,9 @@ class SettingsDataStore private constructor(private val context: Context) {
         private val KEY_TYPING_INDICATORS_ENABLED = booleanPreferencesKey("typing_indicators_enabled")
         private val KEY_MEDIA_AUTO_DOWNLOAD = stringPreferencesKey("media_auto_download")
         private val KEY_CHAT_FONT_SCALE = floatPreferencesKey("chat_font_scale")
+        private val KEY_CHAT_THEME_PRESET = stringPreferencesKey("chat_theme_preset")
+        private val KEY_CHAT_WALLPAPER_TYPE = stringPreferencesKey("chat_wallpaper_type")
+        private val KEY_CHAT_WALLPAPER_VALUE = stringPreferencesKey("chat_wallpaper_value")
         
         // Data Saver
         private val KEY_DATA_SAVER_ENABLED = booleanPreferencesKey("data_saver_enabled")
@@ -111,6 +117,8 @@ class SettingsDataStore private constructor(private val context: Context) {
         val DEFAULT_TYPING_INDICATORS_ENABLED = true
         val DEFAULT_MEDIA_AUTO_DOWNLOAD = MediaAutoDownload.WIFI_ONLY
         val DEFAULT_CHAT_FONT_SCALE = 1.0f
+        val DEFAULT_CHAT_THEME_PRESET = ChatThemePreset.DEFAULT
+        val DEFAULT_CHAT_WALLPAPER_TYPE = WallpaperType.DEFAULT
         val DEFAULT_DATA_SAVER_ENABLED = false
     }
 
@@ -374,7 +382,16 @@ class SettingsDataStore private constructor(private val context: Context) {
             mediaAutoDownload = preferences[KEY_MEDIA_AUTO_DOWNLOAD]?.let { value ->
                 runCatching { MediaAutoDownload.valueOf(value) }.getOrDefault(DEFAULT_MEDIA_AUTO_DOWNLOAD)
             } ?: DEFAULT_MEDIA_AUTO_DOWNLOAD,
-            chatFontScale = preferences[KEY_CHAT_FONT_SCALE] ?: DEFAULT_CHAT_FONT_SCALE
+            chatFontScale = preferences[KEY_CHAT_FONT_SCALE] ?: DEFAULT_CHAT_FONT_SCALE,
+            themePreset = preferences[KEY_CHAT_THEME_PRESET]?.let { value ->
+                runCatching { ChatThemePreset.valueOf(value) }.getOrDefault(DEFAULT_CHAT_THEME_PRESET)
+            } ?: DEFAULT_CHAT_THEME_PRESET,
+            wallpaper = ChatWallpaper(
+                type = preferences[KEY_CHAT_WALLPAPER_TYPE]?.let { value ->
+                    runCatching { WallpaperType.valueOf(value) }.getOrDefault(DEFAULT_CHAT_WALLPAPER_TYPE)
+                } ?: DEFAULT_CHAT_WALLPAPER_TYPE,
+                value = preferences[KEY_CHAT_WALLPAPER_VALUE]
+            )
         )
     }
     
@@ -411,6 +428,29 @@ class SettingsDataStore private constructor(private val context: Context) {
     suspend fun setChatFontScale(scale: Float) {
         dataStore.edit { preferences ->
             preferences[KEY_CHAT_FONT_SCALE] = scale
+        }
+    }
+
+    /**
+     * Sets chat theme preset.
+     */
+    suspend fun setChatThemePreset(preset: ChatThemePreset) {
+        dataStore.edit { preferences ->
+            preferences[KEY_CHAT_THEME_PRESET] = preset.name
+        }
+    }
+
+    /**
+     * Sets chat wallpaper.
+     */
+    suspend fun setChatWallpaper(wallpaper: ChatWallpaper) {
+        dataStore.edit { preferences ->
+            preferences[KEY_CHAT_WALLPAPER_TYPE] = wallpaper.type.name
+            if (wallpaper.value != null) {
+                preferences[KEY_CHAT_WALLPAPER_VALUE] = wallpaper.value
+            } else {
+                preferences.remove(KEY_CHAT_WALLPAPER_VALUE)
+            }
         }
     }
 
@@ -477,6 +517,9 @@ class SettingsDataStore private constructor(private val context: Context) {
             preferences.remove(KEY_TYPING_INDICATORS_ENABLED)
             preferences.remove(KEY_MEDIA_AUTO_DOWNLOAD)
             preferences.remove<Float>(KEY_CHAT_FONT_SCALE)
+            preferences.remove(KEY_CHAT_THEME_PRESET)
+            preferences.remove(KEY_CHAT_WALLPAPER_TYPE)
+            preferences.remove(KEY_CHAT_WALLPAPER_VALUE)
             
             // Data saver
             preferences.remove(KEY_DATA_SAVER_ENABLED)
@@ -522,6 +565,9 @@ class SettingsDataStore private constructor(private val context: Context) {
             preferences[KEY_TYPING_INDICATORS_ENABLED] = DEFAULT_TYPING_INDICATORS_ENABLED
             preferences[KEY_MEDIA_AUTO_DOWNLOAD] = DEFAULT_MEDIA_AUTO_DOWNLOAD.name
             preferences[KEY_CHAT_FONT_SCALE] = DEFAULT_CHAT_FONT_SCALE
+            preferences[KEY_CHAT_THEME_PRESET] = DEFAULT_CHAT_THEME_PRESET.name
+            preferences[KEY_CHAT_WALLPAPER_TYPE] = DEFAULT_CHAT_WALLPAPER_TYPE.name
+            preferences.remove(KEY_CHAT_WALLPAPER_VALUE)
             
             // Data saver
             preferences[KEY_DATA_SAVER_ENABLED] = DEFAULT_DATA_SAVER_ENABLED

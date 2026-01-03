@@ -47,7 +47,7 @@ object ChatColors {
     // =============================================
     val ReplyAccent = Color(0xFF6B4EFF)          // Purple bar on reply
     val ReplyAccentLight = Color(0xFFEDE7FF)     // Light purple background
-    val LinkPreviewAccent = Color(0xFF4CAF50)    // Green for links
+
     val ForwardedAccent = Color(0xFF757575)      // Gray for forwarded
     val EditedAccent = Color(0xFF9E9E9E)         // Gray italic for edited
     

@@ -28,12 +28,15 @@ import com.synapse.social.studioasinc.data.paging.PostPagingSource
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.*
+import javax.inject.Inject
+import javax.inject.Singleton
 
 import io.github.jan.supabase.SupabaseClient as JanSupabaseClient
 
-class PostRepository(
+@Singleton
+class PostRepository @Inject constructor(
     private val postDao: PostDao,
-    private val client: JanSupabaseClient = SupabaseClient.client
+    private val client: JanSupabaseClient
 ) {
 
     fun getPostsPaged(): Flow<PagingData<Post>> {

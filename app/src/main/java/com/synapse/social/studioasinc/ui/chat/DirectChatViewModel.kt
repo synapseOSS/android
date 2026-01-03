@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
-import com.synapse.social.studioasinc.backend.LinkPreviewService
+
 import com.synapse.social.studioasinc.backend.SupabaseStorageService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.AppDatabase
@@ -35,6 +35,8 @@ import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
 import com.synapse.social.studioasinc.AI.Gemini
 import com.synapse.social.studioasinc.data.repository.AiRepository
 import com.synapse.social.studioasinc.model.AiSummary
+import com.synapse.social.studioasinc.domain.model.ChatThemePreset
+import com.synapse.social.studioasinc.domain.model.ChatWallpaper
 
 /**
  * ViewModel for DirectChatScreen
@@ -52,6 +54,7 @@ class DirectChatViewModel @Inject constructor(
     private val searchRepository = com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl()
     private val authService = SupabaseAuthenticationService(application)
     private val aiRepository = AiRepository()
+    private val settingsRepository = com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl.getInstance(application)
     private var gemini: Gemini? = null
     
     // Enhanced typing and presence managers
@@ -62,15 +65,15 @@ class DirectChatViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
+    // Screen visibility state for read receipts
+    private val _isScreenActive = MutableStateFlow(false)
+    val isScreenActive: StateFlow<Boolean> = _isScreenActive.asStateFlow()
+
     // Available chats for forwarding
     private val _availableChats = MutableStateFlow<List<ChatForwardUiModel>>(emptyList())
     val availableChats: StateFlow<List<ChatForwardUiModel>> = _availableChats.asStateFlow()
 
     private var loadChatsJob: Job? = null
-    private var linkPreviewJob: Job? = null
-    
-    // Link Preview Service
-    private val linkPreviewService = LinkPreviewService()
     
     // Messages list (Source of Truth: Realtime/DB)
     private val _dbMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())
@@ -159,7 +162,21 @@ class DirectChatViewModel @Inject constructor(
     init {
         loadCurrentUser()
         observeConnectionState()
+        observeSettings()
         initializeGemini()
+    }
+
+    private fun observeSettings() {
+        viewModelScope.launch {
+            settingsRepository.chatSettings.collect { settings ->
+                _uiState.update {
+                    it.copy(
+                        themePreset = settings.themePreset,
+                        wallpaper = settings.wallpaper
+                    )
+                }
+            }
+        }
     }
 
     private fun initializeGemini() {
@@ -261,13 +278,12 @@ class DirectChatViewModel @Inject constructor(
                     _dbMessages.value = uiMessages
                     _uiState.update { it.copy(isLoading = false, error = null) }
                     
-                    // Mark messages as read
-                    if (currentUserId != null) {
+                    // Mark messages as read only if screen is active
+                    if (currentUserId != null && _isScreenActive.value) {
                         launch { chatRepository.markMessagesAsRead(chatId, currentUserId!!) }
                     }
 
-                    // Fetch link previews for messages containing URLs
-                    fetchLinkPreviewsForMessages(uiMessages)
+
                     
                     // Start realtime observation
                     observeRealtimeMessages(chatId)
@@ -435,15 +451,14 @@ class DirectChatViewModel @Inject constructor(
             if (current.any { it.id == uiMessage.id }) current else current + uiMessage
         }
 
-        // Mark as read if from other user (since we are active in chat)
-        if (!uiMessage.isFromCurrentUser && currentUserId != null) {
+        // Mark as read if from other user and screen is active
+        if (!uiMessage.isFromCurrentUser && currentUserId != null && _isScreenActive.value) {
             viewModelScope.launch {
                 chatRepository.markMessagesAsRead(message.chatId, currentUserId!!)
             }
         }
         
-        // Fetch link preview if message contains URL
-        fetchLinkPreviewForMessage(uiMessage)
+
 
         // Generate smart replies if the message is from the other user
         if (!uiMessage.isFromCurrentUser) {
@@ -578,8 +593,6 @@ class DirectChatViewModel @Inject constructor(
                 } else {
                      _uiState.update { it.copy(mentionSuggestions = emptyList()) }
                 }
-                // Debounced link detection
-                detectLinksDebounced(intent.text.text)
             }
             is ChatIntent.InsertMention -> {
                 val currentInput = _uiState.value.inputText
@@ -688,79 +701,6 @@ class DirectChatViewModel @Inject constructor(
     }
 
     /**
-     * Debounced link detection - triggers link preview fetch after user stops typing
-     */
-    private fun detectLinksDebounced(text: String) {
-        linkPreviewJob?.cancel()
-        
-        // Clear preview if text is empty or no links
-        if (text.isBlank() || !LinkDetectionService.containsUrl(text)) {
-            _uiState.update { it.copy(detectedLinkPreview = null, linkPreviewLoading = false) }
-            return
-        }
-        
-        linkPreviewJob = viewModelScope.launch {
-            delay(500) // 500ms debounce
-            
-            val url = LinkDetectionService.extractFirstUrl(text) ?: return@launch
-            
-            // Don't refetch if same URL
-            if (_uiState.value.detectedLinkPreview?.url == url) return@launch
-            
-            _uiState.update { it.copy(linkPreviewLoading = true) }
-            
-            linkPreviewService.fetchLinkPreview(url)
-                .onSuccess { preview ->
-                    _uiState.update { 
-                        it.copy(detectedLinkPreview = preview, linkPreviewLoading = false)
-                    }
-                }
-                .onFailure {
-                    _uiState.update { it.copy(linkPreviewLoading = false) }
-                }
-        }
-    }
-
-    /**
-     * Fetch link preview for a single message and update it in the message list
-     */
-    private fun fetchLinkPreviewForMessage(message: MessageUiModel) {
-        // Skip if no URL or already has preview
-        if (message.linkPreview != null) return
-        
-        val url = LinkDetectionService.extractFirstUrl(message.content) ?: return
-        
-        viewModelScope.launch {
-            linkPreviewService.fetchLinkPreview(url)
-                .onSuccess { preview ->
-                    // Update the message with the fetched preview
-                    _dbMessages.update { current ->
-                        current.map { msg ->
-                            if (msg.id == message.id) msg.copy(linkPreview = preview) else msg
-                        }
-                    }
-                    // Also update optimistic messages if applicable
-                    _optimisticMessages.update { current ->
-                        current.map { msg ->
-                            if (msg.id == message.id) msg.copy(linkPreview = preview) else msg
-                        }
-                    }
-                }
-        }
-    }
-    
-    /**
-     * Fetch link previews for all messages containing URLs (batch processing)
-     */
-    private fun fetchLinkPreviewsForMessages(messages: List<MessageUiModel>) {
-        viewModelScope.launch {
-            messages.forEach { message ->
-                fetchLinkPreviewForMessage(message)
-            }
-        }
-    }
-
-    /**
      * Send media message with pending attachments
      */
     private fun sendMediaMessage() {
@@ -804,6 +744,14 @@ class DirectChatViewModel @Inject constructor(
                 }
                 
                 val content = caption ?: uploadedUrls.first()
+                
+                // DEBUG: Log image message sending details
+                android.util.Log.d("DirectChatViewModel", "=== SENDING IMAGE MESSAGE ===")
+                android.util.Log.d("DirectChatViewModel", "Message type: $type")
+                android.util.Log.d("DirectChatViewModel", "Content: $content")
+                android.util.Log.d("DirectChatViewModel", "Uploaded URLs: $uploadedUrls")
+                android.util.Log.d("DirectChatViewModel", "Pending attachments count: ${pending.size}")
+                
                 chatRepository.sendMessage(
                     chatId = chatId,
                     senderId = senderId,
@@ -1073,6 +1021,14 @@ class DirectChatViewModel @Inject constructor(
     private fun Message.toUiModel(currentUserId: String?): MessageUiModel {
         val isMe = this.senderId == currentUserId
 
+        // DEBUG: Log message conversion details
+        android.util.Log.d("DirectChatViewModel", "=== CONVERTING MESSAGE TO UI MODEL ===")
+        android.util.Log.d("DirectChatViewModel", "Message ID: ${this.id}")
+        android.util.Log.d("DirectChatViewModel", "Message type: ${this.messageType}")
+        android.util.Log.d("DirectChatViewModel", "Content: ${this.content}")
+        android.util.Log.d("DirectChatViewModel", "Attachments count: ${this.attachments?.size ?: 0}")
+        android.util.Log.d("DirectChatViewModel", "Is media message: ${this.isMediaMessage()}")
+
         // Map Reply Preview if exists
         val replyPreview = if (this.replyToId != null) {
             // In a real app, we'd need to fetch the original message or look it up in cache
@@ -1082,6 +1038,7 @@ class DirectChatViewModel @Inject constructor(
 
         // Handle attachments: Use existing list OR create synthetic one from content if it's a media message
         val uiAttachments = if (!this.attachments.isNullOrEmpty()) {
+            android.util.Log.d("DirectChatViewModel", "Using existing attachments: ${this.attachments.size}")
             this.attachments.map {
                 AttachmentUiModel(
                     id = it.id,
@@ -1092,8 +1049,9 @@ class DirectChatViewModel @Inject constructor(
                     fileSize = it.fileSize
                 )
             }
-        } else if (this.isMediaMessage() && this.content.startsWith("http")) {
-            // Synthetic attachment from content URL
+        } else if (this.isMediaMessage()) {
+            android.util.Log.d("DirectChatViewModel", "Creating synthetic attachment from content for media message")
+            // Create synthetic attachment for any media message, regardless of URL format
             listOf(AttachmentUiModel(
                 id = this.id, // Use message ID for attachment ID
                 url = this.content,
@@ -1103,8 +1061,11 @@ class DirectChatViewModel @Inject constructor(
                 thumbnailUrl = null // No thumbnail available
             ))
         } else {
+            android.util.Log.d("DirectChatViewModel", "No attachments found for message")
             emptyList()
         }
+
+        android.util.Log.d("DirectChatViewModel", "Final UI attachments count: ${uiAttachments.size}")
 
         return MessageUiModel(
             id = this.id,
@@ -1304,6 +1265,20 @@ class DirectChatViewModel @Inject constructor(
                 com.synapse.social.studioasinc.chat.ActiveStatusManager.PresenceListener {
                 override fun onPresenceChanged(userId: String, presence: com.synapse.social.studioasinc.chat.ActiveStatusManager.UserPresence) {}
             })
+        }
+    }
+
+    /**
+     * Set screen active state for read receipt management
+     */
+    fun setScreenActive(isActive: Boolean) {
+        _isScreenActive.value = isActive
+        
+        // Mark messages as read when screen becomes active
+        if (isActive && currentChatId != null && currentUserId != null) {
+            viewModelScope.launch {
+                chatRepository.markMessagesAsRead(currentChatId!!, currentUserId!!)
+            }
         }
     }
 

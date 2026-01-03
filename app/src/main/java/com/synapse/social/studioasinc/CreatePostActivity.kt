@@ -6,7 +6,9 @@ import androidx.activity.viewModels
 import com.synapse.social.studioasinc.ui.createpost.CreatePostScreen
 import com.synapse.social.studioasinc.ui.createpost.CreatePostViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CreatePostActivity : BaseActivity() {
 
     private val viewModel: CreatePostViewModel by viewModels()

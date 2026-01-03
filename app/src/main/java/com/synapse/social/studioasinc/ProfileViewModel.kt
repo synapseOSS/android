@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.synapse.social.studioasinc.data.local.AppDatabase
+import com.synapse.social.studioasinc.data.repository.PostRepository
 import com.synapse.social.studioasinc.model.User
 import com.synapse.social.studioasinc.model.Post
 import com.synapse.social.studioasinc.model.Follow
@@ -17,12 +17,18 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import com.synapse.social.studioasinc.util.ProfileDebugHelper
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
  * ViewModel for managing profile data and operations
  * Uses direct Supabase calls without wrapper services
  */
-class ProfileViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    application: Application,
+    private val postRepository: PostRepository
+) : AndroidViewModel(application) {
 
     private val client = SupabaseClient.client
 
@@ -149,9 +155,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 _userPosts.value = State.Loading
-                val postRepository = com.synapse.social.studioasinc.data.repository.PostRepository(
-                    AppDatabase.getDatabase(getApplication()).postDao()
-                )
                 postRepository.getUserPosts(uid)
                     .onSuccess { posts ->
                         _userPosts.value = State.Success(posts)
