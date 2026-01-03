@@ -16,43 +16,39 @@ object TimeUtils {
             timeDiff < 60000 -> {
                 val seconds = (timeDiff / 1000).toLong()
                 if (seconds < 2) {
-                    textView.text = "1 ${context.getString(R.string.seconds_ago)}"
+                    textView.text = "1s"
                 } else {
-                    textView.text = "$seconds ${context.getString(R.string.seconds_ago)}"
+                    textView.text = "${seconds}s"
                 }
             }
             timeDiff < (60 * 60000) -> {
                 val minutes = (timeDiff / 60000).toLong()
-                if (minutes < 2) {
-                    textView.text = "1 ${context.getString(R.string.minutes_ago)}"
-                } else {
-                    textView.text = "$minutes ${context.getString(R.string.minutes_ago)}"
-                }
+                textView.text = "${minutes}m"
             }
             timeDiff < (24 * 60 * 60000) -> {
                 val hours = (timeDiff / (60 * 60000)).toLong()
-                textView.text = "$hours ${context.getString(R.string.hours_ago)}"
+                textView.text = "${hours}h"
             }
             timeDiff < (7 * 24 * 60 * 60000) -> {
                 val days = (timeDiff / (24 * 60 * 60000)).toLong()
-                textView.text = "$days ${context.getString(R.string.days_ago)}"
+                textView.text = "${days}d"
             }
             else -> {
-                c2.timeInMillis = currentTime.toLong()
-                textView.text = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(c2.time)
+                val weeks = (timeDiff / (7 * 24 * 60 * 60000)).toLong()
+                textView.text = "${weeks}w"
             }
         }
     }
 
     /**
-     * Format timestamp to relative time string (e.g., "2h ago", "3d ago")
+     * Format timestamp to relative time string (e.g., "2h", "3d")
      */
     fun formatTimestamp(timestamp: Long, now: Long = System.currentTimeMillis()): String {
         val diff = now - timestamp
 
         return when {
-            diff < 0 -> "Just now"
-            diff < 60_000 -> "Just now"
+            diff < 0 -> "1s" // Future time? treat as just now
+            diff < 60_000 -> "${(diff / 1000).coerceAtLeast(1)}s"
             diff < 3600_000 -> "${diff / 60_000}m"
             diff < 86400_000 -> "${diff / 3600_000}h"
             diff < 604800_000 -> "${diff / 86400_000}d"
@@ -65,10 +61,10 @@ object TimeUtils {
             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
             }
-            val timestamp = sdf.parse(isoTimestamp.substringBefore('+').substringBefore('Z'))?.time ?: return "Just now"
+            val timestamp = sdf.parse(isoTimestamp.substringBefore('+').substringBefore('Z'))?.time ?: return "1s"
             formatTimestamp(timestamp)
         } catch (e: Exception) {
-            "Just now"
+            "1s"
         }
     }
 }

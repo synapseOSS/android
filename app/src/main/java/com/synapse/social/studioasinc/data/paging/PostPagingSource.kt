@@ -33,7 +33,7 @@ class PostPagingSource(
                         columns = Columns.raw("""
                             *,
                             users!posts_author_uid_fkey(username, avatar, verify),
-                            latest_comments:comments(id, comment, user_id, created_at, users(username))
+                            latest_comments:comments(id, content, user_id, created_at, users(username))
                         """.trimIndent())
                     ) {
                         order("timestamp", order = Order.DESCENDING)
@@ -61,7 +61,8 @@ class PostPagingSource(
                         .maxByOrNull { it["created_at"]?.jsonPrimitive?.contentOrNull ?: "" }
 
                     if (latestComment != null) {
-                        post.latestCommentText = latestComment["comment"]?.jsonPrimitive?.contentOrNull
+                        // Fixed: Map 'content' column to latestCommentText
+                        post.latestCommentText = latestComment["content"]?.jsonPrimitive?.contentOrNull
                         val commentUser = latestComment["users"]?.jsonObject
                         post.latestCommentAuthor = commentUser?.get("username")?.jsonPrimitive?.contentOrNull
                     }

@@ -57,7 +57,7 @@ data class CommentUserDto(
 @Serializable
 data class CommentSelectDto(
     val id: String,
-    val comment: String? = null,
+    @SerialName("content") val comment: String? = null, // Mapped to 'content' column
     @SerialName("user_id") val userId: String,
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("users") val user: CommentUserDto? = null

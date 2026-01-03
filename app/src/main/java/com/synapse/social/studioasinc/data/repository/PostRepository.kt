@@ -223,12 +223,13 @@ class PostRepository @Inject constructor(
     suspend fun refreshPosts(page: Int, pageSize: Int): Result<Unit> {
         return try {
             val offset = page * pageSize
+            // Updated query to fetch 'content' column for comments
             val response = client.from("posts")
                 .select(
                     columns = Columns.raw("""
                         *,
                         users!posts_author_uid_fkey(uid, username, avatar, verify),
-                        latest_comments:comments(id, comment, user_id, created_at, users(username))
+                        latest_comments:comments(id, content, user_id, created_at, users(username))
                     """.trimIndent())
                 ) {
                     range(offset.toLong(), (offset + pageSize - 1).toLong())
@@ -306,12 +307,13 @@ class PostRepository @Inject constructor(
 
     suspend fun getUserPosts(userId: String): Result<List<Post>> = withContext(Dispatchers.IO) {
         try {
+            // Updated query to fetch 'content' column for comments
             val response = client.from("posts")
                 .select(
                     columns = Columns.raw("""
                         *,
                         users!posts_author_uid_fkey(uid, username, avatar, verify),
-                        latest_comments:comments(id, comment, user_id, created_at, users(username))
+                        latest_comments:comments(id, content, user_id, created_at, users(username))
                     """.trimIndent())
                 ) {
                     filter { eq("author_uid", userId) }
