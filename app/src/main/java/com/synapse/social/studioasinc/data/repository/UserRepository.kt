@@ -1,9 +1,9 @@
 package com.synapse.social.studioasinc.data.repository
 
-import com.synapse.social.studioasinc.SupabaseClient
-import com.synapse.social.studioasinc.data.local.UserDao
-import com.synapse.social.studioasinc.model.User
-import com.synapse.social.studioasinc.model.UserProfile
+import com.synapse.social.studioasinc.core.network.SupabaseClient
+import com.synapse.social.studioasinc.data.local.database.UserDao
+import com.synapse.social.studioasinc.domain.model.User
+import com.synapse.social.studioasinc.domain.model.UserProfile
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

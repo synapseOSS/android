@@ -1,11 +1,11 @@
 package com.synapse.social.studioasinc.data.repository
 
 import android.util.Log
-import com.synapse.social.studioasinc.SupabaseClient
-import com.synapse.social.studioasinc.data.local.CommentDao
-import com.synapse.social.studioasinc.data.local.CommentEntity
+import com.synapse.social.studioasinc.core.network.SupabaseClient
+import com.synapse.social.studioasinc.data.local.database.CommentDao
+import com.synapse.social.studioasinc.data.local.database.CommentEntity
 import com.synapse.social.studioasinc.data.repository.CommentMapper
-import com.synapse.social.studioasinc.model.*
+import com.synapse.social.studioasinc.domain.model.*
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
@@ -518,7 +518,7 @@ class CommentRepository(private val commentDao: CommentDao) {
     ) {
         try {
             // Extract mentions from the comment content
-            val mentionedUsers = com.synapse.social.studioasinc.util.MentionParser.extractMentions(content)
+            val mentionedUsers = com.synapse.social.studioasinc.core.util.MentionParser.extractMentions(content)
             
             if (mentionedUsers.contains("syra")) {
                 Log.d(TAG, "Syra mentioned in comment - calling mention handler")

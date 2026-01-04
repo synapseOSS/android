@@ -1,16 +1,16 @@
 package com.synapse.social.studioasinc.data.repository
 
-import com.synapse.social.studioasinc.SupabaseClient
-import com.synapse.social.studioasinc.data.local.PostDao
-import com.synapse.social.studioasinc.data.local.PostEntity
+import com.synapse.social.studioasinc.core.network.SupabaseClient
+import com.synapse.social.studioasinc.data.local.database.PostDao
+import com.synapse.social.studioasinc.data.local.database.PostEntity
 import com.synapse.social.studioasinc.data.repository.PostMapper
-import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.model.PollOption
-import com.synapse.social.studioasinc.model.ReactionType
-import com.synapse.social.studioasinc.model.UserReaction
-import com.synapse.social.studioasinc.model.MediaItem
-import com.synapse.social.studioasinc.model.MediaType
-import com.synapse.social.studioasinc.util.ImageLoader
+import com.synapse.social.studioasinc.domain.model.Post
+import com.synapse.social.studioasinc.domain.model.PollOption
+import com.synapse.social.studioasinc.domain.model.ReactionType
+import com.synapse.social.studioasinc.domain.model.UserReaction
+import com.synapse.social.studioasinc.domain.model.MediaItem
+import com.synapse.social.studioasinc.domain.model.MediaType
+import com.synapse.social.studioasinc.core.util.ImageLoader
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from
 import io.ktor.client.statement.bodyAsText
@@ -527,7 +527,7 @@ class PostRepository @Inject constructor(
     ) {
         try {
             // Extract mentions from the post content
-            val mentionedUsers = com.synapse.social.studioasinc.util.MentionParser.extractMentions(content)
+            val mentionedUsers = com.synapse.social.studioasinc.core.util.MentionParser.extractMentions(content)
             
             if (mentionedUsers.contains("syra")) {
                 android.util.Log.d(TAG, "Syra mentioned in post - calling mention handler")

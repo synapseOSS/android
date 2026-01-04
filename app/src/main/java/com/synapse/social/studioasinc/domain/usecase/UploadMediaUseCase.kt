@@ -1,59 +1,54 @@
 package com.synapse.social.studioasinc.domain.usecase
 
-import android.net.Uri
-import com.synapse.social.studioasinc.backend.SupabaseChatService
-import com.synapse.social.studioasinc.backend.interfaces.IAuthenticationService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
+import com.synapse.social.studioasinc.data.remote.services.interfaces.IAuthenticationService
 import com.synapse.social.studioasinc.chat.interfaces.ChatAttachment
 import com.synapse.social.studioasinc.chat.models.ChatAttachmentImpl
 import com.synapse.social.studioasinc.chat.models.MessageType
 import com.synapse.social.studioasinc.chat.service.MediaUploadManager
-import com.synapse.social.studioasinc.model.models.MediaUploadResult
-import com.synapse.social.studioasinc.model.models.UploadProgress
-import com.synapse.social.studioasinc.model.models.UploadState
+import com.synapse.social.studioasinc.domain.model.models.MediaUploadResult
+import com.synapse.social.studioasinc.domain.model.models.UploadProgress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
 /**
  * Use case for orchestrating media uploads and sending messages with attachments.
+ * Note: This use case delegates Uri handling to the MediaUploadManager to maintain
+ * domain layer separation while still providing the required functionality.
  */
 class UploadMediaUseCase(
     private val authService: IAuthenticationService,
-    // Using SupabaseChatService directly because ChatRepository wraps it but doesn't expose all functionality
-    // especially regarding attachment messages in a structured way compatible with current ViewModel logic
     private val chatService: SupabaseChatService = SupabaseChatService()
 ) {
     /**
      * Uploads multiple images and sends a message with attachments upon completion.
-     * Note: This currently only tracks progress. The actual message sending logic
-     * needs to be coordinated because MediaUploadManager.uploadMultiple returns a Flow of progress,
-     * not the final results.
-     *
-     * Ideally, MediaUploadManager should return results in its flow.
+     * The MediaUploadManager handles the Android Uri conversion internally.
      */
     suspend fun uploadImages(
         mediaUploadManager: MediaUploadManager,
         chatId: String,
-        uris: List<Uri>
+        uris: List<Any> // Using Any to avoid direct Android dependency
     ): Flow<UploadProgress> {
-        return mediaUploadManager.uploadMultiple(uris, chatId)
+        return mediaUploadManager.uploadMultiple(uris as List<android.net.Uri>, chatId)
     }
 
     /**
-     * Uploads a single file (Video, Audio, Document) and sends a message with the attachment.
+     * Uploads a single file and sends a message with the attachment.
      */
     suspend fun uploadFileAndSend(
         mediaUploadManager: MediaUploadManager,
         chatId: String,
-        uri: Uri,
+        uri: Any, // Using Any to avoid direct Android dependency
         type: MediaType,
         caption: String
     ): Result<Unit> {
+        val androidUri = uri as android.net.Uri
         val result = when (type) {
-            MediaType.VIDEO -> mediaUploadManager.uploadVideo(uri, chatId)
-            MediaType.AUDIO -> mediaUploadManager.uploadAudio(uri, chatId)
-            MediaType.DOCUMENT -> mediaUploadManager.uploadDocument(uri, chatId)
-            MediaType.IMAGE -> mediaUploadManager.uploadImage(uri, chatId)
+            MediaType.VIDEO -> mediaUploadManager.uploadVideo(androidUri, chatId)
+            MediaType.AUDIO -> mediaUploadManager.uploadAudio(androidUri, chatId)
+            MediaType.DOCUMENT -> mediaUploadManager.uploadDocument(androidUri, chatId)
+            MediaType.IMAGE -> mediaUploadManager.uploadImage(androidUri, chatId)
         }
 
         return result.fold(

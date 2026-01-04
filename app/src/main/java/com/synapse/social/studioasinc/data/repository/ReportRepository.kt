@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.data.repository
 
 import android.util.Log
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.SerialName

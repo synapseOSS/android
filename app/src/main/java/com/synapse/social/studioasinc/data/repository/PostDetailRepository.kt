@@ -1,8 +1,8 @@
 package com.synapse.social.studioasinc.data.repository
 
 import android.util.Log
-import com.synapse.social.studioasinc.SupabaseClient
-import com.synapse.social.studioasinc.model.*
+import com.synapse.social.studioasinc.core.network.SupabaseClient
+import com.synapse.social.studioasinc.domain.model.*
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns

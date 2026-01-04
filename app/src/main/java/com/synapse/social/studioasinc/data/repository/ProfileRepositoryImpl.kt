@@ -1,11 +1,11 @@
 package com.synapse.social.studioasinc.data.repository
 
 import com.synapse.social.studioasinc.data.model.UserProfile
-import com.synapse.social.studioasinc.SupabaseClient
-import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.model.MediaItem
-import com.synapse.social.studioasinc.model.MediaType
-import com.synapse.social.studioasinc.model.PollOption
+import com.synapse.social.studioasinc.core.network.SupabaseClient
+import com.synapse.social.studioasinc.domain.model.Post
+import com.synapse.social.studioasinc.domain.model.MediaItem
+import com.synapse.social.studioasinc.domain.model.MediaType
+import com.synapse.social.studioasinc.domain.model.PollOption
 import com.synapse.social.studioasinc.ui.profile.utils.NetworkOptimizer
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
@@ -270,7 +270,7 @@ class ProfileRepositoryImpl : ProfileRepository {
         Result.failure(e)
     }
 
-    override suspend fun getProfilePosts(userId: String, limit: Int, offset: Int): Result<List<com.synapse.social.studioasinc.model.Post>> = try {
+    override suspend fun getProfilePosts(userId: String, limit: Int, offset: Int): Result<List<com.synapse.social.studioasinc.domain.model.Post>> = try {
         val response = client.from("posts").select(
             columns = Columns.raw("*, users!posts_author_uid_fkey($KEY_UID, $KEY_USERNAME, $KEY_AVATAR, $KEY_VERIFY)")
         ) { 

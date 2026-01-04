@@ -1,9 +1,9 @@
 package com.synapse.social.studioasinc.data.repository
 
-import com.synapse.social.studioasinc.model.MediaItem
-import com.synapse.social.studioasinc.model.MediaType
-import com.synapse.social.studioasinc.model.PollOption
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.domain.model.MediaItem
+import com.synapse.social.studioasinc.domain.model.MediaType
+import com.synapse.social.studioasinc.domain.model.PollOption
+import com.synapse.social.studioasinc.domain.model.Post
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

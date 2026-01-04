@@ -19,7 +19,7 @@
 		android:allowBackup="false"
 		android:icon="@mipmap/ic_launcher"
 		android:label="@string/app_name"
-		android:name=".SynapseApplication"
+		android:name=".core.SynapseApplication"
 		android:requestLegacyExternalStorage="true"
 		android:usesCleartextTraffic="false"
 		android:theme="@style/AppTheme"
