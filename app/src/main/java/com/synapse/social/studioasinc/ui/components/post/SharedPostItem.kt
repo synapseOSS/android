@@ -3,9 +3,9 @@ package com.synapse.social.studioasinc.ui.components.post
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.domain.model.Post
 import com.synapse.social.studioasinc.data.model.UserProfile
-import com.synapse.social.studioasinc.model.ReactionType
+import com.synapse.social.studioasinc.domain.model.ReactionType
 
 /**
  * A wrapper component that reduces code duplication in Features (Home, Profile).

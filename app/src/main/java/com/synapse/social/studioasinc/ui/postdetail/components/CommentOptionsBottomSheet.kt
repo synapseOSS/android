@@ -8,8 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.model.CommentAction
-import com.synapse.social.studioasinc.model.CommentWithUser
+import com.synapse.social.studioasinc.domain.model.CommentAction
+import com.synapse.social.studioasinc.domain.model.CommentWithUser
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

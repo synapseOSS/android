@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc.ui.chat
 
 import androidx.compose.ui.text.input.TextFieldValue
 import com.synapse.social.studioasinc.data.model.UserProfile
-import com.synapse.social.studioasinc.model.SearchResult
+import com.synapse.social.studioasinc.domain.model.SearchResult
 import com.synapse.social.studioasinc.domain.model.ChatThemePreset
 import com.synapse.social.studioasinc.domain.model.ChatWallpaper
 

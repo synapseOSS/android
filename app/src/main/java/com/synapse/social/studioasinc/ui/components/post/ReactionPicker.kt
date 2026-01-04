@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.synapse.social.studioasinc.model.ReactionType
+import com.synapse.social.studioasinc.domain.model.ReactionType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

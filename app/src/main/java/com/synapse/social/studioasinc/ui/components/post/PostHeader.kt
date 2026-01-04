@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.synapse.social.studioasinc.home.User
+import com.synapse.social.studioasinc.domain.model.User
 import com.synapse.social.studioasinc.ui.components.CircularAvatar
 import com.synapse.social.studioasinc.ui.components.GenderBadge
 import com.synapse.social.studioasinc.ui.components.VerifiedBadge
@@ -56,7 +56,7 @@ fun PostHeader(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (user.verify == "1") {
+                if (user.verify) {
                     VerifiedBadge()
                 }
                 user.gender?.let {

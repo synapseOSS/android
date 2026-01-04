@@ -11,7 +11,7 @@
 
 package com.synapse.social.studioasinc.core.util
 
-import com.synapse.social.studioasinc.model.Attachment
+import com.synapse.social.studioasinc.domain.model.Attachment
 import java.util.ArrayList
 import java.util.HashMap
 

@@ -18,9 +18,9 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.synapse.social.studioasinc.model.CommentAction
-import com.synapse.social.studioasinc.model.ReactionType
-import com.synapse.social.studioasinc.model.CommentWithUser
+import com.synapse.social.studioasinc.domain.model.CommentAction
+import com.synapse.social.studioasinc.domain.model.ReactionType
+import com.synapse.social.studioasinc.domain.model.CommentWithUser
 import com.synapse.social.studioasinc.ui.postdetail.components.*
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import com.synapse.social.studioasinc.ui.components.post.PostInteractionBar
@@ -28,7 +28,7 @@ import com.synapse.social.studioasinc.ui.components.post.PollContent
 import com.synapse.social.studioasinc.ui.components.post.PollOption
 import com.synapse.social.studioasinc.ui.components.post.PostOptionsBottomSheet
 import com.synapse.social.studioasinc.ui.components.post.ReactionPicker
-import com.synapse.social.studioasinc.home.User as HomeUser
+import com.synapse.social.studioasinc.domain.model.User as HomeUser
 import com.synapse.social.studioasinc.ui.components.MediaViewer
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -236,7 +236,7 @@ fun PostDetailScreen(
                                      uid = author.uid,
                                      username = author.username ?: "Unknown",
                                      avatar = author.avatar,
-                                     verify = if (author.isVerified == true) "1" else "0",
+                                     verify = author.isVerified == true,
                                      // Removed bio, location, website mapping as they don't match Home User definition
                                      // and aren't displayed in PostHeader anyway.
                                  )

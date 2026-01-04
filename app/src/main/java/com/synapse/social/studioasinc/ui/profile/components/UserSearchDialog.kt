@@ -16,7 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.domain.model.User
 import com.synapse.social.studioasinc.ui.components.CircularAvatar
 
 @OptIn(ExperimentalMaterial3Api::class)

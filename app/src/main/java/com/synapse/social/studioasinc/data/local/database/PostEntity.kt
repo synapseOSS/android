@@ -6,9 +6,9 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.synapse.social.studioasinc.model.MediaItem
-import com.synapse.social.studioasinc.model.PollOption
-import com.synapse.social.studioasinc.model.ReactionType
+import com.synapse.social.studioasinc.domain.model.MediaItem
+import com.synapse.social.studioasinc.domain.model.PollOption
+import com.synapse.social.studioasinc.domain.model.ReactionType
 
 @Entity(tableName = "posts")
 data class PostEntity(

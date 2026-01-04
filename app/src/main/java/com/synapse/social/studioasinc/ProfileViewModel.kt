@@ -6,10 +6,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.synapse.social.studioasinc.data.repository.PostRepository
-import com.synapse.social.studioasinc.model.User
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.domain.model.User
+import com.synapse.social.studioasinc.domain.model.Post
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.model.Follow
+import com.synapse.social.studioasinc.domain.model.Follow
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.auth.auth

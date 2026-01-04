@@ -5,8 +5,8 @@ import android.net.Uri
 import android.util.Log
 import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.data.remote.services.SupabaseStorageService
-import com.synapse.social.studioasinc.model.Chat
-import com.synapse.social.studioasinc.model.Message
+import com.synapse.social.studioasinc.domain.model.Chat
+import com.synapse.social.studioasinc.domain.model.Message
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

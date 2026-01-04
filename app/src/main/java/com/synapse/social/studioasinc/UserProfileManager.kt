@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc
 
 import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService
 import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
-import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.domain.model.User
 import io.github.jan.supabase.postgrest.query.filter.PostgrestFilterBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

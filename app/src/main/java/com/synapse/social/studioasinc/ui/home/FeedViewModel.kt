@@ -9,9 +9,9 @@ import androidx.paging.map
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.PostRepository
 import com.synapse.social.studioasinc.data.local.database.AppDatabase
-import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.model.ReactionType
-import com.synapse.social.studioasinc.home.User
+import com.synapse.social.studioasinc.domain.model.Post
+import com.synapse.social.studioasinc.domain.model.ReactionType
+import com.synapse.social.studioasinc.domain.model.User
 import com.synapse.social.studioasinc.ui.components.post.PostCardState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

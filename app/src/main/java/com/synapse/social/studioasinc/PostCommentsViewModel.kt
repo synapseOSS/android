@@ -8,9 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService
-import com.synapse.social.studioasinc.model.Comment
-import com.synapse.social.studioasinc.model.Reply
-import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.domain.model.Comment
+import com.synapse.social.studioasinc.domain.model.Reply
+import com.synapse.social.studioasinc.domain.model.User
 import com.synapse.social.studioasinc.core.util.CommentMediaUploader
 import io.github.jan.supabase.postgrest.query.filter.PostgrestFilterBuilder
 import kotlinx.coroutines.launch

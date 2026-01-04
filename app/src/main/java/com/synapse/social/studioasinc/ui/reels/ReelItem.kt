@@ -34,7 +34,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.domain.model.Post
 import com.synapse.social.studioasinc.ui.components.CircularAvatar
 
 @Composable

@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.presentation.editprofile
 
 import android.net.Uri
-import com.synapse.social.studioasinc.model.UserProfile
+import com.synapse.social.studioasinc.domain.model.UserProfile
 import kotlinx.serialization.Serializable
 
 data class EditProfileUiState(

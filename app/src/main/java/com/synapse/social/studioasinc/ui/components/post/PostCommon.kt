@@ -1,8 +1,8 @@
 package com.synapse.social.studioasinc.ui.components.post
 
-import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.model.ReactionType
-import com.synapse.social.studioasinc.home.User
+import com.synapse.social.studioasinc.domain.model.Post
+import com.synapse.social.studioasinc.domain.model.ReactionType
+import com.synapse.social.studioasinc.domain.model.User
 import com.synapse.social.studioasinc.data.model.UserProfile
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -36,7 +36,7 @@ object PostMapper {
             uid = post.authorUid,
             username = resolvedUsername,
             avatar = resolvedAvatar,
-            verify = if (resolvedVerified) "1" else "0"
+            verify = resolvedVerified
         )
 
         val mediaUrls = post.mediaItems?.mapNotNull { it.url } ?: listOfNotNull(post.postImage)
@@ -75,7 +75,7 @@ object PostMapper {
  */
 sealed class PostEvent {
     data class Liked(val postId: String, val isLiked: Boolean, val newLikeCount: Int) : PostEvent()
-    data class PollVoted(val postId: String, val optionIndex: Int, val pollOptions: List<com.synapse.social.studioasinc.model.PollOption>, val userVote: Int?) : PostEvent()
+    data class PollVoted(val postId: String, val optionIndex: Int, val pollOptions: List<com.synapse.social.studioasinc.domain.model.PollOption>, val userVote: Int?) : PostEvent()
     data class Deleted(val postId: String) : PostEvent()
     data class Updated(val post: Post) : PostEvent()
 }

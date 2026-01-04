@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.core.util
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.model.MessageDeliveryStatus
+import com.synapse.social.studioasinc.domain.model.MessageDeliveryStatus
 
 /**
  * Extension function to set message state icon based on delivery status

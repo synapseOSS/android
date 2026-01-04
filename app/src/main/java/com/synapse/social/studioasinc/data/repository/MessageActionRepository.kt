@@ -6,8 +6,8 @@ import android.util.Log
 import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
 import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService
-import com.synapse.social.studioasinc.model.MessageEdit
-import com.synapse.social.studioasinc.model.MessageForward
+import com.synapse.social.studioasinc.domain.model.MessageEdit
+import com.synapse.social.studioasinc.domain.model.MessageForward
 import com.synapse.social.studioasinc.core.util.RetryHandler
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns

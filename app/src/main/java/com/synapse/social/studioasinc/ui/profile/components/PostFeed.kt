@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import android.content.Intent
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.domain.model.Post
 import com.synapse.social.studioasinc.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)

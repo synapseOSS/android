@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.UserProfileManager
 import com.synapse.social.studioasinc.data.repository.AiRepository
-import com.synapse.social.studioasinc.model.AiPersonaConfig
+import com.synapse.social.studioasinc.domain.model.AiPersonaConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

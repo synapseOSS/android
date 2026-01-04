@@ -9,8 +9,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.synapse.social.studioasinc.model.MediaItem
-import com.synapse.social.studioasinc.model.MediaType
+import com.synapse.social.studioasinc.domain.model.MediaItem
+import com.synapse.social.studioasinc.domain.model.MediaType
 
 @Composable
 fun PostContent(

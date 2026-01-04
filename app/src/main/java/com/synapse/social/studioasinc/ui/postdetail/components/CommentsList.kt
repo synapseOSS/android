@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import com.synapse.social.studioasinc.model.CommentWithUser
-import com.synapse.social.studioasinc.model.CommentAction
+import com.synapse.social.studioasinc.domain.model.CommentWithUser
+import com.synapse.social.studioasinc.domain.model.CommentAction
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 
 @Composable

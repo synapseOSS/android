@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.ui.postdetail
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.synapse.social.studioasinc.data.repository.CommentRepository
-import com.synapse.social.studioasinc.model.CommentWithUser
+import com.synapse.social.studioasinc.domain.model.CommentWithUser
 
 class CommentPagingSource(
     private val repository: CommentRepository,

@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.AI.Gemini
 import com.synapse.social.studioasinc.UserProfileManager
 import com.synapse.social.studioasinc.data.repository.AiRepository
-import com.synapse.social.studioasinc.model.AiChatResponse
-import com.synapse.social.studioasinc.model.AiChatSession
+import com.synapse.social.studioasinc.domain.model.AiChatResponse
+import com.synapse.social.studioasinc.domain.model.AiChatSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

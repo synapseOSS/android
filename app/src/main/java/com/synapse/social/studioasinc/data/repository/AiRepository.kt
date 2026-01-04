@@ -1,10 +1,10 @@
 package com.synapse.social.studioasinc.data.repository
 
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.model.AiChatResponse
-import com.synapse.social.studioasinc.model.AiChatSession
-import com.synapse.social.studioasinc.model.AiPersonaConfig
-import com.synapse.social.studioasinc.model.AiSummary
+import com.synapse.social.studioasinc.domain.model.AiChatResponse
+import com.synapse.social.studioasinc.domain.model.AiChatSession
+import com.synapse.social.studioasinc.domain.model.AiPersonaConfig
+import com.synapse.social.studioasinc.domain.model.AiSummary
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order

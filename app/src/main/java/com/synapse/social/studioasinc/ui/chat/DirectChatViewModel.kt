@@ -13,8 +13,8 @@ import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.model.Message
-import com.synapse.social.studioasinc.model.Chat
+import com.synapse.social.studioasinc.domain.model.Message
+import com.synapse.social.studioasinc.domain.model.Chat
 import com.synapse.social.studioasinc.UserProfileManager
 import com.synapse.social.studioasinc.core.util.LinkDetectionService
 import kotlinx.coroutines.Job
@@ -34,7 +34,7 @@ import androidx.compose.ui.text.TextRange
 import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
 import com.synapse.social.studioasinc.AI.Gemini
 import com.synapse.social.studioasinc.data.repository.AiRepository
-import com.synapse.social.studioasinc.model.AiSummary
+import com.synapse.social.studioasinc.domain.model.AiSummary
 import com.synapse.social.studioasinc.domain.model.ChatThemePreset
 import com.synapse.social.studioasinc.domain.model.ChatWallpaper
 

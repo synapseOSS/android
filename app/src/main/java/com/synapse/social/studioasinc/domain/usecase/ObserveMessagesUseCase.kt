@@ -4,7 +4,7 @@ import com.synapse.social.studioasinc.data.local.database.ChatDao
 
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.model.Message
+import com.synapse.social.studioasinc.domain.model.Message
 import kotlinx.coroutines.flow.Flow
 
 /**

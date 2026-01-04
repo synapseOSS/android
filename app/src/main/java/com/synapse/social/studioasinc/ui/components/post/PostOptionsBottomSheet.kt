@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.domain.model.Post
 
 data class PostOption(
     val label: String,

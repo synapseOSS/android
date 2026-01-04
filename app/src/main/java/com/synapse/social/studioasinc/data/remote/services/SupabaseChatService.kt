@@ -19,7 +19,7 @@ import kotlinx.serialization.json.JsonNull
 import java.util.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
-import com.synapse.social.studioasinc.model.ChatAttachmentImpl
+import com.synapse.social.studioasinc.domain.model.ChatAttachmentImpl
 
 /**
  * Supabase Chat Service

@@ -2,8 +2,8 @@ package com.synapse.social.studioasinc.data.repository
 
 import android.util.Log
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.model.PollOption
-import com.synapse.social.studioasinc.model.PollOptionResult
+import com.synapse.social.studioasinc.domain.model.PollOption
+import com.synapse.social.studioasinc.domain.model.PollOptionResult
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns

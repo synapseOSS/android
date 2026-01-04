@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.synapse.social.studioasinc.model.PendingAction
+import com.synapse.social.studioasinc.domain.model.PendingAction
 import java.util.UUID
 
 /**

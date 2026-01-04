@@ -15,8 +15,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.model.PollOption
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.domain.model.PollOption
+import com.synapse.social.studioasinc.domain.model.Post
 import kotlin.math.roundToInt
 
 @Composable

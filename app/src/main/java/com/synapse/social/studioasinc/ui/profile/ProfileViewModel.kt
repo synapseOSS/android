@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.home.User
+import com.synapse.social.studioasinc.domain.model.Post
+import com.synapse.social.studioasinc.domain.model.User
 import com.synapse.social.studioasinc.ui.components.post.PostCardState
 import com.synapse.social.studioasinc.ui.components.post.PollOption
 import com.synapse.social.studioasinc.ui.components.post.PostEventBus
@@ -45,7 +45,7 @@ data class ProfileScreenState(
     val viewAsMode: ViewAsMode? = null,
     val viewAsUserName: String? = null,
     val hasStory: Boolean = false,
-    val searchResults: List<com.synapse.social.studioasinc.model.User> = emptyList(),
+    val searchResults: List<com.synapse.social.studioasinc.domain.model.User> = emptyList(),
     val isSearching: Boolean = false
 )
 
@@ -224,10 +224,10 @@ class ProfileViewModel(
     private val reactionRepository = com.synapse.social.studioasinc.data.repository.ReactionRepository()
 
     fun toggleLike(postId: String) {
-         reactToPost(postId, com.synapse.social.studioasinc.model.ReactionType.LIKE)
+         reactToPost(postId, com.synapse.social.studioasinc.domain.model.ReactionType.LIKE)
     }
 
-    fun reactToPost(postId: String, reactionType: com.synapse.social.studioasinc.model.ReactionType) {
+    fun reactToPost(postId: String, reactionType: com.synapse.social.studioasinc.domain.model.ReactionType) {
         // Find the post to toggle
         val post = _state.value.posts.filterIsInstance<Post>().find { it.id == postId } ?: return
         val currentReaction = post.userReaction // Unified source

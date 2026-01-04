@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.domain.model.User
 
 @Composable
 fun UserListItem(

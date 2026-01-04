@@ -13,7 +13,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.data.repository.*
-import com.synapse.social.studioasinc.model.*
+import com.synapse.social.studioasinc.domain.model.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

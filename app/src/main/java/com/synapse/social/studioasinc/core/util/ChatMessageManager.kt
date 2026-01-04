@@ -5,7 +5,7 @@ import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.model.Message
+import com.synapse.social.studioasinc.domain.model.Message
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -25,7 +25,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.domain.model.Post
 import com.synapse.social.studioasinc.ui.components.post.PostActions
 import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
 import com.synapse.social.studioasinc.ui.components.post.PostOptionsBottomSheet

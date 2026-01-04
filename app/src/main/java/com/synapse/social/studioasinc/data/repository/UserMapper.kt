@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.data.repository
 
 import com.synapse.social.studioasinc.data.local.database.UserEntity
-import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.domain.model.User
 
 object UserMapper {
 

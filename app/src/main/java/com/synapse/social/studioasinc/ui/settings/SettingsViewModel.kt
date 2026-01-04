@@ -13,7 +13,7 @@ import com.synapse.social.studioasinc.data.local.database.StorageConfig
 import com.synapse.social.studioasinc.data.local.database.SupabaseConfig
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.UserRepository
-import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.domain.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

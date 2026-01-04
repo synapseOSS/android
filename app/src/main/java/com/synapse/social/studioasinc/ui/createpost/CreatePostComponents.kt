@@ -27,9 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.model.MediaItem
-import com.synapse.social.studioasinc.model.MediaType
-import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.domain.model.MediaItem
+import com.synapse.social.studioasinc.domain.model.MediaType
+import com.synapse.social.studioasinc.domain.model.User
 
 @Composable
 fun UserHeader(

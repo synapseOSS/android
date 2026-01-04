@@ -8,7 +8,7 @@ import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseServi
 import com.synapse.social.studioasinc.ui.inbox.models.*
 import com.synapse.social.studioasinc.ui.deletion.MessageDeletionViewModel
 import com.synapse.social.studioasinc.data.model.deletion.DeletionType
-import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.domain.model.User
 import com.synapse.social.studioasinc.UserProfileManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

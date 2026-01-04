@@ -8,11 +8,11 @@ import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.data.repository.PostRepository
-import com.synapse.social.studioasinc.model.MediaItem
-import com.synapse.social.studioasinc.model.MediaType
-import com.synapse.social.studioasinc.model.PollOption
-import com.synapse.social.studioasinc.model.Post
-import com.synapse.social.studioasinc.model.User
+import com.synapse.social.studioasinc.domain.model.MediaItem
+import com.synapse.social.studioasinc.domain.model.MediaType
+import com.synapse.social.studioasinc.domain.model.PollOption
+import com.synapse.social.studioasinc.domain.model.Post
+import com.synapse.social.studioasinc.domain.model.User
 import com.synapse.social.studioasinc.core.util.FileUtils
 import com.synapse.social.studioasinc.core.util.MediaUploadManager
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -561,7 +561,7 @@ class MessageActionsViewModel(private val context: Context) : ViewModel() {
      * Get all pending actions from the queue
      * @return List of pending actions
      */
-    fun getPendingActions(): List<com.synapse.social.studioasinc.model.PendingAction> {
+    fun getPendingActions(): List<com.synapse.social.studioasinc.domain.model.PendingAction> {
         return actionQueue.getAll()
     }
 
@@ -642,12 +642,12 @@ class MessageActionsViewModel(private val context: Context) : ViewModel() {
      * @param action The PendingAction to process
      * @return true if successful, false otherwise
      */
-    private suspend fun processAction(action: com.synapse.social.studioasinc.model.PendingAction): Boolean {
+    private suspend fun processAction(action: com.synapse.social.studioasinc.domain.model.PendingAction): Boolean {
         return try {
             Log.d(TAG, "Processing queued action - ActionId: ${action.id}, Type: ${action.actionType}, MessageId: ${action.messageId}, RetryCount: ${action.retryCount}")
 
             when (action.actionType) {
-                com.synapse.social.studioasinc.model.PendingAction.ActionType.EDIT -> {
+                com.synapse.social.studioasinc.domain.model.PendingAction.ActionType.EDIT -> {
                     val newContent = action.parameters["newContent"] as? String
                     if (newContent != null) {
                         val result = repository.editMessage(action.messageId, newContent)
@@ -663,7 +663,7 @@ class MessageActionsViewModel(private val context: Context) : ViewModel() {
                     }
                 }
                 
-                com.synapse.social.studioasinc.model.PendingAction.ActionType.DELETE -> {
+                com.synapse.social.studioasinc.domain.model.PendingAction.ActionType.DELETE -> {
                     val deleteForEveryone = action.parameters["deleteForEveryone"] as? Boolean ?: false
                     val result = if (deleteForEveryone) {
                         repository.deleteMessageForEveryone(action.messageId)
@@ -678,7 +678,7 @@ class MessageActionsViewModel(private val context: Context) : ViewModel() {
                     result.isSuccess
                 }
                 
-                com.synapse.social.studioasinc.model.PendingAction.ActionType.FORWARD -> {
+                com.synapse.social.studioasinc.domain.model.PendingAction.ActionType.FORWARD -> {
                     @Suppress("UNCHECKED_CAST")
                     val messageData = action.parameters["messageData"] as? Map<String, Any?>
                     @Suppress("UNCHECKED_CAST")

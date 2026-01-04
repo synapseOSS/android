@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.webkit.MimeTypeMap
-import com.synapse.social.studioasinc.model.models.MediaMetadata
+import com.synapse.social.studioasinc.domain.model.models.MediaMetadata
 
 /**
  * MediaValidator validates media files for type and size constraints.

@@ -36,7 +36,7 @@ import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
 import com.synapse.social.studioasinc.ui.profile.animations.crossfadeContent
 import com.synapse.social.studioasinc.ui.profile.components.*
 import com.synapse.social.studioasinc.ui.profile.components.UserSearchDialog
-import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.domain.model.Post
 import kotlinx.coroutines.delay
 
 /**
@@ -607,7 +607,7 @@ private fun ProfileContent(
 
         // Posts items - added directly to parent LazyColumn
         if (state.contentFilter == ProfileContentFilter.POSTS && state.posts.isNotEmpty()) {
-            val posts = state.posts.filterIsInstance<com.synapse.social.studioasinc.model.Post>()
+            val posts = state.posts.filterIsInstance<com.synapse.social.studioasinc.domain.model.Post>()
             items(posts, key = { it.id }) { post ->
                 // Context for profile actions
                 val currentProfile = (state.profileState as? ProfileUiState.Success)?.profile
@@ -658,7 +658,7 @@ private fun ProfileContent(
  */
 @Composable
 private fun AnimatedPostCard(
-    post: com.synapse.social.studioasinc.model.Post,
+    post: com.synapse.social.studioasinc.domain.model.Post,
     currentProfile: com.synapse.social.studioasinc.data.model.UserProfile?,
     actions: PostActions
 ) {

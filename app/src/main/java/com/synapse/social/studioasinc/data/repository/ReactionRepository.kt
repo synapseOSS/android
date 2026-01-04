@@ -2,8 +2,8 @@ package com.synapse.social.studioasinc.data.repository
 
 import android.util.Log
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.model.CommentReaction
-import com.synapse.social.studioasinc.model.ReactionType
+import com.synapse.social.studioasinc.domain.model.CommentReaction
+import com.synapse.social.studioasinc.domain.model.ReactionType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
@@ -163,7 +163,7 @@ class ReactionRepository {
      * Batch fetch reactions for multiple posts to avoid N+1 queries.
      * Efficiently populates a list of posts with their reaction summaries and current user status.
      */
-    suspend fun populatePostReactions(posts: List<com.synapse.social.studioasinc.model.Post>): List<com.synapse.social.studioasinc.model.Post> = withContext(Dispatchers.IO) {
+    suspend fun populatePostReactions(posts: List<com.synapse.social.studioasinc.domain.model.Post>): List<com.synapse.social.studioasinc.domain.model.Post> = withContext(Dispatchers.IO) {
         if (posts.isEmpty()) return@withContext posts
 
         try {

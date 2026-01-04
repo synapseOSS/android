@@ -5,7 +5,7 @@ import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.data.local.database.CommentDao
 import com.synapse.social.studioasinc.data.local.database.CommentEntity
 import com.synapse.social.studioasinc.data.repository.CommentMapper
-import com.synapse.social.studioasinc.model.*
+import com.synapse.social.studioasinc.domain.model.*
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.from

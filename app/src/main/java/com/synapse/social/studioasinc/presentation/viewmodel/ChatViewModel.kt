@@ -11,8 +11,8 @@ import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.domain.usecase.*
-import com.synapse.social.studioasinc.model.Chat
-import com.synapse.social.studioasinc.model.Message
+import com.synapse.social.studioasinc.domain.model.Chat
+import com.synapse.social.studioasinc.domain.model.Message
 import com.synapse.social.studioasinc.chat.models.TypingStatus
 import com.synapse.social.studioasinc.chat.models.ReadReceiptEvent
 import com.synapse.social.studioasinc.chat.models.ChatMessageImpl
@@ -27,8 +27,8 @@ import com.synapse.social.studioasinc.chat.service.MediaUploadManager
 import com.synapse.social.studioasinc.chat.service.MessageSearchService
 import com.synapse.social.studioasinc.chat.service.ChatBackupService
 import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
-import com.synapse.social.studioasinc.model.models.UploadProgress
-import com.synapse.social.studioasinc.model.models.MediaUploadResult
+import com.synapse.social.studioasinc.domain.model.models.UploadProgress
+import com.synapse.social.studioasinc.domain.model.models.MediaUploadResult
 import com.synapse.social.studioasinc.core.util.PaginationManager
 import com.synapse.social.studioasinc.core.util.ScrollPositionState
 import kotlinx.coroutines.flow.launchIn
@@ -651,7 +651,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     
                     // If upload completed successfully, create message with attachment
-                    if (progress.state == com.synapse.social.studioasinc.model.models.UploadState.COMPLETED) {
+                    if (progress.state == com.synapse.social.studioasinc.domain.model.models.UploadState.COMPLETED) {
                         // The result is now available in UploadProgress
                         progress.result?.let { uploadResult ->
                             uploadMediaUseCase.sendMessageWithAttachment(chatId, uploadResult, caption)
@@ -667,9 +667,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     
                     // Remove from progress map if completed, failed, or cancelled
-                    if (progress.state == com.synapse.social.studioasinc.model.models.UploadState.COMPLETED ||
-                        progress.state == com.synapse.social.studioasinc.model.models.UploadState.FAILED ||
-                        progress.state == com.synapse.social.studioasinc.model.models.UploadState.CANCELLED) {
+                    if (progress.state == com.synapse.social.studioasinc.domain.model.models.UploadState.COMPLETED ||
+                        progress.state == com.synapse.social.studioasinc.domain.model.models.UploadState.FAILED ||
+                        progress.state == com.synapse.social.studioasinc.domain.model.models.UploadState.CANCELLED) {
                         viewModelScope.launch {
                             kotlinx.coroutines.delay(2000) // Keep visible for 2 seconds
                             _uploadProgress.update { currentProgress ->

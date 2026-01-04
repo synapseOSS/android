@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.data.repository.SearchRepository
 import com.synapse.social.studioasinc.data.repository.SearchRepositoryImpl
-import com.synapse.social.studioasinc.model.SearchResult
+import com.synapse.social.studioasinc.domain.model.SearchResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay

@@ -6,10 +6,10 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.webkit.MimeTypeMap
 import com.synapse.social.studioasinc.data.remote.services.SupabaseStorageService
-import com.synapse.social.studioasinc.model.models.MediaMetadata
-import com.synapse.social.studioasinc.model.models.MediaUploadResult
-import com.synapse.social.studioasinc.model.models.UploadProgress
-import com.synapse.social.studioasinc.model.models.UploadState
+import com.synapse.social.studioasinc.domain.model.models.MediaMetadata
+import com.synapse.social.studioasinc.domain.model.models.MediaUploadResult
+import com.synapse.social.studioasinc.domain.model.models.UploadProgress
+import com.synapse.social.studioasinc.domain.model.models.UploadState
 import com.synapse.social.studioasinc.core.util.ImageCompressor
 import com.synapse.social.studioasinc.core.util.ThumbnailGenerator
 import kotlinx.coroutines.CoroutineScope

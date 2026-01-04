@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.chat.MessageUiModel
-import com.synapse.social.studioasinc.model.SearchResult
+import com.synapse.social.studioasinc.domain.model.SearchResult
 import com.synapse.social.studioasinc.ui.components.mentions.MentionSuggestions
 import com.synapse.social.studioasinc.ui.chat.theme.ChatAnimations
 

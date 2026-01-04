@@ -1,18 +1,20 @@
 #!/bin/bash
 
-# Update backend imports to data.remote.services
-find /home/Ashik/android/app/src/main/java -name "*.kt" -exec sed -i 's/import com\.synapse\.social\.studioasinc\.backend\./import com.synapse.social.studioasinc.data.remote.services./g' {} \;
+# Update all import statements to use domain.model instead of model
+cd /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc
 
-# Update backend.interfaces imports to data.remote.services.interfaces
-find /home/Ashik/android/app/src/main/java -name "*.kt" -exec sed -i 's/import com\.synapse\.social\.studioasinc\.data\.remote\.services\.interfaces\./import com.synapse.social.studioasinc.data.remote.services.interfaces./g' {} \;
+echo "Updating import statements..."
 
-# Update backend.dto imports to data.remote.dto
-find /home/Ashik/android/app/src/main/java -name "*.kt" -exec sed -i 's/import com\.synapse\.social\.studioasinc\.data\.remote\.services\.dto\./import com.synapse.social.studioasinc.data.remote.dto./g' {} \;
+# Update imports from model to domain.model
+find . -name "*.kt" -exec sed -i 's/import com\.synapse\.social\.studioasinc\.model\./import com.synapse.social.studioasinc.domain.model./g' {} \;
 
-# Update data.local imports to data.local.database (but not data.local.database.* which should stay)
-find /home/Ashik/android/app/src/main/java -name "*.kt" -exec sed -i 's/import com\.synapse\.social\.studioasinc\.data\.local\.\([^d][^a][^t][^a][^b][^a][^s][^e]\)/import com.synapse.social.studioasinc.data.local.database.\1/g' {} \;
+# Update imports from home.User to domain.model.User
+find . -name "*.kt" -exec sed -i 's/import com\.synapse\.social\.studioasinc\.home\.User/import com.synapse.social.studioasinc.domain.model.User/g' {} \;
 
-# Handle specific cases for data.local.database imports that might have been double-converted
-find /home/Ashik/android/app/src/main/java -name "*.kt" -exec sed -i 's/import com\.synapse\.social\.studioasinc\.data\.local\.database\.database\./import com.synapse.social.studioasinc.data.local.database./g' {} \;
+# Update any remaining references to the old model package
+find . -name "*.kt" -exec sed -i 's/com\.synapse\.social\.studioasinc\.model\./com.synapse.social.studioasinc.domain.model./g' {} \;
 
-echo "Import statements updated successfully!"
+# Update any remaining references to home.User
+find . -name "*.kt" -exec sed -i 's/com\.synapse\.social\.studioasinc\.home\.User/com.synapse.social.studioasinc.domain.model.User/g' {} \;
+
+echo "Import statements updated successfully"
