@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc
+package com.synapse.social.studioasinc.feature.post
 
 import android.content.Context
 import android.net.Uri

@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc
+package com.synapse.social.studioasinc.feature.profile
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
