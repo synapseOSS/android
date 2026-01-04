@@ -11,6 +11,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import com.synapse.social.studioasinc.feature.auth.ui.models.PasswordStrength
 import com.synapse.social.studioasinc.feature.auth.ui.util.UsernameValidator
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * ViewModel for managing authentication UI state and business logic.
@@ -32,7 +34,8 @@ import kotlinx.coroutines.launch
  * @param authRepository Repository for authentication operations
  * @param sharedPreferences SharedPreferences for storing user preferences
  */
-class AuthViewModel(
+@HiltViewModel
+class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val usernameRepository: UsernameRepository,
     private val sharedPreferences: SharedPreferences
