@@ -4,7 +4,7 @@ import com.synapse.social.studioasinc.data.local.ChatDao
 
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.model.Message
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 
 /**
  * Use case for getting messages

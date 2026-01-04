@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.backend.GeminiAIService
 import com.synapse.social.studioasinc.backend.SupabaseChatService
 import com.synapse.social.studioasinc.data.repository.MessageActionRepository
-import com.synapse.social.studioasinc.util.ErrorHandler
-import com.synapse.social.studioasinc.util.NetworkUtil
+import com.synapse.social.studioasinc.core.util.ErrorHandler
+import com.synapse.social.studioasinc.core.util.NetworkUtil
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

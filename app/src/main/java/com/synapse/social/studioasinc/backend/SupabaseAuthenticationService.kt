@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.backend
 
 import android.content.Context
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.exceptions.RestException

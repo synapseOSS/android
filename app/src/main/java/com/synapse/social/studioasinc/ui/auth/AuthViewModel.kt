@@ -309,7 +309,7 @@ class AuthViewModel(
                         .putString("email", email)
                         .apply()
 
-                    val currentUser = com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()
+                    val currentUser = com.synapse.social.studioasinc.core.network.SupabaseClient.client.auth.currentUserOrNull()
                     if (currentUser?.emailConfirmedAt == null) {
                         sharedPreferences.edit()
                             .putString(PREF_KEY_VERIFICATION_EMAIL, email)

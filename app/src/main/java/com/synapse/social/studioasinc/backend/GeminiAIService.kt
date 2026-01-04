@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import com.synapse.social.studioasinc.BuildConfig
-import com.synapse.social.studioasinc.util.RetryHandler
+import com.synapse.social.studioasinc.core.util.RetryHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType

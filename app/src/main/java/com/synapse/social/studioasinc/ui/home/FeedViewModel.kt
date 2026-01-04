@@ -15,7 +15,7 @@ import com.synapse.social.studioasinc.home.User
 import com.synapse.social.studioasinc.ui.components.post.PostCardState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import com.synapse.social.studioasinc.util.ScrollPositionState
+import com.synapse.social.studioasinc.core.util.ScrollPositionState
 import com.synapse.social.studioasinc.ui.components.post.PostEventBus
 import com.synapse.social.studioasinc.ui.components.post.PostEvent
 import com.synapse.social.studioasinc.ui.components.post.PostMapper
@@ -233,7 +233,7 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Using direct Supabase client call for bookmarks as fallback
-                val client = com.synapse.social.studioasinc.SupabaseClient.client
+                val client = com.synapse.social.studioasinc.core.network.SupabaseClient.client
                 val currentUserId = authRepository.getCurrentUserId()
                 if (currentUserId != null) {
                     client.from("bookmarks").insert(mapOf(

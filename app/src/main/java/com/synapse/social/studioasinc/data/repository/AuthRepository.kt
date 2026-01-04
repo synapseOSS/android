@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.data.repository
 
 import android.net.Uri
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.providers.builtin.Email

@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.data.paging
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.data.repository.ReactionRepository
 import com.synapse.social.studioasinc.model.Post
 import io.github.jan.supabase.postgrest.query.Columns

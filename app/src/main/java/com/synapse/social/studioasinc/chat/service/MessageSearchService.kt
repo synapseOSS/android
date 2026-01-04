@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.chat.service
 
 import android.util.Log
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.model.Message
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers

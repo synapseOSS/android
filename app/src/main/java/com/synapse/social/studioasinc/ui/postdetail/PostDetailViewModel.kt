@@ -17,7 +17,7 @@ import com.synapse.social.studioasinc.model.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import io.github.jan.supabase.auth.auth
 
 class PostDetailViewModel(application: Application) : AndroidViewModel(application) {

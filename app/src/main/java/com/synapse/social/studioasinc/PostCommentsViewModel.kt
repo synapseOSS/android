@@ -11,7 +11,7 @@ import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import com.synapse.social.studioasinc.model.Comment
 import com.synapse.social.studioasinc.model.Reply
 import com.synapse.social.studioasinc.model.User
-import com.synapse.social.studioasinc.util.CommentMediaUploader
+import com.synapse.social.studioasinc.core.util.CommentMediaUploader
 import io.github.jan.supabase.postgrest.query.filter.PostgrestFilterBuilder
 import kotlinx.coroutines.launch
 

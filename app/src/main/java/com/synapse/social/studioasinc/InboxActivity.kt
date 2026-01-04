@@ -22,8 +22,8 @@ import com.synapse.social.studioasinc.ui.inbox.InboxScreen
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import com.synapse.social.studioasinc.ui.chat.ChatActivity
-import com.synapse.social.studioasinc.util.ActivityTransitions
-import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
+import com.synapse.social.studioasinc.core.util.ActivityTransitions
+import com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils
 
 /**
  * Activity for the Inbox screen.

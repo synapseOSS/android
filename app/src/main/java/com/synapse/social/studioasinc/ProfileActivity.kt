@@ -17,7 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.backend.SupabaseChatService
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.ui.profile.ProfileScreen
@@ -26,7 +26,7 @@ import com.synapse.social.studioasinc.ui.profile.ProfileViewModelFactory
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import com.synapse.social.studioasinc.ui.chat.ChatActivity
-import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
+import com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

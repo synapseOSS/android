@@ -64,7 +64,7 @@ class ReelsViewModel @Inject constructor(
     fun likeReel(reelId: String) {
         viewModelScope.launch {
              try {
-                 val client = com.synapse.social.studioasinc.SupabaseClient.client
+                 val client = com.synapse.social.studioasinc.core.network.SupabaseClient.client
                  val currentUserId = client.auth.currentUserOrNull()?.id as? String
                  if (currentUserId != null) {
                      postRepository.toggleReaction(reelId, currentUserId, com.synapse.social.studioasinc.model.ReactionType.LIKE)

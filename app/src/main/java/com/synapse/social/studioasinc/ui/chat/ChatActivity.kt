@@ -16,10 +16,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.chat.theme.ChatTheme
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
-import com.synapse.social.studioasinc.util.ActivityTransitions
-import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
-import com.synapse.social.studioasinc.util.finishWithPremiumTransition
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.util.ActivityTransitions
+import com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils
+import com.synapse.social.studioasinc.core.util.finishWithPremiumTransition
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 

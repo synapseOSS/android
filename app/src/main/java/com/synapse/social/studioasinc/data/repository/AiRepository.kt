@@ -1,6 +1,6 @@
 package com.synapse.social.studioasinc.data.repository
 
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.model.AiChatResponse
 import com.synapse.social.studioasinc.model.AiChatSession
 import com.synapse.social.studioasinc.model.AiPersonaConfig

@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
-import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
+import com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils
 
 /**
  * Activity Log Activity - Shows user's activity history

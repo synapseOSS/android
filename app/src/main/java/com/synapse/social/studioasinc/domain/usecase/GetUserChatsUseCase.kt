@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc.domain.usecase
 
 import com.synapse.social.studioasinc.data.local.ChatDao
 import com.synapse.social.studioasinc.data.repository.ChatRepository
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.model.Chat
 import kotlinx.coroutines.flow.Flow
 

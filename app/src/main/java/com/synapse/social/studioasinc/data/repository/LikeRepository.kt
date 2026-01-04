@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.data.repository
 
 import com.synapse.social.studioasinc.model.ReactionType
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 
 /**
  * @deprecated Use [PostRepository.toggleReaction] instead.

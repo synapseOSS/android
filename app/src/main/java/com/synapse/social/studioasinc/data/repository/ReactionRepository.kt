@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.data.repository
 
 import android.util.Log
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.model.CommentReaction
 import com.synapse.social.studioasinc.model.ReactionType
 import io.github.jan.supabase.auth.auth

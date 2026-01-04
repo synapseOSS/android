@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.chat.service
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.backend.SupabaseStorageService
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.model.Message

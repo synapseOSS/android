@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.chat.service
 
 import android.util.Log
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.chat.models.ReadReceiptEvent
 import com.synapse.social.studioasinc.chat.models.TypingStatus
 import io.github.jan.supabase.realtime.RealtimeChannel

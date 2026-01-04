@@ -68,7 +68,7 @@ fun PostCard(
         Column {
             PostHeader(
                 user = state.user,
-                timestamp = com.synapse.social.studioasinc.util.TimeUtils.getTimeAgo(state.post.publishDate ?: ""),
+                timestamp = com.synapse.social.studioasinc.core.util.TimeUtils.getTimeAgo(state.post.publishDate ?: ""),
                 onUserClick = onUserClick,
                 onOptionsClick = onOptionsClick
             )

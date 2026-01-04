@@ -14,7 +14,7 @@ import com.synapse.social.studioasinc.model.PollOption
 import com.synapse.social.studioasinc.model.Post
 import com.synapse.social.studioasinc.model.User
 import com.synapse.social.studioasinc.FileUtils
-import com.synapse.social.studioasinc.util.MediaUploadManager
+import com.synapse.social.studioasinc.core.util.MediaUploadManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

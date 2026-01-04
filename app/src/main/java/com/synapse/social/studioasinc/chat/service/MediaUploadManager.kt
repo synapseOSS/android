@@ -10,8 +10,8 @@ import com.synapse.social.studioasinc.model.models.MediaMetadata
 import com.synapse.social.studioasinc.model.models.MediaUploadResult
 import com.synapse.social.studioasinc.model.models.UploadProgress
 import com.synapse.social.studioasinc.model.models.UploadState
-import com.synapse.social.studioasinc.util.ImageCompressor
-import com.synapse.social.studioasinc.util.ThumbnailGenerator
+import com.synapse.social.studioasinc.core.util.ImageCompressor
+import com.synapse.social.studioasinc.core.util.ThumbnailGenerator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

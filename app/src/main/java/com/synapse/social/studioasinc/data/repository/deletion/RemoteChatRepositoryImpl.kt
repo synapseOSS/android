@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.data.model.deletion.DeletionOperation
 import com.synapse.social.studioasinc.data.model.deletion.OperationStatus
 import com.synapse.social.studioasinc.data.model.deletion.StorageType

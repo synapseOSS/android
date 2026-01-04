@@ -20,7 +20,7 @@ class SearchActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        com.synapse.social.studioasinc.util.EdgeToEdgeUtils.setupEdgeToEdgeActivity(this)
+        com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils.setupEdgeToEdgeActivity(this)
 
         // Handle intents
         chatMode = intent.getBooleanExtra("mode", false) || intent.getStringExtra("mode") == "chat"

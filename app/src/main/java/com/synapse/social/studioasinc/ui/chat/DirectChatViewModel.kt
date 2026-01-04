@@ -12,11 +12,11 @@ import com.synapse.social.studioasinc.backend.SupabaseStorageService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.model.Message
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.UserProfileManager
-import com.synapse.social.studioasinc.util.LinkDetectionService
+import com.synapse.social.studioasinc.core.util.LinkDetectionService
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -222,7 +222,7 @@ class DirectChatViewModel @Inject constructor(
                 _uiState.update { it.copy(connectionState = RealtimeConnectionState.Connecting) }
                 
                 // 2. Run diagnostics
-                com.synapse.social.studioasinc.util.ConnectionDiagnostics.runDiagnostics(getApplication())
+                com.synapse.social.studioasinc.core.util.ConnectionDiagnostics.runDiagnostics(getApplication())
                 
                 // 3. Cancel existing connection completely
                 realtimeJob?.cancel()

@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.synapse.social.studioasinc.backend.StorageException
 import com.synapse.social.studioasinc.backend.SupabaseStorageService
-import com.synapse.social.studioasinc.util.MediaCache
+import com.synapse.social.studioasinc.core.util.MediaCache
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow

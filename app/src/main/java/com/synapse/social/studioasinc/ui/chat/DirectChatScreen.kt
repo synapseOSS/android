@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.DisposableEffect
 import coil.compose.AsyncImage
-import com.synapse.social.studioasinc.util.FileUtils
+import com.synapse.social.studioasinc.core.util.FileUtils
 import com.synapse.social.studioasinc.ui.chat.components.ChatInputBar
 import com.synapse.social.studioasinc.ui.chat.components.MessageItem
 import com.synapse.social.studioasinc.ui.chat.components.ForwardMessageSheet
@@ -53,7 +53,7 @@ import com.synapse.social.studioasinc.ui.chat.components.topbar.ChatTopBar
 import com.synapse.social.studioasinc.ui.chat.components.topbar.SelectionModeTopBar
 import com.synapse.social.studioasinc.ui.chat.components.input.MediaPickerBottomSheet
 import com.synapse.social.studioasinc.ui.chat.RealtimeConnectionState
-import com.synapse.social.studioasinc.util.CallUtils
+import com.synapse.social.studioasinc.core.util.CallUtils
 import com.synapse.social.studioasinc.domain.model.WallpaperType
 import kotlinx.coroutines.launch
 

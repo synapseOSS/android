@@ -45,7 +45,7 @@ import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import com.synapse.social.studioasinc.HomeActivity
 import com.synapse.social.studioasinc.AuthActivity
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 
 class MainActivity : ComponentActivity() {
 

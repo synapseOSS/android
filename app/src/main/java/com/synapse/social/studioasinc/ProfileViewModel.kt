@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import com.synapse.social.studioasinc.data.repository.PostRepository
 import com.synapse.social.studioasinc.model.User
 import com.synapse.social.studioasinc.model.Post
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.model.Follow
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import com.synapse.social.studioasinc.util.ProfileDebugHelper
+import com.synapse.social.studioasinc.core.util.ProfileDebugHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

@@ -5,7 +5,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import com.synapse.social.studioasinc.util.EdgeToEdgeUtils
+import com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils
 
 private val LightColorScheme = lightColorScheme(
     primary = LightPrimary,

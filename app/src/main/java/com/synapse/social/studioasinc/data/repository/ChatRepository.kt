@@ -1,6 +1,6 @@
 package com.synapse.social.studioasinc.data.repository
 
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.backend.SupabaseChatService
 import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import com.synapse.social.studioasinc.data.local.ChatDao
@@ -114,7 +114,7 @@ class ChatRepository(
     ) {
         try {
             // Extract mentions from the message
-            val mentionedUsers = com.synapse.social.studioasinc.util.MentionParser.extractMentions(messageText)
+            val mentionedUsers = com.synapse.social.studioasinc.core.util.MentionParser.extractMentions(messageText)
             
             // Check if this is a DM with Syra or if Syra is mentioned
             val isDmWithSyra = chatId.contains("syra-ai-uid", ignoreCase = true)

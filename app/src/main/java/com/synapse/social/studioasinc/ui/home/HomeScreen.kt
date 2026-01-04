@@ -86,13 +86,13 @@ fun HomeScreen(
     )
 
     // Fetch user profile logic
-    val currentUser = com.synapse.social.studioasinc.SupabaseClient.client.auth.currentUserOrNull()
+    val currentUser = com.synapse.social.studioasinc.core.network.SupabaseClient.client.auth.currentUserOrNull()
     var userAvatarUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         if (currentUser != null) {
             try {
-                val result = com.synapse.social.studioasinc.SupabaseClient.client.from("users")
+                val result = com.synapse.social.studioasinc.core.network.SupabaseClient.client.from("users")
                     .select(columns = Columns.raw("avatar")) {
                         filter {
                             eq("uid", currentUser.id)

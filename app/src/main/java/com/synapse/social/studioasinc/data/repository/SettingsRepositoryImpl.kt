@@ -12,7 +12,7 @@ import com.synapse.social.studioasinc.ui.settings.NotificationCategory
 import com.synapse.social.studioasinc.ui.settings.NotificationPreferences
 import com.synapse.social.studioasinc.ui.settings.PrivacySettings
 import com.synapse.social.studioasinc.ui.settings.ProfileVisibility
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.data.model.AppUpdateInfo
 import com.synapse.social.studioasinc.ui.settings.ThemeMode
 import io.github.jan.supabase.postgrest.from

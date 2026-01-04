@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.model.CommentWithUser
 import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.ui.components.CircularAvatar
-import com.synapse.social.studioasinc.util.TimeUtils
+import com.synapse.social.studioasinc.core.util.TimeUtils
 import com.synapse.social.studioasinc.ui.components.mentions.MentionTextFormatter
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.*

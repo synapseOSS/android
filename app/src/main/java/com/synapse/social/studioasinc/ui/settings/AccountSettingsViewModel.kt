@@ -62,7 +62,7 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
             _isLoading.value = true
             try {
                 // Refresh session to ensure we have the latest identities from backend
-                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val supabaseClient = com.synapse.social.studioasinc.core.network.SupabaseClient.client
                 supabaseClient.auth.refreshCurrentSession()
 
                 val currentUser = supabaseClient.auth.currentUserOrNull()
@@ -98,7 +98,7 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
             _isLoading.value = true
             _error.value = null
             try {
-                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val supabaseClient = com.synapse.social.studioasinc.core.network.SupabaseClient.client
                 
                 when (provider) {
                     SocialProvider.GOOGLE -> {
@@ -135,7 +135,7 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
             _isLoading.value = true
             _error.value = null
             try {
-                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val supabaseClient = com.synapse.social.studioasinc.core.network.SupabaseClient.client
                 val currentUser = supabaseClient.auth.currentUserOrNull()
                 
                 if (currentUser != null) {
@@ -208,7 +208,7 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
                 }
 
                 // Get current user email
-                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val supabaseClient = com.synapse.social.studioasinc.core.network.SupabaseClient.client
                 val currentUser = supabaseClient.auth.currentUserOrNull()
                 val currentEmail = currentUser?.email
 
@@ -301,7 +301,7 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
                 }
 
                 // Get current user email
-                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val supabaseClient = com.synapse.social.studioasinc.core.network.SupabaseClient.client
                 val currentUser = supabaseClient.auth.currentUserOrNull()
                 val email = currentUser?.email
 
@@ -403,7 +403,7 @@ class AccountSettingsViewModel(application: Application) : AndroidViewModel(appl
 
                 android.util.Log.d("AccountSettingsViewModel", "Deleting account")
                 
-                val supabaseClient = com.synapse.social.studioasinc.SupabaseClient.client
+                val supabaseClient = com.synapse.social.studioasinc.core.network.SupabaseClient.client
 
                 // Call Edge Function to delete user
                 supabaseClient.functions.invoke(function = "delete-account")

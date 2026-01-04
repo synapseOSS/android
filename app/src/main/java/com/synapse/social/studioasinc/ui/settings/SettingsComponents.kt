@@ -654,7 +654,7 @@ fun ProfileHeaderCard(
     android.util.Log.d("ProfileHeaderCard", "Rendering profile card - avatarUrl: $avatarUrl, displayName: $displayName")
     
     // Validate image URL
-    val validation = com.synapse.social.studioasinc.util.ImageLoadingDebugger.validateImageUrl(avatarUrl)
+    val validation = com.synapse.social.studioasinc.core.util.ImageLoadingDebugger.validateImageUrl(avatarUrl)
     android.util.Log.d("ProfileHeaderCard", "Image URL validation result: $validation")
     
     Surface(

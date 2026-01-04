@@ -242,7 +242,7 @@ fun PostDetailScreen(
                                  )
                                  PostDetailHeader(
                                      user = homeUser,
-                                     timestamp = com.synapse.social.studioasinc.util.TimeUtils.getTimeAgo(postDetail.post.publishDate ?: ""),
+                                     timestamp = com.synapse.social.studioasinc.core.util.TimeUtils.getTimeAgo(postDetail.post.publishDate ?: ""),
                                      onUserClick = { onNavigateToProfile(author.uid) },
                                      onOptionsClick = { showPostOptions = true }
                                  )

@@ -8,7 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.data.repository.ChatRepository
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.data.local.AppDatabase
 import com.synapse.social.studioasinc.domain.usecase.*
 import com.synapse.social.studioasinc.model.Chat
@@ -29,8 +29,8 @@ import com.synapse.social.studioasinc.chat.service.ChatBackupService
 import com.synapse.social.studioasinc.backend.SupabaseChatService
 import com.synapse.social.studioasinc.model.models.UploadProgress
 import com.synapse.social.studioasinc.model.models.MediaUploadResult
-import com.synapse.social.studioasinc.util.PaginationManager
-import com.synapse.social.studioasinc.util.ScrollPositionState
+import com.synapse.social.studioasinc.core.util.PaginationManager
+import com.synapse.social.studioasinc.core.util.ScrollPositionState
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -899,8 +899,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         mediaUploadManager = MediaUploadManager(
             context = context,
             storageService = com.synapse.social.studioasinc.backend.SupabaseStorageService(),
-            imageCompressor = com.synapse.social.studioasinc.util.ImageCompressor(context),
-            thumbnailGenerator = com.synapse.social.studioasinc.util.ThumbnailGenerator(context),
+            imageCompressor = com.synapse.social.studioasinc.core.util.ImageCompressor(context),
+            thumbnailGenerator = com.synapse.social.studioasinc.core.util.ThumbnailGenerator(context),
             coroutineScope = viewModelScope
         )
         

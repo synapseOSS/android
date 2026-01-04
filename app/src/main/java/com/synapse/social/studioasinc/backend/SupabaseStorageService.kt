@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc.backend
 
 import android.content.Context
 import android.net.Uri
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

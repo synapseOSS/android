@@ -64,7 +64,7 @@ import com.synapse.social.studioasinc.BaseActivity
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.backend.SupabaseStorageService
 import com.synapse.social.studioasinc.chat.service.MediaDownloadManager
-import com.synapse.social.studioasinc.util.MediaCache
+import com.synapse.social.studioasinc.core.util.MediaCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

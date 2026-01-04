@@ -8,9 +8,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.jan.supabase.auth.auth
 import com.synapse.social.studioasinc.ui.auth.components.ProfileCompletionDialogFragment
 import com.synapse.social.studioasinc.ui.home.HomeScreen
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import com.synapse.social.studioasinc.ui.theme.ThemeManager
-import com.synapse.social.studioasinc.util.ActivityTransitions
+import com.synapse.social.studioasinc.core.util.ActivityTransitions
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint

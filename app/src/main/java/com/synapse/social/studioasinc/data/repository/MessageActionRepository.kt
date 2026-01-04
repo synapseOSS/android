@@ -3,12 +3,12 @@ package com.synapse.social.studioasinc.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.synapse.social.studioasinc.SupabaseClient
+import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.backend.SupabaseChatService
 import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
 import com.synapse.social.studioasinc.model.MessageEdit
 import com.synapse.social.studioasinc.model.MessageForward
-import com.synapse.social.studioasinc.util.RetryHandler
+import com.synapse.social.studioasinc.core.util.RetryHandler
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers

@@ -31,7 +31,7 @@ class NotificationsViewModel : ViewModel() {
             try {
                 // Implementing direct Supabase fetch since NotificationRepository is unavailable in current context
                 // Adjust table name and columns based on schema
-                val client = com.synapse.social.studioasinc.SupabaseClient.client
+                val client = com.synapse.social.studioasinc.core.network.SupabaseClient.client
                 val currentUserId = client.auth.currentUserOrNull()?.id
 
                 if (currentUserId != null) {
