@@ -12,7 +12,9 @@ import com.synapse.social.studioasinc.ui.chat.ChatActivity
 import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class FollowListActivity : ComponentActivity() {
 
     companion object {

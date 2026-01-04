@@ -17,11 +17,13 @@ import com.synapse.social.studioasinc.feature.auth.ui.AuthScreen
 import com.synapse.social.studioasinc.feature.auth.presentation.viewmodel.AuthViewModel
 import com.synapse.social.studioasinc.ui.theme.AuthTheme
 import com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * Modern Compose-based AuthActivity.
  * Refactored for cleaner lifecycle management and deeper link handling.
  */
+@AndroidEntryPoint
 class AuthActivity : ComponentActivity() {
 
     private lateinit var viewModel: AuthViewModel

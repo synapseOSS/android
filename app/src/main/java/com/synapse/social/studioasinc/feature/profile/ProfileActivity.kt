@@ -30,6 +30,7 @@ import com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * Profile Activity built with Jetpack Compose.
@@ -44,6 +45,7 @@ import kotlinx.coroutines.runBlocking
  * @deprecated Use [com.synapse.social.studioasinc.ui.profile.ProfileScreen] within [MainActivity] navigation graph instead.
  */
 @Deprecated("Use ProfileScreen within MainActivity navigation graph instead")
+@AndroidEntryPoint
 class ProfileActivity : ComponentActivity() {
     
     private val viewModel: ProfileViewModel by viewModels { ProfileViewModelFactory(this) }

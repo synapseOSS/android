@@ -47,7 +47,9 @@ import com.synapse.social.studioasinc.ui.navigation.AppDestination
 import androidx.navigation.compose.rememberNavController
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.core.network.SupabaseClient
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val authRepository = AuthRepository()

@@ -18,10 +18,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.synapse.social.studioasinc.ui.settings.AppearanceViewModel
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
 import com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * Activity Log Activity - Shows user's activity history
  */
+@AndroidEntryPoint
 class ActivityLogActivity : ComponentActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
