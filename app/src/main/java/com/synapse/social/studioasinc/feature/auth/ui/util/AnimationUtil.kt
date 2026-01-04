@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth.util
+package com.synapse.social.studioasinc.feature.auth.ui.util
 
 import android.provider.Settings
 import androidx.compose.animation.core.animateFloatAsState

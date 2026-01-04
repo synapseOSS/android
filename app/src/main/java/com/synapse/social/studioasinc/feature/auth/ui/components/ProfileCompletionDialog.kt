@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth.components
+package com.synapse.social.studioasinc.feature.auth.ui.components
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button

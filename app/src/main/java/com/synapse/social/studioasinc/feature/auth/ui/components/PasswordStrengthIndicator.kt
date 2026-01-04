@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth.components
+package com.synapse.social.studioasinc.feature.auth.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -19,8 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
-import com.synapse.social.studioasinc.ui.auth.models.PasswordStrength
-import com.synapse.social.studioasinc.ui.auth.util.AnimationUtil
+import com.synapse.social.studioasinc.feature.auth.ui.models.PasswordStrength
+import com.synapse.social.studioasinc.feature.auth.ui.util.AnimationUtil
 
 /**
  * Visual indicator for password strength.

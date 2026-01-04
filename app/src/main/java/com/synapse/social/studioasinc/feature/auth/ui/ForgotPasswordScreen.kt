@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth
+package com.synapse.social.studioasinc.feature.auth.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,10 +19,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.synapse.social.studioasinc.ui.auth.components.AuthButton
-import com.synapse.social.studioasinc.ui.auth.components.AuthTextField
-import com.synapse.social.studioasinc.ui.auth.components.ErrorCard
-import com.synapse.social.studioasinc.ui.auth.models.AuthUiState
+import com.synapse.social.studioasinc.feature.auth.ui.components.AuthButton
+import com.synapse.social.studioasinc.feature.auth.ui.components.AuthTextField
+import com.synapse.social.studioasinc.feature.auth.ui.components.ErrorCard
+import com.synapse.social.studioasinc.feature.auth.ui.models.AuthUiState
 
 @Composable
 fun ForgotPasswordScreen(

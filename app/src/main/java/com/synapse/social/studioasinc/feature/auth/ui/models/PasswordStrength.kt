@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth.models
+package com.synapse.social.studioasinc.feature.auth.ui.models
 
 import androidx.compose.ui.graphics.Color
 

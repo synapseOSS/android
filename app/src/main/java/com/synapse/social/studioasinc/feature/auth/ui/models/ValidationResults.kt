@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth.models
+package com.synapse.social.studioasinc.feature.auth.ui.models
 
 /**
  * Data class representing the result of email validation.

@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth.models
+package com.synapse.social.studioasinc.feature.auth.ui.models
 
 /**
  * Sealed class representing all possible UI states in the authentication flow.

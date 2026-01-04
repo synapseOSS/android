@@ -13,8 +13,8 @@ import com.synapse.social.studioasinc.ui.main.MainActivity
 import androidx.lifecycle.ViewModelProvider
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.UsernameRepository
-import com.synapse.social.studioasinc.ui.auth.AuthScreen
-import com.synapse.social.studioasinc.ui.auth.AuthViewModel
+import com.synapse.social.studioasinc.feature.auth.ui.AuthScreen
+import com.synapse.social.studioasinc.feature.auth.presentation.viewmodel.AuthViewModel
 import com.synapse.social.studioasinc.ui.theme.AuthTheme
 import com.synapse.social.studioasinc.core.util.EdgeToEdgeUtils
 

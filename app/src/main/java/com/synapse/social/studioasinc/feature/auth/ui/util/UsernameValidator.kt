@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth
+package com.synapse.social.studioasinc.feature.auth.ui.util
 
 object UsernameValidator {
     private const val MIN_LENGTH = 3

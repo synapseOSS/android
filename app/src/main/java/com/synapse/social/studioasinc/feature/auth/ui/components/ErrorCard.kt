@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth.components
+package com.synapse.social.studioasinc.feature.auth.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -25,7 +25,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.unit.dp
-import com.synapse.social.studioasinc.ui.auth.util.AnimationUtil
+import com.synapse.social.studioasinc.feature.auth.ui.util.AnimationUtil
 
 /**
  * Card component for displaying form-level errors.

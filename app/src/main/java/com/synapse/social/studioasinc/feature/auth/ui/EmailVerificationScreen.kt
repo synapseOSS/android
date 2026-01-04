@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth
+package com.synapse.social.studioasinc.feature.auth.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,8 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.synapse.social.studioasinc.ui.auth.components.AuthButton
-import com.synapse.social.studioasinc.ui.auth.models.AuthUiState
+import com.synapse.social.studioasinc.feature.auth.ui.components.AuthButton
+import com.synapse.social.studioasinc.feature.auth.ui.models.AuthUiState
 
 @Composable
 fun EmailVerificationScreen(

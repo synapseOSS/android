@@ -1,15 +1,16 @@
-package com.synapse.social.studioasinc.ui.auth
+package com.synapse.social.studioasinc.feature.auth.presentation.viewmodel
 
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.UsernameRepository
-import com.synapse.social.studioasinc.ui.auth.models.AuthNavigationEvent
-import com.synapse.social.studioasinc.ui.auth.models.AuthUiState
+import com.synapse.social.studioasinc.feature.auth.ui.models.AuthNavigationEvent
+import com.synapse.social.studioasinc.feature.auth.ui.models.AuthUiState
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
-import com.synapse.social.studioasinc.ui.auth.models.PasswordStrength
+import com.synapse.social.studioasinc.feature.auth.ui.models.PasswordStrength
+import com.synapse.social.studioasinc.feature.auth.ui.util.UsernameValidator
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

@@ -1,20 +1,37 @@
 #!/bin/bash
 
-# Update all import statements to use domain.model instead of model
-cd /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc
+# Update package declarations and imports for moved auth files
 
-echo "Updating import statements..."
+# Update main UI screens
+sed -i 's/package com\.synapse\.social\.studioasinc\.ui\.auth/package com.synapse.social.studioasinc.feature.auth.ui/g' \
+  /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc/feature/auth/ui/*.kt
 
-# Update imports from model to domain.model
-find . -name "*.kt" -exec sed -i 's/import com\.synapse\.social\.studioasinc\.model\./import com.synapse.social.studioasinc.domain.model./g' {} \;
+# Update imports in UI screens
+sed -i 's/com\.synapse\.social\.studioasinc\.ui\.auth\./com.synapse.social.studioasinc.feature.auth.ui./g' \
+  /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc/feature/auth/ui/*.kt
 
-# Update imports from home.User to domain.model.User
-find . -name "*.kt" -exec sed -i 's/import com\.synapse\.social\.studioasinc\.home\.User/import com.synapse.social.studioasinc.domain.model.User/g' {} \;
+# Update package declarations in models
+sed -i 's/package com\.synapse\.social\.studioasinc\.ui\.auth\.models/package com.synapse.social.studioasinc.feature.auth.ui.models/g' \
+  /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc/feature/auth/ui/models/*.kt
 
-# Update any remaining references to the old model package
-find . -name "*.kt" -exec sed -i 's/com\.synapse\.social\.studioasinc\.model\./com.synapse.social.studioasinc.domain.model./g' {} \;
+# Update package declarations in components
+sed -i 's/package com\.synapse\.social\.studioasinc\.ui\.auth\.components/package com.synapse.social.studioasinc.feature.auth.ui.components/g' \
+  /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc/feature/auth/ui/components/*.kt
 
-# Update any remaining references to home.User
-find . -name "*.kt" -exec sed -i 's/com\.synapse\.social\.studioasinc\.home\.User/com.synapse.social.studioasinc.domain.model.User/g' {} \;
+# Update imports in components
+sed -i 's/com\.synapse\.social\.studioasinc\.ui\.auth\./com.synapse.social.studioasinc.feature.auth.ui./g' \
+  /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc/feature/auth/ui/components/*.kt
 
-echo "Import statements updated successfully"
+# Update package declarations in util
+sed -i 's/package com\.synapse\.social\.studioasinc\.ui\.auth\.util/package com.synapse.social.studioasinc.feature.auth.ui.util/g' \
+  /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc/feature/auth/ui/util/*.kt
+
+# Update AuthViewModel package
+sed -i 's/package com\.synapse\.social\.studioasinc\.ui\.auth/package com.synapse.social.studioasinc.feature.auth.presentation.viewmodel/g' \
+  /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc/feature/auth/presentation/viewmodel/AuthViewModel.kt
+
+# Update imports in AuthViewModel
+sed -i 's/com\.synapse\.social\.studioasinc\.ui\.auth\./com.synapse.social.studioasinc.feature.auth.ui./g' \
+  /home/Ashik/android/app/src/main/java/com/synapse/social/studioasinc/feature/auth/presentation/viewmodel/AuthViewModel.kt
+
+echo "Package declarations and imports updated successfully!"

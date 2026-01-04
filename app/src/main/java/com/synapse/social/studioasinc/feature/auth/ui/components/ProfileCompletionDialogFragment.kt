@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth.components
+package com.synapse.social.studioasinc.feature.auth.ui.components
 
 import android.content.Intent
 import android.os.Bundle

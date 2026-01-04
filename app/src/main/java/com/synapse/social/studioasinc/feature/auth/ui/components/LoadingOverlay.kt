@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.ui.auth.components
+package com.synapse.social.studioasinc.feature.auth.ui.components
 
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
@@ -17,7 +17,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import com.synapse.social.studioasinc.ui.auth.util.AnimationUtil
+import com.synapse.social.studioasinc.feature.auth.ui.util.AnimationUtil
 
 /**
  * Overlay component for loading states.

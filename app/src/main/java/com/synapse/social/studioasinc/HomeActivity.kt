@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.jan.supabase.auth.auth
-import com.synapse.social.studioasinc.ui.auth.components.ProfileCompletionDialogFragment
+import com.synapse.social.studioasinc.feature.auth.ui.components.ProfileCompletionDialogFragment
 import com.synapse.social.studioasinc.ui.home.HomeScreen
 import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
