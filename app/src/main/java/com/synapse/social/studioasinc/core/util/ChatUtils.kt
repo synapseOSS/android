@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.core.util
 
-import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
-import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService
 import kotlinx.coroutines.runBlocking
 
 /**

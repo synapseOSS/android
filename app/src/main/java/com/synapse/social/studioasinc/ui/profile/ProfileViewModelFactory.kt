@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.ui.profile
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.synapse.social.studioasinc.data.local.AppDatabase
+import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.data.repository.*
 import com.synapse.social.studioasinc.domain.usecase.profile.*
 import com.synapse.social.studioasinc.domain.usecase.post.*

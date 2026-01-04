@@ -29,8 +29,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.data.local.AIConfig
-import com.synapse.social.studioasinc.data.local.StorageConfig
+import com.synapse.social.studioasinc.data.local.database.AIConfig
+import com.synapse.social.studioasinc.data.local.database.StorageConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

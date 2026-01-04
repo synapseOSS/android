@@ -2,8 +2,8 @@ package com.synapse.social.studioasinc.data.repository
 
 import android.util.Log
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.data.local.CommentDao
-import com.synapse.social.studioasinc.data.local.CommentEntity
+import com.synapse.social.studioasinc.data.local.database.CommentDao
+import com.synapse.social.studioasinc.data.local.database.CommentEntity
 import com.synapse.social.studioasinc.data.repository.CommentMapper
 import com.synapse.social.studioasinc.model.*
 import io.github.jan.supabase.auth.auth

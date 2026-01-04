@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc.chat
 
 import android.os.Handler
 import android.os.Looper
-import com.synapse.social.studioasinc.backend.SupabaseChatService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
 

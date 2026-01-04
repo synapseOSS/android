@@ -1,6 +1,6 @@
 package com.synapse.social.studioasinc.core.util
 
-import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

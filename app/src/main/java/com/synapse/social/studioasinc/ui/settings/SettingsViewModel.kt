@@ -3,12 +3,14 @@ package com.synapse.social.studioasinc.ui.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.synapse.social.studioasinc.data.local.AIConfig
-import com.synapse.social.studioasinc.data.local.AppDatabase
-import com.synapse.social.studioasinc.data.local.AppSettingsManager
-import com.synapse.social.studioasinc.data.local.CloudflareR2Config
-import com.synapse.social.studioasinc.data.local.CloudinaryConfig
-import com.synapse.social.studioasinc.data.local.StorageConfig
+import com.synapse.social.studioasinc.data.local.database.AIConfig
+import com.synapse.social.studioasinc.data.local.database.AppDatabase
+import com.synapse.social.studioasinc.data.local.database.AppSettingsManager
+import com.synapse.social.studioasinc.data.local.database.CloudflareR2Config
+import com.synapse.social.studioasinc.data.local.database.CloudinaryConfig
+import com.synapse.social.studioasinc.data.local.database.ImgBBConfig
+import com.synapse.social.studioasinc.data.local.database.StorageConfig
+import com.synapse.social.studioasinc.data.local.database.SupabaseConfig
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.UserRepository
 import com.synapse.social.studioasinc.model.User
@@ -40,10 +42,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 photoProvider = null,
                 videoProvider = null,
                 otherProvider = null,
-                imgBBConfig = com.synapse.social.studioasinc.data.local.ImgBBConfig(""),
+                imgBBConfig = ImgBBConfig(""),
                 cloudinaryConfig = CloudinaryConfig("", "", ""),
                 r2Config = CloudflareR2Config("", "", "", ""),
-                supabaseConfig = com.synapse.social.studioasinc.data.local.SupabaseConfig("", "", "")
+                supabaseConfig = SupabaseConfig("", "", "")
             )
         )
 
@@ -114,7 +116,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun updateSupabaseConfig(url: String, apiKey: String, bucketName: String) {
         viewModelScope.launch {
-            appSettingsManager.updateSupabaseConfig(com.synapse.social.studioasinc.data.local.SupabaseConfig(url, apiKey, bucketName))
+            appSettingsManager.updateSupabaseConfig(SupabaseConfig(url, apiKey, bucketName))
         }
     }
 }

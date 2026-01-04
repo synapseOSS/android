@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc.data.repository
 
 import android.content.Context
 import android.util.Log
-import com.synapse.social.studioasinc.data.local.SettingsDataStore
+import com.synapse.social.studioasinc.data.local.database.SettingsDataStore
 import com.synapse.social.studioasinc.ui.settings.AppearanceSettings
 import com.synapse.social.studioasinc.ui.settings.ChatSettings
 import com.synapse.social.studioasinc.ui.settings.ContentVisibility

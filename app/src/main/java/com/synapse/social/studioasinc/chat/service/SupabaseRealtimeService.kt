@@ -66,7 +66,7 @@ class SupabaseRealtimeService {
     private val pollingJobs = ConcurrentHashMap<String, kotlinx.coroutines.Job>()
     
     // Backend service for polling fallback
-    private val chatService = com.synapse.social.studioasinc.backend.SupabaseChatService()
+    private val chatService = com.synapse.social.studioasinc.data.remote.services.SupabaseChatService()
     
     /**
      * Subscribe to a chat room's Realtime channel.

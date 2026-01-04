@@ -1,8 +1,8 @@
 package com.synapse.social.studioasinc.data.repository
 
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.data.local.PostDao
-import com.synapse.social.studioasinc.data.local.PostEntity
+import com.synapse.social.studioasinc.data.local.database.PostDao
+import com.synapse.social.studioasinc.data.local.database.PostEntity
 import com.synapse.social.studioasinc.data.repository.PostMapper
 import com.synapse.social.studioasinc.model.Post
 import com.synapse.social.studioasinc.model.PollOption

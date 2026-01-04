@@ -1,6 +1,6 @@
 package com.synapse.social.studioasinc.data.repository
 
-import com.synapse.social.studioasinc.data.local.PostEntity
+import com.synapse.social.studioasinc.data.local.database.PostEntity
 import com.synapse.social.studioasinc.model.Post
 
 object PostMapper {

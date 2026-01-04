@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.presentation.editprofile
 import android.content.Context
 import com.synapse.social.studioasinc.MediaStorageService
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.data.local.AppSettingsManager
+import com.synapse.social.studioasinc.data.local.database.AppSettingsManager
 import com.synapse.social.studioasinc.model.UserProfile
 import com.synapse.social.studioasinc.presentation.editprofile.photohistory.HistoryItem
 import io.github.jan.supabase.auth.auth

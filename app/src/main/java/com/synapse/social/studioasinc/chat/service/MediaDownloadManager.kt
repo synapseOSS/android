@@ -2,8 +2,8 @@ package com.synapse.social.studioasinc.chat.service
 
 import android.content.Context
 import android.util.Log
-import com.synapse.social.studioasinc.backend.StorageException
-import com.synapse.social.studioasinc.backend.SupabaseStorageService
+import com.synapse.social.studioasinc.data.remote.services.StorageException
+import com.synapse.social.studioasinc.data.remote.services.SupabaseStorageService
 import com.synapse.social.studioasinc.core.util.MediaCache
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel

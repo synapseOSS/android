@@ -2,8 +2,8 @@ package com.synapse.social.studioasinc.core
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
-import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
-import com.synapse.social.studioasinc.backend.AuthDevelopmentUtils
+import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
+import com.synapse.social.studioasinc.data.remote.services.AuthDevelopmentUtils
 import com.synapse.social.studioasinc.core.util.MediaCacheCleanupManager
 import com.synapse.social.studioasinc.chat.service.DatabaseMaintenanceManager
 import com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl

@@ -6,10 +6,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.data.local.AppDatabase
+import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.domain.usecase.*
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.model.Message
@@ -26,7 +26,7 @@ import com.synapse.social.studioasinc.chat.service.PreferencesManager
 import com.synapse.social.studioasinc.chat.service.MediaUploadManager
 import com.synapse.social.studioasinc.chat.service.MessageSearchService
 import com.synapse.social.studioasinc.chat.service.ChatBackupService
-import com.synapse.social.studioasinc.backend.SupabaseChatService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
 import com.synapse.social.studioasinc.model.models.UploadProgress
 import com.synapse.social.studioasinc.model.models.MediaUploadResult
 import com.synapse.social.studioasinc.core.util.PaginationManager
@@ -888,7 +888,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         // Initialize ReadReceiptManager
         readReceiptManager = ReadReceiptManager(
             chatService = com.synapse.social.studioasinc.chat.service.SupabaseChatService(
-                com.synapse.social.studioasinc.backend.SupabaseDatabaseService()
+                com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService()
             ),
             realtimeService = realtimeService!!,
             preferencesManager = preferencesManager!!,
@@ -898,7 +898,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         // Initialize MediaUploadManager
         mediaUploadManager = MediaUploadManager(
             context = context,
-            storageService = com.synapse.social.studioasinc.backend.SupabaseStorageService(),
+            storageService = com.synapse.social.studioasinc.data.remote.services.SupabaseStorageService(),
             imageCompressor = com.synapse.social.studioasinc.core.util.ImageCompressor(context),
             thumbnailGenerator = com.synapse.social.studioasinc.core.util.ThumbnailGenerator(context),
             coroutineScope = viewModelScope
@@ -1059,7 +1059,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      * Create a bridge between the backend SupabaseChatService and the expected chat service interface.
      */
     private fun createChatServiceBridge(): ChatServiceBridge {
-        return ChatServiceBridge(com.synapse.social.studioasinc.backend.SupabaseChatService())
+        return ChatServiceBridge(com.synapse.social.studioasinc.data.remote.services.SupabaseChatService())
     }
 
     // Legacy ChatAdapter integration methods removed - using Compose UI state instead
@@ -1421,7 +1421,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
  * Bridge class to adapt the backend SupabaseChatService to the interface expected by ReadReceiptManager.
  */
 private class ChatServiceBridge(
-    private val backendChatService: com.synapse.social.studioasinc.backend.SupabaseChatService
+    private val backendChatService: com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
 ) {
     suspend fun markMessagesAsRead(chatId: String, userId: String, messageIds: List<String>): Result<Unit> {
         return backendChatService.markMessagesAsRead(chatId, userId, messageIds)

@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.ui.reels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.synapse.social.studioasinc.data.local.AppDatabase
+import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.data.repository.PostRepository
 import com.synapse.social.studioasinc.model.Post
 import io.github.jan.supabase.auth.auth

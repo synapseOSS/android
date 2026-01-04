@@ -5,7 +5,7 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.webkit.MimeTypeMap
-import com.synapse.social.studioasinc.backend.SupabaseStorageService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseStorageService
 import com.synapse.social.studioasinc.model.models.MediaMetadata
 import com.synapse.social.studioasinc.model.models.MediaUploadResult
 import com.synapse.social.studioasinc.model.models.UploadProgress

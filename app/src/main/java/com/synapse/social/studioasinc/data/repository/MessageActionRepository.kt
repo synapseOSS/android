@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.backend.SupabaseChatService
-import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService
 import com.synapse.social.studioasinc.model.MessageEdit
 import com.synapse.social.studioasinc.model.MessageForward
 import com.synapse.social.studioasinc.core.util.RetryHandler

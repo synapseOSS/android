@@ -1,6 +1,6 @@
 package com.synapse.social.studioasinc.chat.service
 
-import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService
 import com.synapse.social.studioasinc.chat.interfaces.*
 import com.synapse.social.studioasinc.chat.models.*
 import kotlinx.coroutines.Dispatchers

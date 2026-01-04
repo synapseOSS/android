@@ -1,8 +1,8 @@
 package com.synapse.social.studioasinc.domain.usecase
 
 import android.net.Uri
-import com.synapse.social.studioasinc.backend.SupabaseChatService
-import com.synapse.social.studioasinc.backend.interfaces.IAuthenticationService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
+import com.synapse.social.studioasinc.data.remote.services.interfaces.IAuthenticationService
 import com.synapse.social.studioasinc.chat.interfaces.ChatAttachment
 import com.synapse.social.studioasinc.chat.models.ChatAttachmentImpl
 import com.synapse.social.studioasinc.chat.models.MessageType

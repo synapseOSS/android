@@ -1,6 +1,6 @@
 package com.synapse.social.studioasinc.data.repository
 
-import com.synapse.social.studioasinc.data.local.ChatEntity
+import com.synapse.social.studioasinc.data.local.database.ChatEntity
 import com.synapse.social.studioasinc.model.Chat
 
 object ChatMapper {

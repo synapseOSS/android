@@ -2,8 +2,8 @@ package com.synapse.social.studioasinc
 
 import android.content.Context
 import android.webkit.MimeTypeMap
-import com.synapse.social.studioasinc.data.local.AppSettingsManager
-import com.synapse.social.studioasinc.data.local.StorageConfig
+import com.synapse.social.studioasinc.data.local.database.AppSettingsManager
+import com.synapse.social.studioasinc.data.local.database.StorageConfig
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.storage.storage

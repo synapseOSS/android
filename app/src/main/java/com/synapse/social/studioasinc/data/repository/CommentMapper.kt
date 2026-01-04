@@ -1,6 +1,6 @@
 package com.synapse.social.studioasinc.data.repository
 
-import com.synapse.social.studioasinc.data.local.CommentEntity
+import com.synapse.social.studioasinc.data.local.database.CommentEntity
 import com.synapse.social.studioasinc.model.Comment
 
 object CommentMapper {

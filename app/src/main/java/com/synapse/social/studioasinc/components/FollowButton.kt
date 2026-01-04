@@ -9,7 +9,7 @@ import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.backend.SupabaseFollowService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseFollowService
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 

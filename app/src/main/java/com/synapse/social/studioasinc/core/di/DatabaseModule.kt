@@ -1,9 +1,10 @@
 package com.synapse.social.studioasinc.core.di
 
 import android.content.Context
-import com.synapse.social.studioasinc.data.local.AppDatabase
-import com.synapse.social.studioasinc.data.local.ChatDao
-import com.synapse.social.studioasinc.data.local.PostDao
+import com.synapse.social.studioasinc.data.local.database.AppDatabase
+import com.synapse.social.studioasinc.data.local.database.ChatDao
+import com.synapse.social.studioasinc.data.local.database.PostDao
+import com.synapse.social.studioasinc.data.local.database.UserDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,7 +33,7 @@ object DatabaseModule {
     }
 
     @Provides
-    fun provideUserDao(database: AppDatabase): com.synapse.social.studioasinc.data.local.UserDao {
+    fun provideUserDao(database: AppDatabase): UserDao {
         return database.userDao()
     }
 }

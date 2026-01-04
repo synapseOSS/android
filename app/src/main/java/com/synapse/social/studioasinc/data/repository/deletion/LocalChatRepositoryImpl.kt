@@ -3,8 +3,8 @@ package com.synapse.social.studioasinc.data.repository.deletion
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.synapse.social.studioasinc.data.local.AppDatabase
-import com.synapse.social.studioasinc.data.local.ChatDao
+import com.synapse.social.studioasinc.data.local.database.AppDatabase
+import com.synapse.social.studioasinc.data.local.database.ChatDao
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

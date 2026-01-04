@@ -2,6 +2,7 @@ package com.synapse.social.studioasinc.data.repository
 
 import com.synapse.social.studioasinc.model.ReactionType
 import com.synapse.social.studioasinc.core.network.SupabaseClient
+import com.synapse.social.studioasinc.data.local.database.PostDao
 
 /**
  * @deprecated Use [PostRepository.toggleReaction] instead.
@@ -23,7 +24,7 @@ import com.synapse.social.studioasinc.core.network.SupabaseClient
     replaceWith = ReplaceWith("PostRepository(postDao).toggleReaction(postId, userId, ReactionType.LIKE)")
 )
 class LikeRepository(
-    private val postDao: com.synapse.social.studioasinc.data.local.PostDao,
+    private val postDao: PostDao,
     private val client: io.github.jan.supabase.SupabaseClient = SupabaseClient.client
 ) {
     

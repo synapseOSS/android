@@ -1,15 +1,15 @@
 package com.synapse.social.studioasinc.core.di
 
 import android.content.Context
-import com.synapse.social.studioasinc.data.local.ChatDao
-import com.synapse.social.studioasinc.data.local.PostDao
+import com.synapse.social.studioasinc.data.local.database.ChatDao
+import com.synapse.social.studioasinc.data.local.database.PostDao
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.data.repository.PostRepository
 import com.synapse.social.studioasinc.data.repository.SettingsRepository
 import com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl
 import com.synapse.social.studioasinc.data.repository.UserRepository
-import com.synapse.social.studioasinc.data.local.UserDao
+import com.synapse.social.studioasinc.data.local.database.UserDao
 import com.synapse.social.studioasinc.chat.service.SyraAiChatServiceUpdated
 import com.synapse.social.studioasinc.settings.ApiKeySettingsService
 import dagger.Module

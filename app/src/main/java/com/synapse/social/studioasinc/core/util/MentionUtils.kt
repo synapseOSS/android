@@ -10,10 +10,10 @@ import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import com.synapse.social.studioasinc.ProfileActivity
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService
 import com.synapse.social.studioasinc.NotificationHelper
 import com.synapse.social.studioasinc.core.config.NotificationConfig
-import com.synapse.social.studioasinc.data.local.AppDatabase
+import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -143,7 +143,7 @@ object MentionUtils {
         contentType: String
     ) {
         try {
-            val authService = com.synapse.social.studioasinc.backend.SupabaseAuthenticationService()
+            val authService = com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService()
             val userRepository = com.synapse.social.studioasinc.data.repository.UserRepository(AppDatabase.getDatabase(context.applicationContext).userDao())
             
             val currentUser = authService.getCurrentUser()

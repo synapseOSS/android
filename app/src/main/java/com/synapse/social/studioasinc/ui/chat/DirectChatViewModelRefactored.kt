@@ -7,7 +7,7 @@ import com.synapse.social.studioasinc.chat.service.MessageSelectionService
 import com.synapse.social.studioasinc.chat.service.SyraAiChatService
 import com.synapse.social.studioasinc.moderation.ContentModerationService
 import com.synapse.social.studioasinc.moderation.ContentType
-import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay

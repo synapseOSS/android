@@ -1,10 +1,10 @@
 package com.synapse.social.studioasinc.data.repository
 
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.backend.SupabaseChatService
-import com.synapse.social.studioasinc.backend.SupabaseDatabaseService
-import com.synapse.social.studioasinc.data.local.ChatDao
-import com.synapse.social.studioasinc.data.local.ChatEntity
+import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseDatabaseService
+import com.synapse.social.studioasinc.data.local.database.ChatDao
+import com.synapse.social.studioasinc.data.local.database.ChatEntity
 import com.synapse.social.studioasinc.model.Chat
 import com.synapse.social.studioasinc.model.Message
 import io.github.jan.supabase.functions.functions

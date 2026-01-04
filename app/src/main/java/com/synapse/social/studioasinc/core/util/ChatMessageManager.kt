@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc.core.util
 
 import android.app.Application
 import com.synapse.social.studioasinc.data.repository.AuthRepository
-import com.synapse.social.studioasinc.data.local.AppDatabase
+import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.model.Message

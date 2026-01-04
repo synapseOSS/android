@@ -1,9 +1,9 @@
 package com.synapse.social.studioasinc.domain.usecase
 
-import com.synapse.social.studioasinc.data.local.ChatDao
+import com.synapse.social.studioasinc.data.local.database.ChatDao
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.core.network.SupabaseClient
-import com.synapse.social.studioasinc.backend.interfaces.IAuthenticationService
+import com.synapse.social.studioasinc.data.remote.services.interfaces.IAuthenticationService
 import com.synapse.social.studioasinc.domain.interfaces.ITypingIndicatorManager
 
 /**

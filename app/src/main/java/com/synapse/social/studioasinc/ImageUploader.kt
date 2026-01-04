@@ -18,7 +18,7 @@
 package com.synapse.social.studioasinc
 
 import android.content.Context
-import com.synapse.social.studioasinc.data.local.AppSettingsManager
+import com.synapse.social.studioasinc.data.local.database.AppSettingsManager
 import kotlinx.coroutines.*
 
 /**

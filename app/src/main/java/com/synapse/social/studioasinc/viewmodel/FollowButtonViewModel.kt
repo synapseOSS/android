@@ -2,7 +2,7 @@ package com.synapse.social.studioasinc.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.synapse.social.studioasinc.backend.SupabaseFollowService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseFollowService
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

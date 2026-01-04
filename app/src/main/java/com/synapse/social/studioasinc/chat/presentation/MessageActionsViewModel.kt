@@ -4,8 +4,8 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.synapse.social.studioasinc.backend.GeminiAIService
-import com.synapse.social.studioasinc.backend.SupabaseChatService
+import com.synapse.social.studioasinc.data.remote.services.GeminiAIService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseChatService
 import com.synapse.social.studioasinc.data.repository.MessageActionRepository
 import com.synapse.social.studioasinc.core.util.ErrorHandler
 import com.synapse.social.studioasinc.core.util.NetworkUtil

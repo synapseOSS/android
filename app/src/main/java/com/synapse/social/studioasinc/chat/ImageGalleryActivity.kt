@@ -62,7 +62,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.github.chrisbanes.photoview.PhotoView
 import com.synapse.social.studioasinc.BaseActivity
 import com.synapse.social.studioasinc.R
-import com.synapse.social.studioasinc.backend.SupabaseStorageService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseStorageService
 import com.synapse.social.studioasinc.chat.service.MediaDownloadManager
 import com.synapse.social.studioasinc.core.util.MediaCache
 import kotlinx.coroutines.Dispatchers

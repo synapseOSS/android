@@ -6,11 +6,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import com.synapse.social.studioasinc.backend.SupabaseAuthenticationService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
 
-import com.synapse.social.studioasinc.backend.SupabaseStorageService
+import com.synapse.social.studioasinc.data.remote.services.SupabaseStorageService
 import com.synapse.social.studioasinc.chat.service.SupabaseRealtimeService
-import com.synapse.social.studioasinc.data.local.AppDatabase
+import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.data.repository.ChatRepository
 import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.model.Message
@@ -82,7 +82,7 @@ class DirectChatViewModel @Inject constructor(
     private var stopTypingJob: Job? = null
     
     // Storage Service
-    private val storageService = com.synapse.social.studioasinc.backend.SupabaseStorageService()
+    private val storageService = com.synapse.social.studioasinc.data.remote.services.SupabaseStorageService()
 
     // Optimistic Messages (Temporary local state)
     private val _optimisticMessages = MutableStateFlow<List<MessageUiModel>>(emptyList())

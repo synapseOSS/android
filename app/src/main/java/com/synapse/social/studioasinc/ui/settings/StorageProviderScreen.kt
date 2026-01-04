@@ -33,7 +33,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.synapse.social.studioasinc.data.local.StorageConfig
+import com.synapse.social.studioasinc.data.local.database.StorageConfig
 import kotlinx.coroutines.delay
 
 // Provider data class for cleaner code
