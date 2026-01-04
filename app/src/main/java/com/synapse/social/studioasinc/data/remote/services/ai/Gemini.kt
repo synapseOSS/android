@@ -1,4 +1,4 @@
-package com.synapse.social.studioasinc.AI
+package com.synapse.social.studioasinc.data.remote.services.ai
 
 import android.content.Context
 import android.util.Log

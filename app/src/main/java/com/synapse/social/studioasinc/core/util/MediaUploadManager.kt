@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.core.util
 import android.content.Context
 import android.net.Uri
 import com.synapse.social.studioasinc.core.util.FileUtils
-import com.synapse.social.studioasinc.ImageUploader
+import com.synapse.social.studioasinc.core.storage.ImageUploader
 import com.synapse.social.studioasinc.domain.model.MediaItem
 import com.synapse.social.studioasinc.domain.model.MediaType
 import kotlinx.coroutines.Dispatchers

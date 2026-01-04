@@ -5,8 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.chat.service.MessageSelectionService
 import com.synapse.social.studioasinc.chat.service.SyraAiChatService
-import com.synapse.social.studioasinc.moderation.ContentModerationService
-import com.synapse.social.studioasinc.moderation.ContentType
+import com.synapse.social.studioasinc.data.remote.services.moderation.*
 import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -199,8 +198,8 @@ data class ChatUiStateRefactored(
     val inputText: String = "",
     val lastSyraResponse: String? = null,
     val showSyraSuggestion: Boolean = false,
-    val moderationResult: com.synapse.social.studioasinc.moderation.ModerationResult? = null,
-    val moderationFeedback: com.synapse.social.studioasinc.moderation.ModerationFeedback = com.synapse.social.studioasinc.moderation.ModerationFeedback.Safe,
+    val moderationResult: ModerationResult? = null,
+    val moderationFeedback: ModerationFeedback = ModerationFeedback.Safe,
     val showModerationWarning: Boolean = false,
     val showReportSuccess: Boolean = false
 )

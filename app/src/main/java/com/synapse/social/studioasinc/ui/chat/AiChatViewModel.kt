@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.ui.chat
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.synapse.social.studioasinc.AI.Gemini
+import com.synapse.social.studioasinc.data.remote.services.ai.Gemini
 import com.synapse.social.studioasinc.UserProfileManager
 import com.synapse.social.studioasinc.data.repository.AiRepository
 import com.synapse.social.studioasinc.domain.model.AiChatResponse

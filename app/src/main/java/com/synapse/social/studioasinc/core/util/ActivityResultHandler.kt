@@ -8,7 +8,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.synapse.social.studioasinc.ui.chat.ChatActivity
-import com.synapse.social.studioasinc.StorageUtils
+import com.synapse.social.studioasinc.core.storage.StorageUtils
 import java.util.ArrayList
 import java.util.HashMap
 

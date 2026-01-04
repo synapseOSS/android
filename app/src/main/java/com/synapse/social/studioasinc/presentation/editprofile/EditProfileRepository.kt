@@ -1,7 +1,7 @@
 package com.synapse.social.studioasinc.presentation.editprofile
 
 import android.content.Context
-import com.synapse.social.studioasinc.MediaStorageService
+import com.synapse.social.studioasinc.core.storage.MediaStorageService
 import com.synapse.social.studioasinc.core.network.SupabaseClient
 import com.synapse.social.studioasinc.data.local.database.AppSettingsManager
 import com.synapse.social.studioasinc.domain.model.UserProfile

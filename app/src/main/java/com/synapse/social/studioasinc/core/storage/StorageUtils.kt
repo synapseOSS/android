@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.synapse.social.studioasinc
+package com.synapse.social.studioasinc.core.storage
 
 import android.app.Activity
 import android.content.ContentResolver

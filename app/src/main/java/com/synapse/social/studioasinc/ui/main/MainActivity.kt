@@ -42,8 +42,9 @@ import com.synapse.social.studioasinc.data.local.database.AppDatabase
 import com.synapse.social.studioasinc.data.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.UserRepository
 import com.synapse.social.studioasinc.ui.theme.SynapseTheme
-import com.synapse.social.studioasinc.HomeActivity
-import com.synapse.social.studioasinc.AuthActivity
+import com.synapse.social.studioasinc.ui.navigation.AppNavigation
+import com.synapse.social.studioasinc.ui.navigation.AppDestination
+import androidx.navigation.compose.rememberNavController
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.core.network.SupabaseClient
 
@@ -69,37 +70,12 @@ class MainActivity : ComponentActivity() {
         
         setContent {
             SynapseTheme {
-                MainScreen(
-                    viewModel = viewModel,
-                    onNavigateToHome = {
-                        val intent = Intent(this@MainActivity, HomeActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    },
-                    onNavigateToAuth = {
-                        val intent = Intent(this@MainActivity, AuthActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    },
-                    onOpenUpdateLink = { updateLink ->
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateLink))
-                        startActivity(intent)
-                        finish()
-                    },
-                    onShowToast = { message ->
-                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
-                    },
-                    onSignOut = {
-                        lifecycleScope.launch {
-                            authRepository.signOut()
-                        }
-                    },
-                    onFinishApp = {
-                        finishAffinity()
-                    },
-                    onFinish = {
-                        finish()
-                    }
+                val navController = rememberNavController()
+                
+                // For now, start with Auth screen - we'll add proper auth state handling later
+                AppNavigation(
+                    navController = navController,
+                    startDestination = AppDestination.Auth.route
                 )
             }
         }

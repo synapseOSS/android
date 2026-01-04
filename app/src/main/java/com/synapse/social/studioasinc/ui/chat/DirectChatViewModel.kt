@@ -32,7 +32,7 @@ import io.github.jan.supabase.realtime.PostgresAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.TextRange
 import com.synapse.social.studioasinc.ui.components.mentions.MentionHelper
-import com.synapse.social.studioasinc.AI.Gemini
+import com.synapse.social.studioasinc.data.remote.services.ai.Gemini
 import com.synapse.social.studioasinc.data.repository.AiRepository
 import com.synapse.social.studioasinc.domain.model.AiSummary
 import com.synapse.social.studioasinc.domain.model.ChatThemePreset

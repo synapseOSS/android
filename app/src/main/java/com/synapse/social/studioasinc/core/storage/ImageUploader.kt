@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.synapse.social.studioasinc
+package com.synapse.social.studioasinc.core.storage
 
 import android.content.Context
 import com.synapse.social.studioasinc.data.local.database.AppSettingsManager
