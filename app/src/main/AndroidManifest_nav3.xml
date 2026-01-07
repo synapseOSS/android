@@ -1,0 +1,158 @@
+<manifest
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools">
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+	<uses-permission android:name="android.permission.VIBRATE" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+	<uses-permission android:name="android.permission.RECORD_AUDIO" />
+	<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+	<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+	<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+	<uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+	<uses-permission android:name="android.permission.WRITE_MEDIA_STORAGE" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+	<application
+		android:allowBackup="false"
+		android:icon="@mipmap/ic_launcher"
+		android:label="@string/app_name"
+		android:name=".core.SynapseApplication"
+		android:requestLegacyExternalStorage="true"
+		android:usesCleartextTraffic="false"
+		android:theme="@style/AppTheme"
+		android:roundIcon="@mipmap/ic_launcher_round"
+		android:supportsRtl="true"
+		android:enableOnBackInvokedCallback="true">
+
+		<meta-data
+			android:name="com.onesignal.NotificationOpened.DEFAULT"
+			android:value="DISABLE" />
+			
+		<!-- Single Activity using Navigation 3 -->
+		<activity
+			android:name=".SingleActivity"
+			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+			android:hardwareAccelerated="true"
+			android:supportsPictureInPicture="true"
+			android:screenOrientation="portrait"
+			android:windowSoftInputMode="adjustResize"
+			android:exported="true">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+			
+			<!-- Deep links for all app navigation -->
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="synapse" android:host="home" />
+			</intent-filter>
+			
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="synapse" android:host="profile" />
+			</intent-filter>
+			
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="synapse" android:host="post" />
+			</intent-filter>
+			
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="synapse" android:host="login" />
+			</intent-filter>
+			
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="synapse" android:host="chat" />
+			</intent-filter>
+		</activity>
+
+		<!-- Keep legacy activities for gradual migration (can be removed later) -->
+		<activity
+			android:name=".MainActivity"
+			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+			android:hardwareAccelerated="true"
+			android:supportsPictureInPicture="true"
+			android:screenOrientation="portrait"
+			android:windowSoftInputMode="stateHidden"
+			android:exported="false" />
+		
+		<!-- Keep chat-related activities that might need special handling -->
+		<activity
+			android:name=".ChatActivity"
+			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+			android:hardwareAccelerated="true"
+			android:supportsPictureInPicture="true"
+			android:screenOrientation="portrait"
+			android:windowSoftInputMode="stateHidden"
+			android:launchMode="singleTop"
+			android:exported="false" />
+			
+		<activity
+			android:name=".chat.ImageGalleryActivity"
+			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+			android:hardwareAccelerated="true"
+			android:supportsPictureInPicture="true"
+			android:theme="@style/AppTheme.FullScreen"
+			android:screenOrientation="portrait"
+			android:exported="false" />
+
+		<!-- Image cropper activity -->
+		<activity
+            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat" />
+            
+		<provider
+			android:name="androidx.startup.InitializationProvider"
+			android:authorities="com.synapse.social.studioasinc.androidx-startup"
+			android:exported="false"
+			tools:replace="android:authorities">
+			<meta-data
+				android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+				android:value="androidx.startup" />
+			<meta-data
+				android:name="androidx.emoji2.text.EmojiCompatInitializer"
+				android:value="androidx.startup" />
+		</provider>
+		
+		<meta-data
+			android:name="com.google.android.gms.version"
+			android:value="@integer/google_play_services_version" />
+			
+		<uses-library
+			android:name="org.apache.http.legacy"
+			android:required="false" />
+
+		<!-- Background Deletion Service -->
+		<service
+			android:name=".data.repository.deletion.BackgroundDeletionService"
+			android:enabled="true"
+			android:exported="false"
+			android:foregroundServiceType="dataSync" />
+
+		<provider
+		  android:name="androidx.core.content.FileProvider"
+		  android:authorities="com.synapse.social.studioasinc.fileprovider"
+		  android:exported="false"
+		  android:grantUriPermissions="true">
+		  <meta-data
+		     android:name="android.support.FILE_PROVIDER_PATHS"
+		     android:resource="@xml/provider_paths"/>
+		</provider>
+	</application>
+</manifest>

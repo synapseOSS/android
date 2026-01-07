@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/typing_container"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/typing_indicator_background"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="8dp">
+
+    <com.synapse.social.studioasinc.widget.TypingAnimationView
+        android:id="@+id/typing_animation"
+        android:layout_width="24dp"
+        android:layout_height="16dp"
+        android:layout_marginEnd="8dp" />
+
+    <TextView
+        android:id="@+id/typing_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/product_sans"
+        android:text="Someone is typing..."
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:textSize="14sp" />
+
+</LinearLayout>

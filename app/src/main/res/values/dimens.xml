@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing dimensions -->
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_normal">16dp</dimen>
+    <dimen name="spacing_medium">24dp</dimen>
+    <dimen name="spacing_large">32dp</dimen>
+    
+    <!-- Text sizes -->
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_normal">14sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_large">18sp</dimen>
+    
+    <!-- Message bubble dimensions -->
+    <dimen name="message_bubble_padding">12dp</dimen>
+    <dimen name="message_bubble_max_width">280dp</dimen>
+    <dimen name="message_vertical_spacing">4dp</dimen>
+    
+    <!-- Common dimensions -->
+    <dimen name="corner_radius_small">4dp</dimen>
+    <dimen name="corner_radius_medium">8dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
+    
+    <!-- Auth dimensions -->
+    <dimen name="auth_min_touch_target">48dp</dimen>
+    
+    <!-- Chat dimensions -->
+    <dimen name="chat_carousel_spacing">8dp</dimen>
+    <dimen name="chat_carousel_image_size">120dp</dimen>
+    <dimen name="message_spacing_ungrouped">16dp</dimen>
+    <dimen name="message_spacing_grouped">4dp</dimen>
+    <dimen name="message_bubble_corner_radius">16dp</dimen>
+    <dimen name="gallery_image_corner_radius">8dp</dimen>
+    <dimen name="active_status_indicator_size">12dp</dimen>
+    <dimen name="spacing_tiny">4dp</dimen>
+</resources>

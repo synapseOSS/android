@@ -1,0 +1,32 @@
+pluginManagement {
+    repositories {
+        google()
+        maven { url = "https://repo1.maven.org/maven2/" }
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url = "https://jitpack.io" }
+    }
+    plugins {
+        id 'com.android.application' version '8.13.1' apply false
+        id 'com.android.library' version '8.13.1' apply false
+        id 'org.jetbrains.kotlin.android' version '2.2.21' apply false
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        maven { url = "https://repo1.maven.org/maven2/" }
+        mavenCentral()
+        maven { url = "https://jitpack.io" }
+        
+        // Add flatDir for the app module
+        flatDir {
+            dirs 'app/libs'
+        }
+    }
+}
+
+rootProject.name = "Synapse"
+include ':app'

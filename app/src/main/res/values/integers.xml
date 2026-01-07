@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Animation durations -->
+    <integer name="animation_duration_short">200</integer>
+    <integer name="animation_duration_medium">300</integer>
+    <integer name="animation_duration_long">500</integer>
+    
+    <!-- Grid columns -->
+    <integer name="grid_columns">2</integer>
+    <integer name="grid_columns_landscape">3</integer>
+    
+    <!-- Carousel settings -->
+    <integer name="carousel_max_items">5</integer>
+    
+    <!-- Touch feedback -->
+    <integer name="touch_feedback_duration">150</integer>
+</resources>

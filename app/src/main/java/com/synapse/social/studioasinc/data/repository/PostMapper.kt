@@ -1,0 +1,103 @@
+package com.synapse.social.studioasinc.data.repository
+
+import com.synapse.social.studioasinc.data.local.database.PostEntity
+import com.synapse.social.studioasinc.domain.model.Post
+
+object PostMapper {
+
+    fun toEntity(post: Post): PostEntity {
+        return PostEntity(
+            id = post.id,
+            key = post.key,
+            authorUid = post.authorUid,
+            postText = post.postText,
+            postImage = post.postImage,
+            postType = post.postType,
+            postHideViewsCount = post.postHideViewsCount,
+            postHideLikeCount = post.postHideLikeCount,
+            postHideCommentsCount = post.postHideCommentsCount,
+            postDisableComments = post.postDisableComments,
+            postVisibility = post.postVisibility,
+            publishDate = post.publishDate,
+            timestamp = post.timestamp,
+            likesCount = post.likesCount,
+            commentsCount = post.commentsCount,
+            viewsCount = post.viewsCount,
+            resharesCount = post.resharesCount,
+            mediaItems = post.mediaItems,
+            isEncrypted = post.isEncrypted,
+            nonce = post.nonce,
+            encryptionKeyId = post.encryptionKeyId,
+            isDeleted = post.isDeleted,
+            isEdited = post.isEdited,
+            editedAt = post.editedAt,
+            deletedAt = post.deletedAt,
+            hasPoll = post.hasPoll,
+            pollQuestion = post.pollQuestion,
+            pollOptions = post.pollOptions,
+            pollEndTime = post.pollEndTime,
+            pollAllowMultiple = post.pollAllowMultiple,
+            hasLocation = post.hasLocation,
+            locationName = post.locationName,
+            locationAddress = post.locationAddress,
+            locationLatitude = post.locationLatitude,
+            locationLongitude = post.locationLongitude,
+            locationPlaceId = post.locationPlaceId,
+            youtubeUrl = post.youtubeUrl,
+            reactions = post.reactions,
+            userReaction = post.userReaction,
+            username = post.username,
+            avatarUrl = post.avatarUrl,
+            isVerified = post.isVerified,
+            userPollVote = post.userPollVote
+        )
+    }
+
+    fun toModel(entity: PostEntity): Post {
+        return Post(
+            id = entity.id,
+            key = entity.key,
+            authorUid = entity.authorUid,
+            postText = entity.postText,
+            postImage = entity.postImage,
+            postType = entity.postType,
+            postHideViewsCount = entity.postHideViewsCount,
+            postHideLikeCount = entity.postHideLikeCount,
+            postHideCommentsCount = entity.postHideCommentsCount,
+            postDisableComments = entity.postDisableComments,
+            postVisibility = entity.postVisibility,
+            publishDate = entity.publishDate,
+            timestamp = entity.timestamp,
+            likesCount = entity.likesCount,
+            commentsCount = entity.commentsCount,
+            viewsCount = entity.viewsCount,
+            resharesCount = entity.resharesCount,
+            mediaItems = entity.mediaItems?.toMutableList(),
+            isEncrypted = entity.isEncrypted,
+            nonce = entity.nonce,
+            encryptionKeyId = entity.encryptionKeyId,
+            isDeleted = entity.isDeleted,
+            isEdited = entity.isEdited,
+            editedAt = entity.editedAt,
+            deletedAt = entity.deletedAt,
+            hasPoll = entity.hasPoll,
+            pollQuestion = entity.pollQuestion,
+            pollOptions = entity.pollOptions,
+            pollEndTime = entity.pollEndTime,
+            pollAllowMultiple = entity.pollAllowMultiple,
+            hasLocation = entity.hasLocation,
+            locationName = entity.locationName,
+            locationAddress = entity.locationAddress,
+            locationLatitude = entity.locationLatitude,
+            locationLongitude = entity.locationLongitude,
+            locationPlaceId = entity.locationPlaceId,
+            youtubeUrl = entity.youtubeUrl,
+            reactions = entity.reactions,
+            userReaction = entity.userReaction,
+            username = entity.username,
+            avatarUrl = entity.avatarUrl,
+            isVerified = entity.isVerified,
+            userPollVote = entity.userPollVote
+        )
+    }
+}

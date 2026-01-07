@@ -1,0 +1,81 @@
+# ---------------------------------------------------
+# General and Operating System Exclusions
+# ---------------------------------------------------
+.DS_Store
+.gradle
+/build
+.idea/
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/modules/
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/render.experimental
+.idea/codeStyles/
+.idea/runConfigurations/
+.idea/inspectionProfiles/
+.idea/dictionaries/
+
+# ---------------------------------------------------
+# Android Studio / Gradle
+# ---------------------------------------------------
+# Gradle generated files
+**/build/
+# Local configuration files
+local.properties
+.cxx/
+.externalNativeBuild/
+# Lint files
+lint-results.xml
+lint-results-*.html
+# Captures & Profiling
+/captures
+/profiler
+# Test coverage
+jacoco*.exec
+*.ec
+# Android Package Files (.apk, .aab) and Build cache
+*.apk
+*.aab
+*.ap_
+*.aar
+
+# ---------------------------------------------------
+# Project-Specific (Sensitive/Generated) Exclusions
+# ---------------------------------------------------
+# Keystore and Signing Information (CRITICAL for security)
+# I see 'app/release_key.jks' in your file listing, this MUST be excluded.
+*.jks
+*.keystore
+# Generated Room Database Schemas (often kept for migration, but excluded by default)
+# Remove the following lines if you explicitly track schemas for Room migrations:
+/app/schemas/
+# User Data & Debugging
+crashlytics-build.properties
+debug.keystore
+
+# ---------------------------------------------------
+# External Tooling & Logs
+# ---------------------------------------------------
+# Log files
+*.log
+# macOS specific
+xcuserdata/
+# Windows specific
+thumbs.db
+
+# ---------------------------------------------------
+# Dependency Caching (if manually placed in libs/)
+# The inclusion of AARs like 'app/libs/android-image-cropper-2.8.0.aar' 
+# suggests you may manually manage some AARs. If so, remove the line below.
+# However, the best practice is to manage all dependencies via build.gradle.
+# I will only exclude the *generated* AAR/APK files here for standard practice.
+# If those in app/libs/ are custom-built external dependencies, consider removing them.
+
+# Build scripts
+build-and-push.sh
+# Shell scripts in root only
+/*.sh
+/tmp/
