@@ -59,13 +59,7 @@ object SupabaseClient {
                 install(Auth) {
                     // Configure URL opener for OAuth flows
                 }
-                install(Postgrest) {
-                    serializer = Json {
-                        ignoreUnknownKeys = true
-                        coerceInputValues = true
-                        isLenient = true
-                    }
-                }
+                install(Postgrest)
                 install(Realtime)
                 install(Storage) {
                     if (BuildConfig.SUPABASE_SYNAPSE_S3_ENDPOINT_URL.isNotBlank()) {
