@@ -59,32 +59,48 @@ fun PostCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 0.dp) // Edge-to-edge feel usually implies no horizontal padding for card itself in feed, but let's stick to design
+            .padding(vertical = 8.dp, horizontal = 16.dp)
             .clickable(onClick = onPostClick),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = MaterialTheme.shapes.small // Or RectangleShape for full bleed
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 8.dp
+        ),
+        shape = MaterialTheme.shapes.large
     ) {
         Column {
-            PostHeader(
-                user = state.user,
-                timestamp = com.synapse.social.studioasinc.core.util.TimeUtils.getTimeAgo(state.post.publishDate ?: ""),
-                onUserClick = onUserClick,
-                onOptionsClick = onOptionsClick
-            )
+            Column(modifier = Modifier.padding(16.dp)) {
+                PostHeader(
+                    user = state.user,
+                    timestamp = com.synapse.social.studioasinc.core.util.TimeUtils.getTimeAgo(state.post.publishDate ?: ""),
+                    onUserClick = onUserClick,
+                    onOptionsClick = onOptionsClick
+                )
 
-            PostContent(
-                text = state.post.postText,
-                mediaUrls = state.mediaUrls,
-                postViewStyle = postViewStyle,
-                isVideo = state.isVideo,
-                pollQuestion = state.pollQuestion,
-                pollOptions = state.pollOptions,
-                onMediaClick = onMediaClick,
-                onPollVote = onPollVote
-            )
+                PostContent(
+                    text = state.post.postText,
+                    mediaUrls = state.mediaUrls,
+                    postViewStyle = postViewStyle,
+                    isVideo = state.isVideo,
+                    pollQuestion = state.pollQuestion,
+                    pollOptions = state.pollOptions,
+                    onMediaClick = onMediaClick,
+                    onPollVote = onPollVote
+                )
+
+                // Comment Preview Section
+                if (state.commentCount > 0) {
+                     CommentPreview(
+                        commentCount = state.commentCount,
+                        topCommentAuthor = state.topCommentAuthor,
+                        topCommentText = state.topCommentText,
+                        onViewAllClick = onCommentClick,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
 
             PostInteractionBar(
                 isLiked = state.isLiked,
@@ -100,16 +116,6 @@ fun PostCard(
                     { showReactionPicker = true }
                 } else null
             )
-
-            // Comment Preview Section
-            if (state.commentCount > 0) {
-                 CommentPreview(
-                    commentCount = state.commentCount,
-                    topCommentAuthor = state.topCommentAuthor,
-                    topCommentText = state.topCommentText,
-                    onViewAllClick = onCommentClick
-                )
-            }
         }
     }
     
