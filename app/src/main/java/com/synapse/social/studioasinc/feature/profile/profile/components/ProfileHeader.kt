@@ -126,32 +126,26 @@ fun ProfileHeader(
                 }
             }
             
-            // Username
-            Text(
-                text = "@$username",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
             // Nickname
             nickname?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    modifier = Modifier.padding(top = 2.dp)
                 )
             }
             
-            // Bio
+            // Bio (moved to replace username position)
             if (!bio.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 ExpandableBio(
                     bio = bio,
                     expanded = bioExpanded,
                     onToggle = { bioExpanded = !bioExpanded }
                 )
             } else if (isOwnProfile) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(id = R.string.add_bio_placeholder),
                     style = MaterialTheme.typography.bodyMedium,
