@@ -162,8 +162,8 @@ fun ProfileHeader(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Animated Stats Row
-            AnimatedStatsRow(
+            // Stats Row
+            StatsRow(
                 postsCount = postsCount,
                 followersCount = followersCount,
                 followingCount = followingCount,

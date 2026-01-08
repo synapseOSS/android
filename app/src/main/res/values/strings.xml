@@ -127,6 +127,7 @@
     <string name="share">Share</string>
     <string name="report">Report</string>
     <string name="posts">Posts</string>
+    <string name="follower">Follower</string>
     <string name="followers">Followers</string>
     <string name="following">Following</string>
     <string name="edit_profile">Edit Profile</string>

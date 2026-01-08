@@ -1,0 +1,128 @@
+package com.synapse.social.studioasinc.ui.profile.components
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun StatItem(
+    label: String,
+    count: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = formatCount(count),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun StatsRow(
+    postsCount: Int,
+    followersCount: Int,
+    followingCount: Int,
+    onPostsClick: () -> Unit,
+    onFollowersClick: () -> Unit,
+    onFollowingClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        StatItem(
+            label = "Posts",
+            count = postsCount,
+            onClick = onPostsClick
+        )
+        
+        VerticalDivider(
+            modifier = Modifier
+                .height(24.dp)
+                .width(1.dp),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+        
+        StatItem(
+            label = if (followersCount == 1) "Follower" else "Followers",
+            count = followersCount,
+            onClick = onFollowersClick
+        )
+        
+        VerticalDivider(
+            modifier = Modifier
+                .height(24.dp)
+                .width(1.dp),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+        
+        StatItem(
+            label = "Following",
+            count = followingCount,
+            onClick = onFollowingClick
+        )
+    }
+}
+
+fun formatCount(count: Int): String {
+    return when {
+        count >= 1_000_000_000 -> {
+            val formatted = count / 1_000_000_000.0
+            if (formatted == formatted.toLong().toDouble()) {
+                "${formatted.toLong()}B"
+            } else {
+                String.format("%.1fB", formatted)
+            }
+        }
+        count >= 1_000_000 -> {
+            val formatted = count / 1_000_000.0
+            if (formatted == formatted.toLong().toDouble()) {
+                "${formatted.toLong()}M"
+            } else {
+                String.format("%.1fM", formatted)
+            }
+        }
+        count >= 1_000 -> {
+            val formatted = count / 1_000.0
+            String.format("%.1fK", formatted)
+        }
+        else -> count.toString()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StatItemPreview() {
+    MaterialTheme {
+        StatItem(
+            label = "Followers",
+            count = 1,
+            onClick = {}
+        )
+    }
+}
