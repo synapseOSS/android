@@ -80,11 +80,13 @@ fun UserDetailsSection(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(12.dp)
         ) {
             // Header row
             Row(
@@ -117,7 +119,7 @@ fun UserDetailsSection(
             
             // Collapsed summary (visible when not expanded)
             if (!expanded && hasDetails) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 CollapsedSummary(details = details)
             }
             
@@ -133,7 +135,7 @@ fun UserDetailsSection(
                 exit = fadeOut(animationSpec = tween(100)) + shrinkVertically()
             ) {
                 Column {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     
                     ExpandedDetailsContent(
                         details = details,
@@ -141,7 +143,7 @@ fun UserDetailsSection(
                     )
                     
                     if (isOwnProfile) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                         OutlinedButton(
                             onClick = onCustomizeClick,
                             modifier = Modifier.fillMaxWidth(),
@@ -161,7 +163,7 @@ fun UserDetailsSection(
             
             // Empty state for own profile
             if (!hasDetails && isOwnProfile) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 EmptyDetailsState(onAddClick = onCustomizeClick)
             }
         }

@@ -29,7 +29,9 @@ fun FollowingSection(
     } else {
         Card(
             modifier = modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors()
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            )
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
@@ -83,7 +85,9 @@ fun FollowingSection(
 private fun EmptyFollowingState(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors()
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
     ) {
         Box(
             modifier = Modifier
