@@ -82,7 +82,7 @@ fun SettingsHubScreen(
             }
         } else {
             SwipeRefresh(
-                state = rememberSwipeRefreshState(isLoading),
+                state = rememberSwipeRefreshState(false),
                 onRefresh = { viewModel.forceRefreshProfile() }
             ) {
                 LazyColumn(

@@ -53,11 +53,18 @@ fun FeedScreen(
     val storyTrayState by storyTrayViewModel.storyTrayState.collectAsState()
     val currentUser by storyTrayViewModel.currentUser.collectAsState()
 
-    val isRefreshing = posts.loadState.refresh is LoadState.Loading
+    var isRefreshing by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(posts.loadState.refresh) {
+        if (posts.loadState.refresh !is LoadState.Loading) {
+            isRefreshing = false
+        }
+    }
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = {
+            isRefreshing = true
             posts.refresh()
             viewModel.refresh()
             storyTrayViewModel.refresh()
