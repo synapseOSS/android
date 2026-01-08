@@ -23,18 +23,18 @@ fun StatItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp) // MD3: Increased touch target
     ) {
         Text(
             text = formatCount(count),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge, // MD3: Larger title
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(4.dp)) // MD3: 4dp spacing
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.bodyMedium, // MD3: Body medium for labels
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -52,13 +52,26 @@ fun StatsRow(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
         StatItem(
             label = "Posts",
             count = postsCount,
-            onClick = onPostsClick
+            onClick = onPostsClick,
+            modifier = Modifier.weight(1f)
+        )
+        StatItem(
+            label = "Followers", 
+            count = followersCount,
+            onClick = onFollowersClick,
+            modifier = Modifier.weight(1f)
+        )
+        StatItem(
+            label = "Following",
+            count = followingCount,
+            onClick = onFollowingClick,
+            modifier = Modifier.weight(1f)
         )
     }
 }

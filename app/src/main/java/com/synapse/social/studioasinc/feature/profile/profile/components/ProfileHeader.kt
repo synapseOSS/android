@@ -101,18 +101,18 @@ fun ProfileHeader(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(top = 60.dp) // Account for overlapping profile image
+                .padding(horizontal = 20.dp) // MD3: 20dp horizontal padding
+                .padding(top = 70.dp) // Account for overlapping profile image
                 .graphicsLayer { alpha = contentAlpha }
         ) {
             // Name and Verified Badge Row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(end = 48.dp) // Leave space for more button
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = name ?: username,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineMedium, // MD3: Larger headline
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -121,31 +121,43 @@ fun ProfileHeader(
                 
                 if (isVerified) {
                     AnimatedVerifiedBadge(
-                        modifier = Modifier.padding(start = 6.dp)
+                        modifier = Modifier.padding(start = 8.dp) // MD3: 8dp spacing
                     )
                 }
             }
             
-            // Nickname
-            nickname?.let {
+            // Username (if different from name)
+            if (!name.isNullOrBlank() && name != username) {
+                Spacer(modifier = Modifier.height(4.dp)) // MD3: 4dp tight spacing
                 Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                    modifier = Modifier.padding(top = 2.dp)
+                    text = "@$username",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             
-            // Bio (moved to replace username position)
+            // Nickname
+            nickname?.let {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                )
+            }
+            
+            // Bio with proper MD3 spacing
             if (!bio.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp)) // MD3: 12dp medium spacing
                 ExpandableBio(
                     bio = bio,
                     expanded = bioExpanded,
                     onToggle = { bioExpanded = !bioExpanded }
                 )
             } else if (isOwnProfile) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = stringResource(id = R.string.add_bio_placeholder),
                     style = MaterialTheme.typography.bodyMedium,
@@ -154,7 +166,7 @@ fun ProfileHeader(
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp)) // MD3: 20dp section spacing
             
             // Stats Row
             StatsRow(
@@ -166,7 +178,7 @@ fun ProfileHeader(
                 onFollowingClick = { onStatsClick("following") }
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp)) // MD3: 20dp section spacing
             
             // Action Buttons
             ProfileActionButtons(
@@ -179,6 +191,8 @@ fun ProfileHeader(
                 onMessageClick = onMessageClick,
                 onMoreClick = onMoreClick
             )
+            
+            Spacer(modifier = Modifier.height(8.dp)) // MD3: Bottom spacing
         }
     }
 }
@@ -236,7 +250,8 @@ private fun ExpandableBio(
         ) { isExpanded ->
             Text(
                 text = bio,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge, // MD3: Body large for bio
+                lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.2, // MD3: Better line height
                 maxLines = if (isExpanded || !shouldCollapse) Int.MAX_VALUE else 3,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.clickable(enabled = shouldCollapse) { onToggle() }
@@ -244,14 +259,13 @@ private fun ExpandableBio(
         }
         
         if (shouldCollapse) {
+            Spacer(modifier = Modifier.height(8.dp)) // MD3: 8dp spacing
             Text(
                 text = if (expanded) "Show less" else "See more",
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .clickable { onToggle() }
-                    .padding(top = 4.dp)
+                fontWeight = FontWeight.Medium, // MD3: Medium weight for actions
+                modifier = Modifier.clickable { onToggle() }
             )
         }
     }
