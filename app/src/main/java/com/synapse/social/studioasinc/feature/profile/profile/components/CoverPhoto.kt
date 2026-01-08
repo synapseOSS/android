@@ -135,26 +135,6 @@ fun CoverPhoto(
                     )
                 )
         )
-        
-        // Edit button for own profile
-        if (isOwnProfile) {
-            FloatingActionButton(
-                onClick = onEditClick,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(12.dp)
-                    .size(36.dp),
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                shape = CircleShape
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CameraAlt,
-                    contentDescription = "Edit cover photo",
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-        }
     }
 }
 

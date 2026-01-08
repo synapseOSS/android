@@ -52,39 +52,13 @@ fun StatsRow(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
         StatItem(
             label = "Posts",
             count = postsCount,
             onClick = onPostsClick
-        )
-        
-        VerticalDivider(
-            modifier = Modifier
-                .height(24.dp)
-                .width(1.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-        
-        StatItem(
-            label = if (followersCount == 1) "Follower" else "Followers",
-            count = followersCount,
-            onClick = onFollowersClick
-        )
-        
-        VerticalDivider(
-            modifier = Modifier
-                .height(24.dp)
-                .width(1.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-        
-        StatItem(
-            label = "Following",
-            count = followingCount,
-            onClick = onFollowingClick
         )
     }
 }

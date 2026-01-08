@@ -34,7 +34,7 @@ fun PostHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(12.dp),
+            .padding(start = 12.dp, top = 12.dp, end = 4.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         CircularAvatar(
@@ -69,7 +69,10 @@ fun PostHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        IconButton(onClick = onOptionsClick) {
+        IconButton(
+            onClick = onOptionsClick,
+            modifier = Modifier.padding(0.dp)
+        ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = "Options"

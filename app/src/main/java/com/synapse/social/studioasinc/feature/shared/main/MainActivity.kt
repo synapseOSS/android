@@ -72,7 +72,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         setContent {
-            SynapseTheme {
+            val settingsRepository = com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl.getInstance(this@MainActivity)
+            val appearanceSettings by settingsRepository.appearanceSettings.collectAsState(
+                initial = com.synapse.social.studioasinc.ui.settings.AppearanceSettings()
+            )
+            
+            val darkTheme = when (appearanceSettings.themeMode) {
+                com.synapse.social.studioasinc.ui.settings.ThemeMode.LIGHT -> false
+                com.synapse.social.studioasinc.ui.settings.ThemeMode.DARK -> true
+                com.synapse.social.studioasinc.ui.settings.ThemeMode.SYSTEM -> 
+                    androidx.compose.foundation.isSystemInDarkTheme()
+            }
+            
+            val dynamicColor = appearanceSettings.dynamicColorEnabled && 
+                               android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+            
+            SynapseTheme(
+                darkTheme = darkTheme,
+                dynamicColor = dynamicColor
+            ) {
                 val navController = rememberNavController()
                 val updateState by viewModel.updateState.observeAsState()
                 

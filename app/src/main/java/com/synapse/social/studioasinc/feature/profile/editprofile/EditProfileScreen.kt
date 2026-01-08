@@ -176,14 +176,7 @@ fun EditProfileScreen(
                             },
                             onRetryCoverUpload = {
                                 viewModel.onEvent(EditProfileEvent.RetryCoverUpload)
-                            },
-                            onStoryClick = {
-                                // TODO: Navigate to story creation
-                            },
-                            onFollowClick = {
-                                // TODO: Handle follow action
-                            },
-                            isFollowing = false // TODO: Get from state
+                            }
                         )
                     }
 

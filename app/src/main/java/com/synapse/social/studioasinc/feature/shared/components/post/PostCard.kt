@@ -71,14 +71,14 @@ fun PostCard(
         shape = MaterialTheme.shapes.large
     ) {
         Column {
-            Column(modifier = Modifier.padding(12.dp)) {
-                PostHeader(
-                    user = state.user,
-                    timestamp = com.synapse.social.studioasinc.core.util.TimeUtils.getTimeAgo(state.post.publishDate ?: ""),
-                    onUserClick = onUserClick,
-                    onOptionsClick = onOptionsClick
-                )
+            PostHeader(
+                user = state.user,
+                timestamp = com.synapse.social.studioasinc.core.util.TimeUtils.getTimeAgo(state.post.publishDate ?: ""),
+                onUserClick = onUserClick,
+                onOptionsClick = onOptionsClick
+            )
 
+            Column(modifier = Modifier.padding(horizontal = 12.dp)) {
                 PostContent(
                     text = state.post.postText,
                     mediaUrls = state.mediaUrls,

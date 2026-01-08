@@ -89,7 +89,6 @@ fun ProfileScreen(
 
     val listState = rememberLazyListState()
     var isRefreshing by remember { mutableStateOf(false) }
-    var showCustomizationDialog by remember { mutableStateOf(false) }
     var showUserSearchDialog by remember { mutableStateOf(false) }
 
     // Media Viewer State
@@ -168,7 +167,7 @@ fun ProfileScreen(
                         onNavigateToFollowing = onNavigateToFollowing,
                         onNavigateToUserProfile = onNavigateToUserProfile,
                         onNavigateToChat = onNavigateToChat,
-                        onCustomizeClick = { showCustomizationDialog = true },
+                        onCustomizeClick = { },
                         onOpenMediaViewer = { urls, index ->
                             selectedMediaUrls = urls
                             initialMediaPage = index
@@ -322,16 +321,6 @@ fun ProfileScreen(
                 onReport = { reason -> viewModel.reportUser(it.id, reason) }
             )
         }
-    }
-
-    if (showCustomizationDialog) {
-        ProfileInfoCustomizationDialog(
-            onDismiss = { showCustomizationDialog = false },
-            onNavigateToEditProfile = {
-                showCustomizationDialog = false
-                onNavigateToEditProfile()
-            }
-        )
     }
 
     // Media Viewer Overlay

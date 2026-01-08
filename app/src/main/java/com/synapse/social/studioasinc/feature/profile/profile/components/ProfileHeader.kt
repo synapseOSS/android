@@ -94,7 +94,7 @@ fun ProfileHeader(
             onCoverEditClick = onCoverPhotoClick,
             onProfileImageClick = onProfileImageClick,
             coverHeight = 180.dp,
-            profileImageSize = 110.dp
+            profileImageSize = 140.dp
         )
         
         // Content below cover (with offset for profile image overlap)
@@ -282,7 +282,6 @@ private fun ProfileActionButtons(
             ExpressiveButton(
                 onClick = onEditProfileClick,
                 modifier = Modifier.weight(1f),
-                icon = Icons.Outlined.Edit,
                 text = "Edit Profile",
                 variant = ButtonVariant.FilledTonal
             )
@@ -291,7 +290,6 @@ private fun ProfileActionButtons(
             ExpressiveButton(
                 onClick = onAddStoryClick,
                 modifier = Modifier.weight(1f),
-                icon = Icons.Outlined.AddCircle,
                 text = "Add Story",
                 variant = ButtonVariant.Outlined
             )

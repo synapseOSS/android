@@ -51,9 +51,6 @@ fun ProfileImageSection(
     onAvatarClick: () -> Unit,
     onRetryAvatarUpload: () -> Unit,
     onRetryCoverUpload: () -> Unit,
-    onStoryClick: () -> Unit = {},
-    onFollowClick: () -> Unit = {},
-    isFollowing: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -221,45 +218,6 @@ fun ProfileImageSection(
                         else -> {
                             // No overlay for success or idle state
                         }
-                    }
-                }
-            }
-            
-            // Action buttons row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Story Button
-                OutlinedButton(
-                    onClick = onStoryClick,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.AddCircle,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text("Story")
-                }
-                
-                // Follow Button
-                if (isFollowing) {
-                    OutlinedButton(
-                        onClick = onFollowClick,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Following")
-                    }
-                } else {
-                    Button(
-                        onClick = onFollowClick,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Follow")
                     }
                 }
             }
