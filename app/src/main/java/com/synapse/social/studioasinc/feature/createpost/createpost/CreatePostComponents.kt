@@ -38,89 +38,97 @@ fun UserHeader(
     onPrivacyClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
+            .padding(vertical = 16.dp)
     ) {
-        // Avatar
-        if (user?.avatar != null) {
-            AsyncImage(
-                model = user.avatar,
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.ic_person),
-                error = painterResource(R.drawable.ic_person)
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+        // Profile info row
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Avatar
+            if (user?.avatar != null) {
+                AsyncImage(
+                    model = user.avatar,
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.ic_person),
+                    error = painterResource(R.drawable.ic_person)
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-        Column {
+            // Name
             Text(
                 text = user?.displayName ?: user?.username ?: "You",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Surface(
-                onClick = onPrivacyClick,
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                modifier = Modifier.height(26.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = when(privacy) {
-                            "followers" -> Icons.Default.Group
-                            "private" -> Icons.Default.Lock
-                            else -> Icons.Default.Public
-                        },
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = privacy.replaceFirstChar { it.uppercase() },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.width(2.dp))
-                    Icon(
-                        Icons.Default.ArrowDropDown,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Privacy selector as proper FilterChip
+        FilterChip(
+            onClick = onPrivacyClick,
+            label = {
+                Text(
+                    text = privacy.replaceFirstChar { it.uppercase() },
+                    style = MaterialTheme.typography.labelMedium
+                )
+            },
+            selected = false,
+            enabled = true,
+            leadingIcon = {
+                Icon(
+                    imageVector = when(privacy) {
+                        "followers" -> Icons.Default.Group
+                        "private" -> Icons.Default.Lock
+                        else -> Icons.Default.Public
+                    },
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            },
+            trailingIcon = {
+                Icon(
+                    Icons.Default.ArrowDropDown,
+                    contentDescription = "Change privacy",
+                    modifier = Modifier.size(18.dp)
+                )
+            },
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                labelColor = MaterialTheme.colorScheme.onSurface,
+                iconColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            border = FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = false,
+                borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+            )
+        )
     }
 }
 
@@ -362,17 +370,17 @@ fun AddToPostSheet(
                 .padding(bottom = 32.dp)
         ) {
             Text(
-                "Add to your post",
-                style = MaterialTheme.typography.titleMedium,
+                "Add content",
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp, start = 8.dp)
+                modifier = Modifier.padding(bottom = 20.dp, start = 8.dp)
             )
 
             val actions = listOf(
-                Triple("Photo/Video", Icons.Filled.Image, Color(0xFF4CAF50)) to onMediaClick,
-                Triple("Poll", Icons.Default.Poll, Color(0xFFFF9800)) to onPollClick,
-                Triple("Location", Icons.Filled.Place, Color(0xFFF44336)) to onLocationClick,
-                Triple("YouTube", Icons.Default.VideoLibrary, Color(0xFFE91E63)) to onYoutubeClick
+                Triple("Photo/Video", Icons.Filled.Image, MaterialTheme.colorScheme.primary) to onMediaClick,
+                Triple("Poll", Icons.Default.Poll, MaterialTheme.colorScheme.tertiary) to onPollClick,
+                Triple("Location", Icons.Filled.Place, MaterialTheme.colorScheme.error) to onLocationClick,
+                Triple("YouTube", Icons.Default.VideoLibrary, MaterialTheme.colorScheme.secondary) to onYoutubeClick
             )
 
             actions.forEach { (item, action) ->
@@ -384,17 +392,29 @@ fun AddToPostSheet(
                             action()
                             onDismiss()
                         })
-                        .padding(vertical = 12.dp, horizontal = 8.dp),
+                        .padding(vertical = 16.dp, horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = color,
-                        modifier = Modifier.size(28.dp)
-                    )
+                    Surface(
+                        shape = CircleShape,
+                        color = color.copy(alpha = 0.12f),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = color,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(label, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = label, 
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
         }
@@ -409,30 +429,41 @@ fun AddToPostBar(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
-        shadowElevation = 8.dp,
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 1.dp,
+        shadowElevation = 4.dp
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                "Add to your post",
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FilledTonalIconButton(
+                onClick = onMediaClick,
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    IconButton(onClick = onMediaClick) {
-                        Icon(Icons.Filled.Image, contentDescription = "Media", tint = Color(0xFF4CAF50))
-                    }
-                    IconButton(onClick = onMoreClick) { // More options
-                         Icon(Icons.Default.MoreHoriz, contentDescription = "More", tint = MaterialTheme.colorScheme.onSurface)
-                    }
-                }
+                Icon(
+                    Icons.Filled.Image, 
+                    contentDescription = "Add photo or video"
+                )
+            }
+            
+            FilledTonalIconButton(
+                onClick = onMoreClick,
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Icon(
+                    Icons.Default.Add, 
+                    contentDescription = "More options"
+                )
             }
         }
     }

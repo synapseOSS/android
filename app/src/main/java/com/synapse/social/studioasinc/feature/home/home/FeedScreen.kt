@@ -58,9 +58,7 @@ fun FeedScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     
     LaunchedEffect(posts.loadState.refresh) {
-        if (posts.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
+        isRefreshing = posts.loadState.refresh is LoadState.Loading
     }
 
     PullToRefreshBox(

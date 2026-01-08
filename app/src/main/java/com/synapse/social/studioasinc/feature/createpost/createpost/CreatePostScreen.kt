@@ -118,8 +118,8 @@ fun CreatePostScreen(
                 title = { 
                     Text(
                         if (uiState.isEditMode) "Edit Post" else "Create Post", 
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Medium
                     ) 
                 },
                 navigationIcon = {
@@ -136,10 +136,11 @@ fun CreatePostScreen(
                         variant = ButtonVariant.Filled,
                         modifier = Modifier.height(40.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(16.dp))
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
@@ -148,14 +149,15 @@ fun CreatePostScreen(
                 onMediaClick = { launchMediaPicker() },
                 onMoreClick = { showAddToPostSheet = true }
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // User Header
             item {
@@ -168,35 +170,41 @@ fun CreatePostScreen(
 
             // Input
             item {
-                Box(modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 150.dp)) {
-                    if (uiState.postText.isEmpty()) {
-                        Text(
-                            text = "What's on your mind?",
-                            style = if (uiState.mediaItems.isEmpty()) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Transparent
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 120.dp)) {
+                        if (uiState.postText.isEmpty()) {
+                            Text(
+                                text = "What's on your mind?",
+                                style = if (uiState.mediaItems.isEmpty()) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+
+                        // Dynamic Text Sizing
+                        val textSize = if (uiState.postText.length < 80 && uiState.mediaItems.isEmpty() && uiState.pollData == null) {
+                            MaterialTheme.typography.headlineSmall
+                        } else {
+                            MaterialTheme.typography.bodyLarge
+                        }
+
+                        BasicTextField(
+                            value = uiState.postText,
+                            onValueChange = { viewModel.updateText(it) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester),
+                            textStyle = textSize.copy(
+                                color = MaterialTheme.colorScheme.onSurface,
+                                lineHeight = textSize.lineHeight * 1.2
+                            ),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
+                            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                         )
                     }
-
-                    // Dynamic Text Sizing
-                    val textSize = if (uiState.postText.length < 80 && uiState.mediaItems.isEmpty() && uiState.pollData == null) {
-                        MaterialTheme.typography.headlineSmall
-                    } else {
-                        MaterialTheme.typography.bodyLarge
-                    }
-
-                    BasicTextField(
-                        value = uiState.postText,
-                        onValueChange = { viewModel.updateText(it) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester),
-                        textStyle = textSize.copy(
-                            color = MaterialTheme.colorScheme.onSurface
-                        ),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
-                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
-                    )
                 }
             }
 
@@ -227,7 +235,7 @@ fun CreatePostScreen(
             }
             
             item {
-                Spacer(modifier = Modifier.height(80.dp)) // Bottom padding for content
+                Spacer(modifier = Modifier.height(24.dp)) // Bottom padding for content
             }
         }
     }
