@@ -128,18 +128,33 @@ class StoryRepositoryImpl @Inject constructor(
                     userId = userId,
                     mediaUrl = storyJson["media_url"]?.jsonPrimitive?.content,
                     mediaType = try {
-                        StoryMediaType.valueOf(
-                            storyJson["media_type"]?.jsonPrimitive?.content?.uppercase() ?: "PHOTO"
-                        )
-                    } catch (e: Exception) { StoryMediaType.PHOTO },
+                        storyJson["media_type"]?.jsonPrimitive?.content?.let {
+                            StoryMediaType.valueOf(it.uppercase())
+                        }
+                    } catch (e: Exception) { null },
                     content = storyJson["content"]?.jsonPrimitive?.content,
-                    duration = storyJson["duration"]?.jsonPrimitive?.content?.toIntOrNull() ?: 5,
+                    duration = storyJson["duration"]?.jsonPrimitive?.content?.toIntOrNull(),
+                    durationHours = storyJson["duration_hours"]?.jsonPrimitive?.content?.toIntOrNull(),
                     privacy = try {
-                        StoryPrivacy.valueOf(
-                            storyJson["privacy_setting"]?.jsonPrimitive?.content?.uppercase()?.replace(" ", "_") ?: "ALL_FRIENDS"
-                        )
-                    } catch (e: Exception) { StoryPrivacy.ALL_FRIENDS },
-                    viewCount = storyJson["views_count"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+                        storyJson["privacy_setting"]?.jsonPrimitive?.content?.let {
+                            when(it) {
+                                "followers" -> StoryPrivacy.ALL_FRIENDS
+                                "public" -> StoryPrivacy.PUBLIC
+                                else -> null
+                            }
+                        }
+                    } catch (e: Exception) { null },
+                    viewCount = storyJson["views_count"]?.jsonPrimitive?.content?.toIntOrNull(),
+                    isActive = storyJson["is_active"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+                    thumbnailUrl = storyJson["thumbnail_url"]?.jsonPrimitive?.content,
+                    mediaWidth = storyJson["media_width"]?.jsonPrimitive?.content?.toIntOrNull(),
+                    mediaHeight = storyJson["media_height"]?.jsonPrimitive?.content?.toIntOrNull(),
+                    mediaDurationSeconds = storyJson["media_duration_seconds"]?.jsonPrimitive?.content?.toIntOrNull(),
+                    fileSizeBytes = storyJson["file_size_bytes"]?.jsonPrimitive?.content?.toLongOrNull(),
+                    reactionsCount = storyJson["reactions_count"]?.jsonPrimitive?.content?.toIntOrNull(),
+                    repliesCount = storyJson["replies_count"]?.jsonPrimitive?.content?.toIntOrNull(),
+                    isReported = storyJson["is_reported"]?.jsonPrimitive?.content?.toBooleanStrictOrNull(),
+                    moderationStatus = storyJson["moderation_status"]?.jsonPrimitive?.content,
                     createdAt = storyJson["created_at"]?.jsonPrimitive?.content,
                     expiresAt = storyJson["expires_at"]?.jsonPrimitive?.content
                 )
@@ -258,19 +273,30 @@ class StoryRepositoryImpl @Inject constructor(
         val now = Instant.now()
         val expiresAt = now.plusSeconds(24 * 60 * 60)
         
-        // Create story record
-        val story = Story(
-            userId = userId,
-            mediaUrl = mediaUrl,
-            mediaType = mediaType,
-            privacy = privacy,
-            duration = if (mediaType == StoryMediaType.VIDEO) duration else 5,
-            createdAt = now.toString(),
-            expiresAt = expiresAt.toString()
+        // Create story record with explicit fields matching database schema
+        val storyData = mapOf(
+            "user_id" to userId,
+            "media_url" to mediaUrl,
+            "media_type" to when(mediaType) {
+                StoryMediaType.PHOTO -> "photo"
+                StoryMediaType.VIDEO -> "video"
+            },
+            "privacy_setting" to when(privacy) {
+                StoryPrivacy.ALL_FRIENDS -> "followers"
+                StoryPrivacy.PUBLIC -> "public"
+            },
+            "duration" to if (mediaType == StoryMediaType.VIDEO) duration else null,
+            "duration_hours" to 24,
+            "media_duration_seconds" to if (mediaType == StoryMediaType.VIDEO) duration else null,
+            "is_active" to true,
+            "reactions_count" to 0,
+            "replies_count" to 0,
+            "is_reported" to false,
+            "moderation_status" to "pending"
         )
         
         val insertedStory = client.from(TABLE_STORIES)
-            .insert(story) {
+            .insert(storyData) {
                 select()
             }
             .decodeSingle<Story>()
