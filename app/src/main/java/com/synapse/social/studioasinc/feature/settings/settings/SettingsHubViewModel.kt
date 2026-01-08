@@ -268,27 +268,4 @@ class SettingsHubViewModel @Inject constructor(
         UserProfileManager.clearCache()
         loadUserProfile()
     }
-    
-    /**
-     * Force refresh with cache clearing
-     */
-    fun forceRefreshProfile() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                // Clear cache first
-                UserProfileManager.clearCache()
-                
-                // Wait a bit to ensure cache is cleared
-                kotlinx.coroutines.delay(100)
-                
-                // Reload profile
-                loadUserProfile()
-            } catch (e: Exception) {
-                android.util.Log.e("SettingsHubViewModel", "Failed to force refresh profile", e)
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
 }
