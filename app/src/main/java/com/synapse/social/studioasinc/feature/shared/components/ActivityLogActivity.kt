@@ -44,8 +44,7 @@ class ActivityLogActivity : ComponentActivity() {
             SynapseTheme(
                 darkTheme = darkTheme,
                 dynamicColor = appearanceSettings.dynamicColorEnabled && 
-                              android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S,
-                enableEdgeToEdge = true
+                              android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
             ) {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     ActivityLogScreen(
