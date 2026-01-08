@@ -314,25 +314,9 @@ private fun ProfileActionButtons(
             ExpressiveButton(
                 onClick = { /* Disabled */ },
                 modifier = Modifier.weight(1f),
-                icon = Icons.AutoMirrored.Outlined.Message,
                 text = "Message",
                 variant = ButtonVariant.Outlined,
                 enabled = false
-            )
-        }
-        
-        // More button
-        IconButton(
-            onClick = onMoreClick,
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreHoriz,
-                contentDescription = "More options",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -400,21 +384,10 @@ fun AnimatedFollowButton(
                     },
                     label = "followButtonContent"
                 ) { following ->
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = if (following) Icons.Default.PersonRemove else Icons.Outlined.PersonAdd,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (following) "Following" else "Follow",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
+                    Text(
+                        text = if (following) "Following" else "Follow",
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
              }
         }
