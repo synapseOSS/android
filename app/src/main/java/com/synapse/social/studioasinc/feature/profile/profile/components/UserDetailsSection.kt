@@ -102,7 +102,8 @@ fun UserDetailsSection(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "About",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
                 
