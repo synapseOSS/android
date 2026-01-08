@@ -59,7 +59,7 @@ fun PostCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .padding(vertical = 4.dp, horizontal = 8.dp)
             .clickable(onClick = onPostClick),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -71,7 +71,7 @@ fun PostCard(
         shape = MaterialTheme.shapes.large
     ) {
         Column {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(12.dp)) {
                 PostHeader(
                     user = state.user,
                     timestamp = com.synapse.social.studioasinc.core.util.TimeUtils.getTimeAgo(state.post.publishDate ?: ""),
