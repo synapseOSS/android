@@ -260,12 +260,8 @@ class FeedViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _uiState.value = _uiState.value.copy(isRefreshing = true)
-        // PagingAdapter refresh() triggers the refresh in UI usually
-        // But if we have manual refresh logic here:
-        // postRepository.refresh()
-        // For now, we simulate refresh completion or let the UI pull trigger the paging refresh
-         _uiState.value = _uiState.value.copy(isRefreshing = false)
+        // Let the UI handle isRefreshing state via PullToRefreshBox
+        // The paging refresh will be handled by posts.refresh() in the UI
     }
 
     /**

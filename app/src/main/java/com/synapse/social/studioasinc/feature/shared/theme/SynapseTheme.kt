@@ -74,7 +74,6 @@ private val DarkColorScheme = darkColorScheme(
 fun SynapseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
-    enableEdgeToEdge: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

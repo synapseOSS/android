@@ -59,13 +59,16 @@ fun PostCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 0.dp) // Edge-to-edge feel usually implies no horizontal padding for card itself in feed, but let's stick to design
+            .padding(vertical = 4.dp, horizontal = 8.dp)
             .clickable(onClick = onPostClick),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = MaterialTheme.shapes.small // Or RectangleShape for full bleed
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 8.dp
+        ),
+        shape = MaterialTheme.shapes.large
     ) {
         Column {
             PostHeader(
@@ -75,16 +78,29 @@ fun PostCard(
                 onOptionsClick = onOptionsClick
             )
 
-            PostContent(
-                text = state.post.postText,
-                mediaUrls = state.mediaUrls,
-                postViewStyle = postViewStyle,
-                isVideo = state.isVideo,
-                pollQuestion = state.pollQuestion,
-                pollOptions = state.pollOptions,
-                onMediaClick = onMediaClick,
-                onPollVote = onPollVote
-            )
+            Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+                PostContent(
+                    text = state.post.postText,
+                    mediaUrls = state.mediaUrls,
+                    postViewStyle = postViewStyle,
+                    isVideo = state.isVideo,
+                    pollQuestion = state.pollQuestion,
+                    pollOptions = state.pollOptions,
+                    onMediaClick = onMediaClick,
+                    onPollVote = onPollVote
+                )
+
+                // Comment Preview Section
+                if (state.commentCount > 0) {
+                     CommentPreview(
+                        commentCount = state.commentCount,
+                        topCommentAuthor = state.topCommentAuthor,
+                        topCommentText = state.topCommentText,
+                        onViewAllClick = onCommentClick,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
 
             PostInteractionBar(
                 isLiked = state.isLiked,
@@ -100,16 +116,6 @@ fun PostCard(
                     { showReactionPicker = true }
                 } else null
             )
-
-            // Comment Preview Section
-            if (state.commentCount > 0) {
-                 CommentPreview(
-                    commentCount = state.commentCount,
-                    topCommentAuthor = state.topCommentAuthor,
-                    topCommentText = state.topCommentText,
-                    onViewAllClick = onCommentClick
-                )
-            }
         }
     }
     

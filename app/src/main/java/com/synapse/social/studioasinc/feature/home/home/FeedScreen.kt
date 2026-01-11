@@ -1,5 +1,6 @@
 package com.synapse.social.studioasinc.ui.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,9 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.pullToRefresh
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,6 +30,7 @@ import com.synapse.social.studioasinc.domain.model.StoryWithUser
 import com.synapse.social.studioasinc.ui.components.post.PostActions
 import com.synapse.social.studioasinc.ui.components.post.SharedPostItem
 import com.synapse.social.studioasinc.ui.components.post.PostOptionsBottomSheet
+import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import com.synapse.social.studioasinc.feature.stories.tray.StoryTray
 import com.synapse.social.studioasinc.feature.stories.tray.StoryTrayViewModel
 
@@ -54,21 +55,27 @@ fun FeedScreen(
     val storyTrayState by storyTrayViewModel.storyTrayState.collectAsState()
     val currentUser by storyTrayViewModel.currentUser.collectAsState()
 
-    val isRefreshing = posts.loadState.refresh is LoadState.Loading
-    val pullToRefreshState = rememberPullToRefreshState()
+    var isUserRefreshing by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(posts.loadState.refresh) {
+        if (posts.loadState.refresh !is LoadState.Loading) {
+            isUserRefreshing = false
+        }
+    }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pullToRefresh(
-                state = pullToRefreshState,
-                isRefreshing = isRefreshing,
-                onRefresh = {
-                    posts.refresh()
-                    viewModel.refresh()
-                    storyTrayViewModel.refresh()
-                }
+    PullToRefreshBox(
+        isRefreshing = isUserRefreshing,
+        onRefresh = {
+            isUserRefreshing = true
+            posts.refresh()
+            viewModel.refresh()
+            storyTrayViewModel.refresh()
+        },
+        indicator = {
+            ExpressiveLoadingIndicator(
+                modifier = Modifier.align(Alignment.TopCenter)
             )
+        }
     ) {
         if (posts.loadState.refresh is LoadState.Loading && posts.itemCount == 0) {
             FeedLoading()
@@ -82,7 +89,9 @@ fun FeedScreen(
             FeedEmpty()
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
                 contentPadding = contentPadding
             ) {
                 // Story Tray at the top
@@ -145,29 +154,23 @@ fun FeedScreen(
                 }
             }
         }
+    }
 
-        PullToRefreshDefaults.Indicator(
-            state = pullToRefreshState,
-            isRefreshing = isRefreshing,
-            modifier = Modifier.align(Alignment.TopCenter)
+    selectedPost?.let { post ->
+        PostOptionsBottomSheet(
+            post = post,
+            isOwner = viewModel.isPostOwner(post),
+            commentsDisabled = viewModel.areCommentsDisabled(post),
+            onDismiss = { selectedPost = null },
+            onEdit = { viewModel.editPost(post) },
+            onDelete = { viewModel.deletePost(post) },
+            onShare = { viewModel.sharePost(post) },
+            onCopyLink = { viewModel.copyPostLink(post) },
+            onBookmark = { viewModel.bookmarkPost(post) },
+            onToggleComments = { viewModel.toggleComments(post) },
+            onReport = { viewModel.reportPost(post) },
+            onBlock = { viewModel.blockUser(post.authorUid) },
+            onRevokeVote = { viewModel.revokeVote(post) }
         )
-
-        selectedPost?.let { post ->
-            PostOptionsBottomSheet(
-                post = post,
-                isOwner = viewModel.isPostOwner(post),
-                commentsDisabled = viewModel.areCommentsDisabled(post),
-                onDismiss = { selectedPost = null },
-                onEdit = { viewModel.editPost(post) },
-                onDelete = { viewModel.deletePost(post) },
-                onShare = { viewModel.sharePost(post) },
-                onCopyLink = { viewModel.copyPostLink(post) },
-                onBookmark = { viewModel.bookmarkPost(post) },
-                onToggleComments = { viewModel.toggleComments(post) },
-                onReport = { viewModel.reportPost(post) },
-                onBlock = { viewModel.blockUser(post.authorUid) },
-                onRevokeVote = { viewModel.revokeVote(post) }
-            )
-        }
     }
 }

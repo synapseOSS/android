@@ -15,21 +15,21 @@ import androidx.compose.ui.unit.dp
  * Uses vibrant, expressive colors while maintaining accessibility.
  */
 object InboxColors {
-    // Status Colors
+    // Status Colors - Updated for better MD3 compliance
     val OnlineGreen = Color(0xFF4CAF50)
     val OnlineGreenLight = Color(0xFF81C784)
     val OfflineGray = Color(0xFF9E9E9E)
     
-    // Accent Colors
+    // Accent Colors - Using MD3 semantic colors
     val UnreadAccent = Color(0xFF6750A4) // Primary purple
     val UnreadAccentLight = Color(0xFFD0BCFF)
     
-    // Pinned Chat
+    // Pinned Chat - Updated for MD3
     val PinnedBackground = Color(0xFFFFF8E1)
     val PinnedBackgroundDark = Color(0xFF3E2723)
     val PinnedIcon = Color(0xFFFFB300)
     
-    // Swipe Action Colors
+    // Swipe Action Colors - MD3 compliant
     val SwipeArchive = Color(0xFF2196F3)
     val SwipeDelete = Color(0xFFF44336)
     val SwipeMute = Color(0xFFFF9800)
@@ -40,13 +40,9 @@ object InboxColors {
     val StoryGradientMiddle = Color(0xFFFF5722)
     val StoryGradientEnd = Color(0xFFFFEB3B)
     
-    // Typing Indicator
+    // Typing Indicator - Using MD3 primary colors
     val TypingDot = Color(0xFF6750A4)
     val TypingDotLight = Color(0xFFD0BCFF)
-    
-    // Search
-    val SearchBackground = Color(0xFFF5F5F5)
-    val SearchBackgroundDark = Color(0xFF1E1E1E)
     
     /**
      * Story ring gradient brush

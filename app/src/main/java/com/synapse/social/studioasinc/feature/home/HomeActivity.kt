@@ -1,10 +1,13 @@
 package com.synapse.social.studioasinc
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.*
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.jan.supabase.auth.auth
@@ -27,7 +30,25 @@ class HomeActivity : AppCompatActivity() {
         applyThemeFromSettings()
 
         setContent {
-            SynapseTheme {
+            val settingsRepository = com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl.getInstance(this@HomeActivity)
+            val appearanceSettings by settingsRepository.appearanceSettings.collectAsState(
+                initial = com.synapse.social.studioasinc.ui.settings.AppearanceSettings()
+            )
+            
+            val darkTheme = when (appearanceSettings.themeMode) {
+                com.synapse.social.studioasinc.ui.settings.ThemeMode.LIGHT -> false
+                com.synapse.social.studioasinc.ui.settings.ThemeMode.DARK -> true
+                com.synapse.social.studioasinc.ui.settings.ThemeMode.SYSTEM -> 
+                    isSystemInDarkTheme()
+            }
+            
+            val dynamicColor = appearanceSettings.dynamicColorEnabled && 
+                               Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            
+            SynapseTheme(
+                darkTheme = darkTheme,
+                dynamicColor = dynamicColor
+            ) {
                 HomeScreen(
                     onNavigateToSearch = {
                         ActivityTransitions.startActivityWithTransition(
@@ -57,10 +78,10 @@ class HomeActivity : AppCompatActivity() {
                         )
                     },
                     onNavigateToStoryViewer = { userId ->
-                        val intent = Intent(this, StoryViewerActivity::class.java).apply {
+                        val intent = Intent(this@HomeActivity, StoryViewerActivity::class.java).apply {
                             putExtra("user_id", userId)
                         }
-                        ActivityTransitions.startActivityWithTransition(this, intent)
+                        ActivityTransitions.startActivityWithTransition(this@HomeActivity, intent)
                     }
                 )
             }

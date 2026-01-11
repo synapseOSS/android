@@ -33,8 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
+import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -70,10 +69,28 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         // Enable edge-to-edge display
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
         
         setContent {
-            SynapseTheme {
+            val settingsRepository = com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl.getInstance(this@MainActivity)
+            val appearanceSettings by settingsRepository.appearanceSettings.collectAsState(
+                initial = com.synapse.social.studioasinc.ui.settings.AppearanceSettings()
+            )
+            
+            val darkTheme = when (appearanceSettings.themeMode) {
+                com.synapse.social.studioasinc.ui.settings.ThemeMode.LIGHT -> false
+                com.synapse.social.studioasinc.ui.settings.ThemeMode.DARK -> true
+                com.synapse.social.studioasinc.ui.settings.ThemeMode.SYSTEM -> 
+                    androidx.compose.foundation.isSystemInDarkTheme()
+            }
+            
+            val dynamicColor = appearanceSettings.dynamicColorEnabled && 
+                               android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+            
+            SynapseTheme(
+                darkTheme = darkTheme,
+                dynamicColor = dynamicColor
+            ) {
                 val navController = rememberNavController()
                 val updateState by viewModel.updateState.observeAsState()
                 

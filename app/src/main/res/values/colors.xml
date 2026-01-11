@@ -27,6 +27,9 @@
     <color name="text_secondary_light">#757575</color>
     <color name="text_secondary_dark">#AAAAAA</color>
     
+    <!-- Gray colors -->
+    <color name="gray_light">#BDBDBD</color>
+    
     <!-- Waveform colors -->
     <color name="waveform_color">#2196F3</color>
     <color name="waveform_progress_color">#1976D2</color>

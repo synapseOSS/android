@@ -155,7 +155,9 @@ fun InboxScreen(
                     InboxSearchTopAppBar(
                         searchQuery = searchQuery,
                         onSearchQueryChange = { viewModel.onAction(InboxAction.SearchQueryChanged(it)) },
-                        onBackClick = { viewModel.toggleSearch(false) }
+                        onBackClick = { viewModel.toggleSearch(false) },
+                        avatarUrl = currentUserProfile?.avatar,
+                        onProfileClick = { /* TODO: Open Profile */ }
                     )
                 } else {
                     InboxTopAppBar(
@@ -177,7 +179,10 @@ fun InboxScreen(
              // Hide navigation bar when in selection mode? Google Messages does not hide it usually,
              // but context actions are in top bar.
              // If we want full focus, we can hide it. Let's keep it for now as per requirement "Selection Mode UI - The AppBar transforms..."
-             NavigationBar {
+             NavigationBar(
+                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                 contentColor = MaterialTheme.colorScheme.onSurface
+             ) {
                  val tabs = listOf("Messages", "Calls", "Contacts")
                  tabs.forEachIndexed { index, title ->
                      val selected = pagerState.currentPage == index
@@ -186,7 +191,13 @@ fun InboxScreen(
                          onClick = {
                              scope.launch { pagerState.animateScrollToPage(index) }
                          },
-                         label = { Text(title) },
+                         label = { 
+                             Text(
+                                 text = title,
+                                 color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                             ) 
+                         },
                          icon = {
                              Icon(
                                  imageVector = when (index) {
@@ -194,9 +205,18 @@ fun InboxScreen(
                                      1 -> if (selected) Icons.Filled.Call else Icons.Outlined.Call
                                      else -> if (selected) Icons.Filled.Group else Icons.Outlined.Group
                                  },
-                                 contentDescription = title
+                                 contentDescription = title,
+                                 tint = if (selected) MaterialTheme.colorScheme.onSecondaryContainer 
+                                       else MaterialTheme.colorScheme.onSurfaceVariant
                              )
-                         }
+                         },
+                         colors = NavigationBarItemDefaults.colors(
+                             selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                             selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                             indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                         )
                      )
                  }
              }

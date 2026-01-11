@@ -79,11 +79,11 @@ fun UserDetailsSection(
     
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -95,16 +95,10 @@ fun UserDetailsSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "About",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 
@@ -118,7 +112,7 @@ fun UserDetailsSection(
             
             // Collapsed summary (visible when not expanded)
             if (!expanded && hasDetails) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 CollapsedSummary(details = details)
             }
             
@@ -134,7 +128,7 @@ fun UserDetailsSection(
                 exit = fadeOut(animationSpec = tween(100)) + shrinkVertically()
             ) {
                 Column {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     
                     ExpandedDetailsContent(
                         details = details,
@@ -142,7 +136,7 @@ fun UserDetailsSection(
                     )
                     
                     if (isOwnProfile) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                         OutlinedButton(
                             onClick = onCustomizeClick,
                             modifier = Modifier.fillMaxWidth(),
@@ -162,7 +156,7 @@ fun UserDetailsSection(
             
             // Empty state for own profile
             if (!hasDetails && isOwnProfile) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 EmptyDetailsState(onAddClick = onCustomizeClick)
             }
         }

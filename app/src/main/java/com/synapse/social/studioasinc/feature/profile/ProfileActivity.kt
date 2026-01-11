@@ -98,8 +98,7 @@ class ProfileActivity : ComponentActivity() {
             
             SynapseTheme(
                 darkTheme = darkTheme,
-                dynamicColor = dynamicColor,
-                enableEdgeToEdge = true
+                dynamicColor = dynamicColor
             ) {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     ProfileScreen(

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -113,14 +114,24 @@ fun HomeScreen(
             topBar = {
                 if (!isPostDetail) {
                     TopAppBar(
-                        title = { Text(text = stringResource(R.string.app_name)) },
+                        title = { 
+                            Text(
+                                text = stringResource(R.string.app_name),
+                                style = androidx.compose.material3.MaterialTheme.typography.headlineSmall
+                            ) 
+                        },
                         actions = {
-                            IconButton(onClick = onNavigateToCreatePost) {
+                            // Primary action - Create Post (most prominent)
+                            androidx.compose.material3.FilledTonalIconButton(
+                                onClick = onNavigateToCreatePost
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.AddBox,
                                     contentDescription = stringResource(R.string.create_post)
                                 )
                             }
+                            
+                            // Secondary actions - smaller, less prominent
                             IconButton(onClick = onNavigateToSearch) {
                                 Icon(
                                     imageVector = Icons.Default.Search,
@@ -133,17 +144,21 @@ fun HomeScreen(
                                     contentDescription = stringResource(R.string.inbox)
                                 )
                             }
-                            // Profile Icon with Avatar
+                            
+                            // Profile - tertiary action with proper spacing
                             if (userAvatarUrl != null) {
                                 com.synapse.social.studioasinc.ui.components.CircularAvatar(
                                     imageUrl = userAvatarUrl,
                                     contentDescription = stringResource(R.string.profile),
-                                    size = 32.dp,
-                                    modifier = Modifier.padding(end = 12.dp),
+                                    size = 28.dp,
+                                    modifier = Modifier.padding(start = 4.dp, end = 8.dp),
                                     onClick = { onNavigateToProfile("me") }
                                 )
                             } else {
-                                IconButton(onClick = { onNavigateToProfile("me") }) {
+                                IconButton(
+                                    onClick = { onNavigateToProfile("me") },
+                                    modifier = Modifier.padding(start = 4.dp, end = 8.dp)
+                                ) {
                                     Icon(
                                         imageVector = Icons.Default.Person,
                                         contentDescription = stringResource(R.string.profile)

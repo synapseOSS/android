@@ -1,6 +1,6 @@
-# Synapse Social
-
 <div align="center">
+
+# 🌟 Synapse Social
 
 [![Stars](https://img.shields.io/github/stars/synapseOSS/android?style=for-the-badge&logo=github&color=FFD700&labelColor=1c1c1c)](https://github.com/synapseOSS/android/stargazers)
 [![Forks](https://img.shields.io/github/forks/synapseOSS/android?style=for-the-badge&logo=git-fork&color=white&labelColor=1c1c1c)](https://github.com/synapseOSS/android/network/members)

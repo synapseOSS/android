@@ -57,8 +57,7 @@ class InboxActivity : ComponentActivity() {
             
             SynapseTheme(
                 darkTheme = darkTheme,
-                dynamicColor = dynamicColor,
-                enableEdgeToEdge = true
+                dynamicColor = dynamicColor
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

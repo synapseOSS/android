@@ -77,6 +77,8 @@ data class Message(
     val messageType: String = "text", // text, image, video, audio, file
     @SerialName("media_url")
     val mediaUrl: String? = null,
+    @SerialName("media_type")
+    val mediaType: String? = null,
     @Serializable(with = FlexibleTimestampSerializer::class)
     @SerialName("created_at")
     val createdAt: Long = 0L,
