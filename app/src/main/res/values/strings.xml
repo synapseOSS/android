@@ -1,0 +1,1011 @@
+<resources>
+    <string name="app_name">Synapse</string>
+    <string name="lang">en</string>
+    <string name="login_skyline_community">Get into the Synapse community</string>
+    <string name="sign_with_email">Sign in with Email</string>
+    <string name="sign_with_google">Continue with Google</string>
+    <string name="i_accept_terms_conditions">I accept terms and conditions</string>
+    <string name="create_account">Create account</string>
+    <string name="please_accept_terms_and_conditions">You must accept all terms and conditions!</string>
+    <string name="google_sign_not_available">Sign in with Google is not yet available.</string>
+    <string name="welcome_again">Welcome back 👋🏻</string>
+    <string name="login_your_account">Login to your Synapse account now.</string>
+    <string name="email">E-Mail</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="continue_button">Continue</string>
+    <string name="please_enter_email">Please enter E-Mail</string>
+    <string name="please_enter_password">Please enter Password</string>
+    <string name="skyline_create_account">Create Account 🎉</string>
+    <string name="join_skyline_community">Join the Synapse community by creating your account now 😊</string>
+    
+    <!-- Follow List Screen -->
+    <string name="users">Users</string>
+    <string name="back">Back</string>
+    <string name="no_followers">No followers yet</string>
+    <string name="no_following">Not following anyone yet</string>
+    <string name="no_users_found">No users found</string>
+    <string name="complete_profile_title">Complete your profile</string>
+    <string name="complete_profile_subtitle">Now finish account creation by completing your profile or skip profile completion step using skip button.</string>
+    <string name="primary_details_title">Primary details</string>
+    <string name="primary_details_subtitle">Profile photo, username, nickname and bio that appear on your profile.</string>
+    <string name="username">Handle</string>
+    <string name="nickname">Username</string>
+    <string name="biography">Bio</string>
+    <string name="gender_title">Gender</string>
+    <string name="gender_subtitle">By specifying your gender in your profile, you can get other people to know you and you can be recommended to people who use filters, thus increasing your interaction.</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="gender_gone_title">I do not want to specify</string>
+    <string name="skip_button">Skip</string>
+    <string name="invalid_email_adress">Invalid E-mail adress</string>
+    <string name="info">INFO</string>
+    <string name="cancel_complete_profile_warn">You are about to cancel the profile completion phase! If you leave this stage, your e-mail account will be kept, then you will be redirected to this page by logging in instead of creating an account. If you want, you can remove your e-mail from our server.</string>
+    <string name="cancel_complete_profile_warn2">Are you sure you want to cancel the profile completion phase?</string>
+    <string name="yes">YES</string>
+    <string name="no">NO</string>
+    <string name="email_verification_title">Email Verification</string>
+    <string name="email_verification_subtitle">Verify the email account linked to your account now. If you continue without verifying your e-mail account, you can only preview the content of the application and will not be able to interact.</string>
+    <string name="send">SEND</string>
+    <string name="email_verification_success_text">Verification link has been successfully sent to your e-mail address! Confirm your e-mail address by clicking the incoming link, then check it by clicking the refresh button. If you can’t find the email link, check the spam folder.</string>
+    <string name="okay">OKAY</string>
+    <string name="email_verified">E-mail verified</string>
+    <string name="email_not_verified">E-mail not verified</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="enter_username">Please enter username</string>
+    <string name="username_err_3_characters">Username can be at least 3 characters</string>
+    <string name="username_err_25_characters">Username can be up to 25 characters</string>
+    <string name="username_err_one_letter">Username must contain at least one letter</string>
+    <string name="username_err_invalid_characters">Username contains invalid characters</string>
+    <string name="username_err_already_taken">This username has already been taken</string>
+    <string name="username_err_invalid">Invalid username</string>
+    <string name="nickname_err_30_characters">Nickname can be up to 30 characters</string>
+    <string name="biography_err_250_characters">Biography can be up to 250 characters</string>
+    <string name="cancel_create_account_warn">You are about to cancel account creation! If you cancel this action, your e-mail information will be removed from our server. Therefore, when you log in again later, you will need to register on the new account creation page and reconfirm your email.</string>
+    <string name="cancel_create_account_warn2">Are you sure you want to cancel account creation?</string>
+    <string name="invalid_profile_image_file">The profile photo you selected appears as an unsupported file type! Please choose &quot;png&quot; or &quot;jpg&quot; type image.</string>
+    <string name="add_story">Add Story</string>
+    <string name="home_hello">Hello</string>
+    <string name="whats_new_today">What’s on your mind?</string>
+    <string name="text_post_err_500_characters">The text post can have a maximum of 500 characters long.</string>
+    <string name="please_enter_text">Please enter caption</string>
+    <string name="publish">Post</string>
+    <string name="post_publish_success">Posted successfully</string>
+    <string name="oh_there_us_a_problem">Oh! Something went wrong:(</string>
+    <string name="reasons_may_be">Possible reasons:</string>
+    <string name="err_no_internet">• You have no or weak internet connection.</string>
+    <string name="err_app_maintenance">• The application may be under maintenance.</string>
+    <string name="err_problem_on_our_side">• There may be technical problems on our side.</string>
+    <string name="retry">Retry</string>
+    <string name="stories">Stories</string>
+    <string name="image_posts">Image Posts</string>
+    <string name="text_posts">Text Posts</string>
+    <string name="video_posts">Video Posts</string>
+    <string name="recommended_users">Recommended users</string>
+    <string name="recommended_posts">Recommended posts</string>
+    <string name="followed_users_posts">Followed users posts</string>
+    <string name="search">Search</string>
+    <string name="no_user_found">No user found with this username :(</string>
+    <string name="no_description">No Description</string>
+    <string name="original_sound">Original Sound</string>
+    <string name="comments">Comments</string>
+    <string name="comment">Comment</string>
+    <string name="no_comment_yet">No comments yet!</string>
+    <string name="write_firts_comment">Be the first commenter.</string>
+    <string name="liked_by_publisher">Liked by the publisher</string>
+    <string name="show_more_comments">Show more comments.</string>
+    <string name="comment_liked_by_publisher">This comment was liked by the publisher</string>
+    <string name="seconds_ago">seconds ago</string>
+    <string name="minutes_ago">minutes ago</string>
+    <string name="hours_ago">hours ago</string>
+    <string name="days_ago">days ago</string>
+    <string name="create_post">Create Post</string>
+    <string name="whats_on_your_mind">What\'s on your mind?</string>
+    <string name="photo">Photo</string>
+    <string name="video">Video</string>
+    <string name="post_settings">Post Settings</string>
+    <string name="post_visibility">Post Visibility</string>
+    <string name="hide_views_count">Hide views count</string>
+    <string name="hide_like_count">Hide like count</string>
+    <string name="hide_comments_count">Hide comments count</string>
+    <string name="create_complete_post_details">Complete post details</string>
+    <string name="create_complete_post_description">Post description</string>
+    <string name="debug_subtitle">We are sad! An error has occurred in the application, please report this error to us. We will try to fix it.</string>
+    <string name="close_app">Close App</string>
+    <string name="report_error">Report Error</string>
+    <string name="profile_tab">PROFILE</string>
+    <string name="posts_tab">POSTS</string>
+    <string name="online">online</string>
+    <string name="offline">offline</string>
+    <string name="admin">Admin</string>
+    <string name="moderator">Moderator</string>
+    <string name="supporter">Supporter</string>
+    <string name="verified_account">Verified Account</string>
+    <string name="chat">Chat</string>
+    <string name="gift">Gift</string>
+    <string name="block">Block</string>
+    <string name="share">Share</string>
+    <string name="report">Report</string>
+    <string name="posts">Posts</string>
+    <string name="follower">Follower</string>
+    <string name="followers">Followers</string>
+    <string name="following">Following</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="buy_premium">Buy Premium</string>
+    <string name="follow">Follow</string>
+    <string name="unfollow">Unfollow</string>
+    <string name="follow_dialog">Are you sure you want to follow this user?</string>
+    <string name="unfollow_dialog">Are you sure you want to unfollow this user?</string>
+    <string name="m_edit">Edit</string>
+    <string name="m_reply">Reply</string>
+    <string name="m_copy">Copy</string>
+    <string name="m_translate">Translate</string>
+    <string name="m_delete">Delete</string>
+    <string name="m_message">Message</string>
+    <string name="m_no_inbox">You don’t have anyone to chat with yet</string>
+    <string name="m_no_posts">This user hasn’t shared a post yet</string>
+    <string name="m_no_chats">You don’t have any chats with this user yet</string>
+    <string name="explore">Explore</string>
+    <string name="no_posts">No posts yet</string>
+    <string name="statistics_settings">Statistics Settings</string>
+    <string name="hide_the_number_of_views">Hide view count</string>
+    <string name="hide_the_number_of_views_subtitle">View count will be hidden.</string>
+    <string name="hide_the_number_of_likes">Hide like count</string>
+    <string name="hide_the_number_of_likes_subtitle">Like count will be hidden.</string>
+    <string name="hide_the_number_of_comments">Hide comment count</string>
+    <string name="hide_the_number_of_comments_subtitle">Comment count will be hidden.</string>
+    <string name="privacy_settings">Privacy Settings</string>
+    <string name="hide_post_from_everyone">Make post private</string>
+    <string name="hide_post_from_everyone_subtitle">Only you will be able to see this post.</string>
+    <string name="disable_saving_to_favorites">Disable saving</string>
+    <string name="disable_saving_to_favorites_subtitle">Users won\'t be able to save this post to their favorites.</string>
+    <string name="disable_comments">Disable comments</string>
+    <string name="disable_comments_subtitle">No one will be able to comment on this post.</string>
+    <string name="use_url">Use Url</string>
+    <string name="profile_image_url">Profile Image Url</string>
+    <string name="profile_cover_image_url">Cover Image Url</string>
+    <string name="fill_all_items">Fill All İtems</string>
+    <string name="add_bio_placeholder">Add a bio to let others know more about you</string>
+    <string name="changes_saved">Changes Saved</string>
+    <string name="local_psts">Local</string>
+    <string name="public_psts">Global</string>
+    <string name="followed_psts">Followeds</string>
+    <string name="favorites_psts">Favorites</string>
+    <string name="not_found_public_posts">There are no global posts yet.</string>
+    <string name="not_found_local_posts">There are no local posts yet.</string>
+    <string name="not_found_followings">You don’t follow anyone yet.</string>
+    <string name="not_found_followed_users_posts">The people you follow haven’t published any posts yet.</string>
+    <string name="not_found_favorite_posts">You don’t have any favorite posts yet.</string>
+    <string name="new_update_dialog_title">New update available</string>
+    <string name="new_update_dialog_subtitle">Please update the app to access the app and enjoy all the new features.</string>
+    <string name="maintenance_dialog_title">Maintenance</string>
+    <string name="maintenance_dialog_subtitle">The app is temporarily under maintenance! please try again later.</string>
+    <string name="banned_access_denied">Access Denied</string>
+    <string name="banned_access_denied_subtext">Recently, we observed that you have been doing activities against our community guidelines on your account, and as a result, we have blocked your account.</string>
+    <string name="banned_create_request">Create Request</string>
+    <string name="banned_user_info_text">Bu kullanıcının hesabı engellendi</string>
+    <string name="delete_post_dialog_message">Are you sure you want to permanently delete this post? This action cannot be undone.</string>
+    <string name="post_deleted_toast">Post Deleted</string>
+    <string name="user_id">UID : </string>
+    <string name="join_date">Join Date : </string>
+    <string name="popularity">Popularity</string>
+    <string name="level">Level</string>
+    <string name="gifts">Gifts</string>
+    <string name="subscribers">Subscribers</string>
+    <string name="select_with_gallery">Select with Gallery</string>
+    <string name="delete_message_dialog_message">Are you sure you want to delete this message? Both users will be permanently deleted.</string>
+    <string name="subscribe_user">Subscribe</string>
+    <string name="region">Region</string>
+    <string name="region_subtitle">By setting the region, you can show your country’s flag badge in your full profile and activate local posts filtered by the country you choose.</string>
+    <string name="select_region">Select Region</string>
+    <string name="no_internet_connection">No internet connection</string>
+    <string name="m_chat_tab_messages">MESSAGES</string>
+    <string name="m_chat_tab_requests">REQUESTS</string>
+    <string name="m_no_chat_requests">No pending chat requests</string>
+    <string name="settings">Settings</string>
+    <string name="shop">Shop</string>
+    <string name="copy_link">Copy Link</string>
+    <string name="settings_application_t">Application</string>
+    <string name="settings_theme_t">Theme</string>
+    <string name="settings_language_t">Language</string>
+    <string name="settings_account_t">Account</string>
+    <string name="settings_privacy_t">Privacy</string>
+    <string name="settings_security_t">Security</string>
+    <string name="settings_logout_t">Log out</string>
+    <string name="logout_dialog_inf">Are you sure you want to log out of your account?</string>
+    <string name="change_profile_image">Change Profile Image</string>
+    <string name="change_profile_cover_image">Change Cover Image</string>
+    <string name="profile_history_title">Profile Photo History</string>
+    <string name="profile_history_subtitle">You can manage all your previously added profile photos here.</string>
+    <string name="profile_history_empty_title">No Profile Photo</string>
+    <string name="profile_history_empty_subtitle">There is no profile photo you have previously uploaded! Every time you change your profile photo it is added here.</string>
+    <string name="profile_cover_history_title">Cover Photo History</string>
+    <string name="profile_cover_history_subtitle">You can manage all your previously added cover photos here.</string>
+    <string name="profile_cover_history_empty_title">No Cover Photo</string>
+    <string name="profile_cover_history_empty_subtitle">There is no cover photo you have previously uploaded! Every time you change your cover photo it is added here.</string>
+    <string name="no_followed">This user does not follow anyone</string>
+    <string name="show_replies">Show Replies</string>
+    <string name="hide_replies">Hide Replies</string>
+    <string name="no_replies_yet">No replies yet</string>
+    <string name="reply_to_user_hint">Reply to %1$s</string>
+    <string name="status_text_seconds">seconds ago</string>
+    <string name="status_text_minutes">minute ago</string>
+    <string name="status_text_hours">hours ago</string>
+    <string name="status_text_days">days ago</string>
+    <string name="status_text_week">week ago</string>
+    <string name="status_text_month">month ago</string>
+    <string name="status_text_years">year ago</string>
+    <!-- Placeholder texts -->
+    <string name="placeholder_button_text">Button Text</string>
+    <string name="placeholder_title">Title</string>
+    <string name="placeholder_subtitle">Subtitle</string>
+    <string name="text_copied_toast">Text copied</string>
+    <string name="no_text_to_copy">No text to copy</string>
+    <string name="share_post_subject">Share post</string>
+    <string name="share_post_chooser_title">Share via</string>
+    <string name="share_error">Error sharing content</string>
+    <!-- New strings to add -->
+    <string name="no_user_data_found">No User Data Found</string>
+    <string name="reasons_no_user_data">Your user profile could not be loaded. This might indicate an issue with your account or a database problem.</string>
+    <string name="error_loading_user_data">Error Loading User Data</string>
+    <string name="disappearing_message_description">For more privacy and storage, new messages will disappear from this chat for everyone after the selected duration except when kept. Anyone in the chat can change this setting. Learn more</string>
+    <string name="text_loading">...</string>
+    <string name="cant_reply">You can\'t reply to this conversation. Learn more.</string>
+    <string name="ph_name">Name</string>
+    <string name="ph_username">username</string>
+    <string name="write_message">Write a message</string>
+    <string name="ph_message">I\'m also good, man.</string>
+    <string name="age_agreement">I confirm that I\'m at least 12 years of age.</string>
+    <string name="ph_replied_message">I\'m good, you?</string>
+
+    <!-- Gemini AI Feature Strings -->
+    <string name="gemini_summary_title">Summary</string>
+    <string name="gemini_explanation_title">Explanation</string>
+    <string name="gemini_error_summary">Error getting summary: </string>
+    <string name="gemini_error_explanation">Error getting explanation: </string>
+    <string name="gemini_system_instruction_summary">You are a text summarizer. Provide a concise summary of the given text.</string>
+    <string name="gemini_system_instruction_explanation">You are a helpful assistant. Explain the following text in a clear and detailed manner, using Markdown for formatting (headings, bold, etc.).</string>
+    <string name="explain_button_text">Explain</string>
+    <string name="gemini_explanation_prompt">Here is a part of a chat conversation between Me and %1$s:
+---
+%2$s
+---
+Please explain the following message from %3$s in detail, considering the context of the conversation:
+%4$s
+---
+%5$s
+---
+</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="search_hint">Search users</string>
+
+    <!-- Chat Settings -->
+    <string name="chat_settings_title">Chat settings</string>
+
+    <string name="chat_settings_header_chat">Chat</string>
+    <string name="chat_settings_message_text_size_title">Message text size</string>
+    <string name="chat_settings_message_text_size_summary">Adjusting this font size doesn\'t effects the whole app.</string>
+    <string name="chat_settings_message_corner_round_title">Message corner round</string>
+    <string name="chat_settings_message_corner_round_summary">This doesn\'t affect other UI corners\' radius</string>
+    <string name="chat_settings_background_wallpapers_title">Background wallpapers</string>
+    <string name="chat_settings_background_wallpapers_summary">Default</string>
+    <string name="chat_settings_theme_store_title">Theme store</string>
+    <string name="chat_settings_theme_store_summary">Theme changes the whole apps overall interface, colours, fonts, and images as well</string>
+
+    <string name="chat_settings_header_media_and_sound">Media and sound</string>
+    <string name="chat_settings_tap_to_show_next_media_title">Tap to show next media</string>
+    <string name="chat_settings_tap_to_show_next_media_summary">Tap near the edge of the screen while viewing media to navigate</string>
+    <string name="chat_settings_rise_to_listen_title">Rise to Listen</string>
+    <string name="chat_settings_rise_to_listen_summary">Switch sound to the earpiece by raising the phone to your ear</string>
+    <string name="chat_settings_pause_music_while_recording_title">Pause music while recording</string>
+    <string name="chat_settings_pause_music_while_recording_summary">Pause music when you start recording a video message</string>
+
+    <string name="chat_settings_header_security_and_services">Security and services</string>
+    <string name="chat_settings_app_lock_title">App lock</string>
+    <string name="chat_settings_keep_alive_service_title">Keep-alive service</string>
+    <string name="chat_settings_keep_alive_service_summary">Keep services running in background.</string>
+    <string name="chat_settings_background_connection_title">Background connection</string>
+    <string name="chat_settings_background_connection_summary">Keep processing with low power</string>
+    <string name="chat_settings_theme_title">Theme</string>
+    <string name="chat_settings_theme_summary">Default</string>
+
+    <string name="chat_settings_header_app_theming">App theming</string>
+    <string name="chat_settings_language_title">Language</string>
+    <string name="chat_settings_language_summary">English (International)</string>
+
+    <string name="chat_settings_header_storage_and_network">Storage and network</string>
+    <string name="chat_settings_storage_uses_title">Storage uses</string>
+    <string name="chat_settings_storage_uses_summary">Used 1% of your device storage</string>
+    <string name="chat_settings_data_uses_title">Data uses</string>
+    <string name="chat_settings_data_uses_summary">This data has been recorded since\nlast month</string>
+    <string name="chat_settings_streaming_video_title">Streaming video</string>
+    <string name="chat_settings_streaming_video_summary">Stream video without downloading</string>
+
+    <string name="chat_settings_header_ai_and_automations">AI and automations</string>
+    <string name="chat_settings_synapse_premium_title">Synapse Premium</string>
+    <string name="chat_settings_buy_credits_title">Buy Credits</string>
+    <string name="chat_settings_ai_settings_title">AI Settings</string>
+    <string name="chat_settings_ai_settings_summary">Setup your artificial intelligence settings</string>
+    <string name="cancel">Cancel</string>
+    
+    <!-- Error messages -->
+    <string name="failed_to_send">Failed to send</string>
+    <string name="tap_to_retry">Tap to retry</string>
+    <string name="error_icon">Error icon</string>
+
+    <!-- Message Actions -->
+    <string name="action_reply">Reply</string>
+    <string name="action_forward">Forward</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_ai_summary">AI Summary</string>
+    
+    <!-- Delete Message Dialog -->
+    <string name="warning_icon">Warning icon</string>
+    <string name="delete_message_confirmation">Delete this message?</string>
+    <string name="delete_messages_confirmation">Delete %d messages?</string>
+    <string name="delete_for_me">Delete for me</string>
+    <string name="delete_for_me_explanation">This message will only be removed from your device. Other participants will still see it.</string>
+    <string name="delete_for_everyone">Delete for everyone</string>
+    <string name="delete_for_everyone_explanation">This message will be removed for all participants in this conversation. This action cannot be undone.</string>
+    <string name="delete">Delete</string>
+    <string name="comment_options">Comment Options</string>
+    <string name="hide_comment">Hide Comment</string>
+    <string name="pin_comment">Pin Comment</string>
+    <string name="unpin_comment">Unpin Comment</string>
+    <string name="report_comment">Report Comment</string>
+    <string name="comment_hidden">Comment hidden</string>
+    <string name="comment_pinned">Comment pinned</string>
+    <string name="comment_unpinned">Comment unpinned</string>
+    <string name="comment_reported">Comment reported</string>
+    <string name="comment_deleted">Comment deleted</string>
+    <string name="comment_edited">Comment edited</string>
+    <string name="comment_copied">Comment copied</string>
+    <string name="select_report_reason">Select a reason</string>
+    <string name="report_reason_spam">Spam</string>
+    <string name="report_reason_harassment">Harassment</string>
+    <string name="report_reason_hate_speech">Hate Speech</string>
+    <string name="report_reason_violence">Violence</string>
+    <string name="report_reason_misinformation">Misinformation</string>
+    <string name="report_reason_other">Other</string>
+    <string name="report_description_hint">Additional details (optional)</string>
+    <string name="delete_comment">Delete Comment</string>
+    <string name="edit_comment">Edit Comment</string>
+    <string name="edit">Edit</string>
+    <string name="save">Save</string>
+    <string name="deleted_comment">[deleted]</string>
+    <string name="message_deleted_successfully">Message deleted successfully</string>
+    <string name="failed_to_delete_message">Failed to delete message. Please try again.</string>
+    
+    <!-- Comprehensive Error Messages for Message Actions -->
+    
+    <!-- Reply Errors -->
+    <string name="error_reply_generic">Unable to reply to this message</string>
+    <string name="error_reply_deleted">This message has been deleted</string>
+    
+    <!-- Forward Errors -->
+    <string name="error_forward_generic">Failed to forward message. Please try again.</string>
+    <string name="error_forward_no_permission">You don\'t have permission to send messages in %1$s</string>
+    <string name="error_forward_partial">Forwarded to %1$d of %2$d conversations</string>
+    <string name="error_forward_no_network">No network connection. Message will be forwarded when online.</string>
+    <string name="success_forward_count">Message forwarded to %1$d conversation(s)</string>
+    
+    <!-- Edit Errors -->
+    <string name="error_edit_generic">Unable to edit message. Please try again.</string>
+    <string name="error_edit_too_old">This message is too old to edit (>48 hours)</string>
+    <string name="error_edit_empty">Message content cannot be empty</string>
+    <string name="error_edit_not_found">Message not found</string>
+    <string name="error_edit_no_network">Edit queued. Will be applied when online.</string>
+    <string name="success_edit">Message edited successfully</string>
+    
+    <!-- Delete Errors -->
+    <string name="error_delete_generic">Failed to delete message. Please try again.</string>
+    <string name="error_delete_already_deleted">Unable to delete for everyone. Message may have already been deleted.</string>
+    <string name="error_delete_no_network">Delete queued. Will be applied when online.</string>
+    <string name="success_delete_for_me">Message deleted for you</string>
+    <string name="success_delete_for_everyone">Message deleted for everyone</string>
+    
+    <!-- AI Summary Errors -->
+    <string name="error_ai_summary_generic">Unable to generate summary. Please try again.</string>
+    <string name="error_ai_summary_unavailable">AI service is temporarily unavailable</string>
+    <string name="error_ai_summary_rate_limit">Rate limit reached. Try again in %1$d minutes</string>
+    <string name="error_ai_summary_too_short">Message is too short to summarize</string>
+    <string name="error_ai_summary_network">Network error. Please check your connection and try again.</string>
+    <string name="error_ai_summary_timeout">Request timed out. Please try again.</string>
+    <string name="error_ai_summary_api_key">AI service not configured. Please contact support.</string>
+    
+    <!-- Network Errors -->
+    <string name="error_network_timeout">Request timed out. Please try again.</string>
+    <string name="error_network_connection">Connection failed. Please check your internet connection.</string>
+    <string name="error_network_unavailable">No internet connection</string>
+    
+    <!-- Generic Errors -->
+    <string name="error_unexpected">An unexpected error occurred</string>
+    <string name="error_retry_action">Retry</string>
+    <string name="error_dismiss_action">Dismiss</string>
+    
+    <!-- Success Messages -->
+    <string name="success_action_queued">Action queued. Will be processed when online.</string>
+    <string name="success_processing_queued_actions">Processing pending actions…</string>
+    
+    <!-- Typing Indicator -->
+    <string name="typing_indicator_text">is typing</string>
+
+    <!-- Media Picker -->
+    <string name="media_picker_title">Select Media Type</string>
+    <string name="media_picker_option_photos">Photos</string>
+    <string name="media_picker_option_videos">Videos</string>
+    <string name="media_picker_option_audio">Audio</string>
+    <string name="media_picker_option_documents">Documents</string>
+    <string name="media_picker_option_icon">Media option icon</string>
+    <string name="label_attachment">Attachment</string>
+
+    <!-- Media Preview -->
+    <string name="media_preview_title">Preview</string>
+    <string name="media_preview_title_with_count">Preview (%1$d/%2$d)</string>
+    <string name="media_preview_upload_info">Upload Information</string>
+    <string name="media_preview_total_size">Total Size</string>
+    <string name="media_preview_estimated_time">Estimated Time</string>
+    <string name="media_preview_caption_hint">Add a caption (optional)</string>
+    <string name="media_preview_add_more">Add More</string>
+    <string name="media_preview_file_too_large">Large File Warning</string>
+    <string name="media_preview_warning_large_file">This file is larger than 50MB and may take a while to upload. Continue?</string>
+    <string name="media_preview_warning_large_file_detailed">Total size: %1$s\nEstimated upload time: %2$s\n\nThis may take a while to upload. Continue?</string>
+    <string name="media_preview_error_no_files">No files selected</string>
+    <string name="media_preview_error_file_too_large">File exceeds maximum size of %1$s</string>
+    <string name="media_preview_error_file_not_accessible">Unable to access file</string>
+    <string name="media_preview_error_file_validation">Error validating file</string>
+
+    <!-- Image Gallery -->
+    <string name="download_image">Download image</string>
+    <string name="failed_to_load_image">Failed to load image</string>
+    <string name="image_downloaded">Image saved to gallery</string>
+    <string name="failed_to_download_image">Failed to download image</string>
+    <string name="loading_image">Loading image…</string>
+    
+    <!-- MD3 Post Card Accessibility Strings -->
+    <string name="author_avatar">Author profile picture</string>
+    <string name="post_options">More options for post</string>
+    <string name="post_image">Post image</string>
+    <string name="like_post">Like post</string>
+    <string name="like_post_with_count">Like post, %1$d likes</string>
+    <string name="like_post_liked">Unlike post, %1$d likes</string>
+    <string name="comment_on_post">Comment on post</string>
+    <string name="comment_on_post_with_count">Comment on post, %1$d comments</string>
+    <string name="share_post">Share post</string>
+    <string name="post_by_user">Post by %1$s</string>
+    <string name="post_timestamp">Posted %1$s</string>
+    
+    <string name="downloading_image">Downloading…</string>
+
+    <!-- Video Player -->
+    <string name="play_pause">Play/Pause</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="rewind">Rewind</string>
+    <string name="forward">Fast forward</string>
+    <string name="fullscreen_toggle">Toggle fullscreen</string>
+    <string name="video_loading">Loading video…</string>
+    <string name="video_buffering">Buffering…</string>
+    <string name="video_error">Error playing video</string>
+    <string name="video_error_retry">Tap to retry</string>
+
+    <!-- Audio Player -->
+    <string name="play_audio">Play audio</string>
+    <string name="pause_audio">Pause audio</string>
+    <string name="audio_loading">Loading audio…</string>
+    <string name="audio_buffering">Buffering…</string>
+    <string name="audio_error">Error playing audio</string>
+
+    <!-- Document Viewer -->
+    <string name="download_document">Download document</string>
+    <string name="open_document">Open document</string>
+    <string name="document_downloaded">Document saved</string>
+    <string name="failed_to_download_document">Failed to download document</string>
+
+    <!-- Pagination -->
+    <string name="loading_more_posts">Loading more posts…</string>
+    <string name="posts_loaded">Posts loaded</string>
+    <string name="no_more_posts_available">No more posts available</string>
+    <string name="failed_to_load_posts">Failed to load posts</string>
+    <string name="check_internet_connection">Check your internet connection</string>
+    <string name="pull_to_refresh">Pull down to refresh posts</string>
+    <string name="refreshing_posts">Refreshing posts…</string>
+    <string name="loading_indicator">Loading indicator</string>
+    <string name="error_loading_posts">Unable to load posts</string>
+    <string name="error_network_posts">Network error while loading posts</string>
+    <string name="error_unknown_posts">An unexpected error occurred</string>
+    <string name="loading_more_messages">Loading more messages…</string>
+    <string name="messages_loaded">Messages loaded</string>
+    <string name="no_more_messages_available">No more messages available</string>
+    <string name="failed_to_load_messages">Failed to load messages</string>
+    <string name="end_of_list">You\'ve reached the end</string>
+
+    <!-- Social Authentication -->
+    <string name="social_auth_divider">Or Continue With Account</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_in_with_facebook">Sign in with Facebook</string>
+    <string name="sign_in_with_apple">Sign in with Apple</string>
+    <string name="forgot_password_link">Forgot Password?</string>
+
+    <!-- Forgot Password Screen -->
+    <string name="forgot_password_title">Forgot Password</string>
+    <string name="forgot_password_subtitle">Enter your email address and we\'ll send you a link to reset your password</string>
+    <string name="forgot_password_continue">Continue</string>
+    <string name="forgot_password_back">Back to Sign In</string>
+    <string name="forgot_password_success">Password reset link sent! Please check your email.</string>
+    <string name="forgot_password_error">Unable to send reset link. Please try again.</string>
+
+    <!-- Message Deletion Error Messages -->
+    <string name="error_deletion_network">Unable to delete messages. Please check your connection.</string>
+    <string name="error_deletion_permission">You can only delete your own messages for everyone.</string>
+    <string name="error_deletion_generic">Failed to delete messages. Please try again.</string>
+    <string name="error_deletion_no_messages">No messages selected</string>
+    <string name="error_deletion_user_required">User ID is required</string>
+    
+    <!-- Message Deletion Success Messages -->
+    <string name="success_deletion_single">Message deleted</string>
+    <string name="success_deletion_multiple">%d messages deleted</string>
+    <string name="success_deletion_for_me">Message deleted for you</string>
+    <string name="success_deletion_for_everyone">Message deleted for everyone</string>
+    
+    <!-- Message Deletion Loading Messages -->
+    <string name="loading_deletion">Deleting messages…</string>
+
+    <!-- Connection Status -->
+    <string name="connection_status_connected">Connected</string>
+    <string name="connection_status_connecting">Connecting…</string>
+    <string name="connection_status_disconnected">No connection</string>
+    <string name="connection_status_reconnecting">Reconnecting…</string>
+    <string name="connection_type_wifi">Wi-Fi</string>
+    <string name="connection_type_cellular">Mobile data</string>
+    <string name="connection_type_ethernet">Ethernet</string>
+    <string name="connection_retry">Retry</string>
+
+    <!-- Loading States -->
+    <string name="loading_messages">Loading messages…</string>
+    <string name="loading_profile">Loading profile…</string>
+    <string name="loading_posts">Loading posts…</string>
+    <string name="loading_posts_error">Error loading posts</string>
+    <string name="loading_comments">Loading comments…</string>
+    <string name="sending_message">Sending…</string>
+    <string name="message_sent">Sent</string>
+
+    <!-- Pull to Refresh -->
+    <string name="pull_to_refresh_messages">Pull to refresh messages</string>
+    <string name="release_to_refresh">Release to refresh</string>
+    <string name="refreshing">Refreshing…</string>
+
+    <!-- Haptic Feedback Settings -->
+    <string name="haptic_feedback_title">Haptic feedback</string>
+    <string name="haptic_feedback_subtitle">Vibrate on interactions</string>
+
+    <!-- Smooth Animations -->
+    <string name="animations_title">Animations</string>
+    <string name="animations_subtitle">Enable smooth transitions</string>
+    <string name="reduce_animations_title">Reduce animations</string>
+    <string name="reduce_animations_subtitle">Minimize motion for accessibility</string>
+
+    <!-- Inline Reply Accessibility -->
+    <string name="cancel_reply">Cancel reply</string>
+    <string name="replying_to">Replying to %s</string>
+    <string name="reply_media_preview">Reply media preview</string>
+
+    <!-- Create Post -->
+    <string name="post">Post</string>
+    <string name="public_visibility">Public</string>
+    <string name="add_media">Add photo or video</string>
+    <string name="add_poll">Add poll</string>
+    <string name="add_youtube">Add YouTube video</string>
+    <string name="add_location">Add location</string>
+    <string name="remove_all">Remove all</string>
+    <string name="poll">Poll</string>
+    <string name="post_settings_description">Control how others interact with your post</string>
+    <string name="hide_view_count">Hide view count</string>
+    <string name="hide_view_count_desc">Others won\'t see how many views</string>
+    <string name="hide_like_count_desc">Others won\'t see how many likes</string>
+    <string name="hide_comment_count">Hide comment count</string>
+    <string name="hide_comment_count_desc">Others won\'t see how many comments</string>
+    <string name="poll_question_hint">Ask a question…</string>
+    <string name="poll_options">Options</string>
+    <string name="add_option">Add option</string>
+    <string name="create_poll">Create Poll</string>
+    <string name="youtube_url_hint">https://youtube.com/watch?v=…</string>
+    <string name="location_name_hint">Enter location name</string>
+
+    <!-- Post Detail -->
+    <string name="post_detail_title">Post</string>
+    <string name="comments_title">Comments</string>
+    <string name="comments_count">%d comments</string>
+    <string name="no_comments">No comments yet. Be the first to comment!</string>
+    <string name="comment_hint">Write a comment…</string>
+    <string name="reply_hint">Reply to %s…</string>
+    <string name="author_badge">Author</string>
+    <string name="edited_indicator">Edited</string>
+    <string name="view_replies">View %d replies</string>
+    <string name="reaction_like">Like</string>
+    <string name="reaction_love">Love</string>
+    <string name="reaction_haha">Haha</string>
+    <string name="reaction_wow">Wow</string>
+    <string name="reaction_sad">Sad</string>
+    <string name="reaction_angry">Angry</string>
+    <string name="poll_ended">Poll ended</string>
+    <string name="poll_ends_in">Ends in %s</string>
+    <string name="vote_count">%d votes</string>
+    <string name="bookmark_added">Post saved</string>
+    <string name="bookmark_removed">Post removed from saved</string>
+    <string name="reshare_title">Reshare post</string>
+    <string name="reshare_hint">Add a comment (optional)</string>
+    <string name="report_title">Report post</string>
+    <string name="report_submitted">Report submitted</string>
+    <string name="reply">Reply</string>
+    <string name="more_options">More options</string>
+    <string name="media">Media</string>
+    <string name="play_video">Play video</string>
+    <string name="private_visibility">Private</string>
+
+    <!-- Settings -->
+    <string name="settings_account">Account</string>
+    <string name="settings_account_subtitle">Edit your profile</string>
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_privacy_subtitle">Chat privacy settings</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_subtitle">Manage notification preferences</string>
+    <string name="settings_logout">Log out</string>
+
+    <!-- Settings Hub -->
+    <string name="settings_hub_title">Settings</string>
+    <string name="settings_hub_back">Back</string>
+    
+    <!-- Settings Categories -->
+    <string name="settings_category_account">Account</string>
+    <string name="settings_category_account_subtitle">Manage your account and profile</string>
+    <string name="settings_category_privacy_security">Privacy &amp; Security</string>
+    <string name="settings_category_privacy_security_subtitle">Control who can see your content</string>
+    <string name="settings_category_appearance">Appearance</string>
+    <string name="settings_category_appearance_subtitle">Theme, colors, and display</string>
+    <string name="settings_category_notifications">Notifications</string>
+    <string name="settings_category_notifications_subtitle">Manage notification preferences</string>
+    <string name="settings_category_chat">Chat Settings</string>
+    <string name="settings_category_chat_subtitle">Configure messaging behavior</string>
+    <string name="settings_category_storage">Storage &amp; Data</string>
+    <string name="settings_category_storage_subtitle">Manage app storage and data usage</string>
+    <string name="settings_category_language">Language &amp; Region</string>
+    <string name="settings_category_language_subtitle">Set language preferences</string>
+    <string name="settings_category_about">About &amp; Support</string>
+    <string name="settings_category_about_subtitle">App info and help resources</string>
+    
+    <!-- Account Settings -->
+    <string name="account_settings_title">Account</string>
+    <string name="account_settings_edit_profile">Edit Profile</string>
+    <string name="account_settings_edit_profile_subtitle">Update your profile information</string>
+    <string name="account_settings_change_email">Change Email</string>
+    <string name="account_settings_change_email_subtitle">Update your email address</string>
+    <string name="account_settings_change_password">Change Password</string>
+    <string name="account_settings_change_password_subtitle">Update your password</string>
+    <string name="account_settings_linked_accounts">Linked Accounts</string>
+    <string name="account_settings_linked_accounts_subtitle">Manage social account connections</string>
+    <string name="account_settings_delete_account">Delete Account</string>
+    <string name="account_settings_delete_account_subtitle">Permanently delete your account</string>
+    <string name="account_settings_connect">Connect</string>
+    <string name="account_settings_disconnect">Disconnect</string>
+    <string name="account_settings_google">Google</string>
+    <string name="account_settings_facebook">Facebook</string>
+    <string name="account_settings_apple">Apple</string>
+    
+    <!-- Change Email Dialog -->
+    <string name="change_email_dialog_title">Change Email</string>
+    <string name="change_email_dialog_message">Enter your new email address and current password to verify the change.</string>
+    <string name="change_email_new_email">New Email</string>
+    <string name="change_email_new_email_placeholder">email@example.com</string>
+    <string name="change_email_current_password">Current Password</string>
+    <string name="change_email_current_password_placeholder">Enter your password</string>
+    <string name="change_email_button">Change Email</string>
+    <string name="change_email_success">Email changed successfully</string>
+    <string name="change_email_error">Failed to change email</string>
+    
+    <!-- Change Password Dialog -->
+    <string name="change_password_dialog_title">Change Password</string>
+    <string name="change_password_dialog_message">Enter your current password and choose a new password.</string>
+    <string name="change_password_current">Current Password</string>
+    <string name="change_password_new">New Password</string>
+    <string name="change_password_confirm">Confirm New Password</string>
+    <string name="change_password_button">Change Password</string>
+    <string name="change_password_success">Password changed successfully</string>
+    <string name="change_password_error">Failed to change password</string>
+    <string name="change_password_mismatch">Passwords do not match</string>
+    <string name="change_password_weak">Password is too weak</string>
+    <string name="change_password_strength_weak">Weak</string>
+    <string name="change_password_strength_medium">Medium</string>
+    <string name="change_password_strength_strong">Strong</string>
+    
+    <!-- Delete Account Dialog -->
+    <string name="delete_account_dialog_title">Delete Account</string>
+    <string name="delete_account_dialog_message">This action cannot be undone. All your data, posts, messages, and profile information will be permanently deleted.</string>
+    <string name="delete_account_confirmation_phrase">DELETE MY ACCOUNT</string>
+    <string name="delete_account_confirmation_label">Confirmation</string>
+    <string name="delete_account_confirmation_placeholder">Type the phrase above</string>
+    <string name="delete_account_button">Delete Account</string>
+    <string name="delete_account_success">Account deleted successfully</string>
+    <string name="delete_account_error">Failed to delete account</string>
+    
+    <!-- Privacy & Security Settings -->
+    <string name="privacy_security_title">Privacy &amp; Security</string>
+    <string name="privacy_section_profile">Profile Privacy</string>
+    <string name="privacy_profile_visibility">Profile Visibility</string>
+    <string name="privacy_profile_visibility_subtitle">Control who can see your profile</string>
+    <string name="privacy_visibility_public">Public</string>
+    <string name="privacy_visibility_followers">Followers Only</string>
+    <string name="privacy_visibility_private">Private</string>
+    <string name="privacy_content_visibility">Content Visibility</string>
+    <string name="privacy_content_visibility_subtitle">Control who can see your posts</string>
+    <string name="privacy_content_everyone">Everyone</string>
+    <string name="privacy_content_followers">Followers</string>
+    <string name="privacy_content_only_me">Only Me</string>
+    <string name="privacy_section_security">Security</string>
+    <string name="privacy_two_factor">Two-Factor Authentication</string>
+    <string name="privacy_two_factor_subtitle">Add an extra layer of security</string>
+    <string name="privacy_biometric_lock">Biometric Lock</string>
+    <string name="privacy_biometric_lock_subtitle">Use fingerprint or face to unlock</string>
+    <string name="privacy_section_blocking">Blocking</string>
+    <string name="privacy_blocked_users">Blocked Users</string>
+    <string name="privacy_blocked_users_subtitle">Manage blocked accounts</string>
+    <string name="privacy_muted_users">Muted Users</string>
+    <string name="privacy_muted_users_subtitle">Manage muted accounts</string>
+    <string name="privacy_active_sessions">Active Sessions</string>
+    <string name="privacy_active_sessions_subtitle">Manage logged-in devices</string>
+    
+    <!-- Appearance Settings -->
+    <string name="appearance_title">Appearance</string>
+    <string name="appearance_theme_mode">Theme</string>
+    <string name="appearance_theme_mode_subtitle">Choose your preferred theme</string>
+    <string name="appearance_theme_light">Light</string>
+    <string name="appearance_theme_dark">Dark</string>
+    <string name="appearance_theme_system">System Default</string>
+    <string name="appearance_dynamic_color">Dynamic Color</string>
+    <string name="appearance_dynamic_color_subtitle">Use colors from your wallpaper</string>
+    <string name="appearance_font_size">Font Size</string>
+    <string name="appearance_font_size_subtitle">Adjust text size</string>
+    <string name="appearance_font_small">Small</string>
+    <string name="appearance_font_medium">Medium</string>
+    <string name="appearance_font_large">Large</string>
+    <string name="appearance_font_extra_large">Extra Large</string>
+    <string name="appearance_font_preview">Preview: The quick brown fox jumps over the lazy dog</string>
+    <string name="appearance_chat_customization">Chat Customization</string>
+    <string name="appearance_chat_customization_subtitle">Customize chat bubbles and backgrounds</string>
+    
+    <!-- Notification Settings -->
+    <string name="notification_settings_title">Notifications</string>
+    <string name="notification_section_activity">Activity</string>
+    <string name="notification_likes">Likes</string>
+    <string name="notification_likes_subtitle">When someone likes your post</string>
+    <string name="notification_comments">Comments</string>
+    <string name="notification_comments_subtitle">When someone comments on your post</string>
+    <string name="notification_follows">Follows</string>
+    <string name="notification_follows_subtitle">When someone follows you</string>
+    <string name="notification_messages">Messages</string>
+    <string name="notification_messages_subtitle">When you receive a new message</string>
+    <string name="notification_mentions">Mentions</string>
+    <string name="notification_mentions_subtitle">When someone mentions you</string>
+    <string name="notification_section_preferences">Preferences</string>
+    <string name="notification_sound">Notification Sound</string>
+    <string name="notification_sound_subtitle">Choose notification sound</string>
+    <string name="notification_dnd">Do Not Disturb</string>
+    <string name="notification_dnd_subtitle">Set quiet hours</string>
+    <string name="notification_in_app">In-App Notifications</string>
+    <string name="notification_in_app_subtitle">Show notifications within the app</string>
+    
+    <!-- Chat Settings -->
+    <string name="chat_settings_title_new">Chat Settings</string>
+    <string name="chat_read_receipts">Read Receipts</string>
+    <string name="chat_read_receipts_subtitle">Show when messages are read</string>
+    <string name="chat_typing_indicators">Typing Indicators</string>
+    <string name="chat_typing_indicators_subtitle">Show when you\'re typing</string>
+    <string name="chat_media_auto_download">Media Auto-Download</string>
+    <string name="chat_media_auto_download_subtitle">Automatically download media</string>
+    <string name="chat_media_wifi_only">WiFi Only</string>
+    <string name="chat_media_always">Always</string>
+    <string name="chat_media_never">Never</string>
+    <string name="chat_message_requests">Message Requests</string>
+    <string name="chat_message_requests_subtitle">Pending messages from non-followers</string>
+    <string name="chat_privacy">Chat Privacy</string>
+    <string name="chat_privacy_subtitle">Advanced chat privacy settings</string>
+    
+    <!-- Storage & Data Settings -->
+    <string name="storage_data_title">Storage &amp; Data</string>
+    <string name="storage_section_usage">Storage Usage</string>
+    <string name="storage_cache_size">Cache Size</string>
+    <string name="storage_cache_size_value">%1$s MB</string>
+    <string name="storage_clear_cache">Clear Cache</string>
+    <string name="storage_clearing_cache">Clearing…</string>
+    <string name="storage_cache_cleared">Cache cleared: %1$s MB freed</string>
+    <string name="storage_total_usage">Total App Storage</string>
+    <string name="storage_total_usage_value">%1$s MB</string>
+    <string name="storage_section_data">Data Settings</string>
+    <string name="storage_data_saver">Data Saver</string>
+    <string name="storage_data_saver_subtitle">Reduce data usage</string>
+    <string name="storage_section_configuration">Configuration</string>
+    <string name="storage_provider_config">Storage Provider Configuration</string>
+    <string name="storage_provider_config_subtitle">Configure image and file storage</string>
+    <string name="storage_ai_config">AI Configuration</string>
+    <string name="storage_ai_config_subtitle">Configure AI provider settings</string>
+    
+    <!-- Language & Region Settings -->
+    <string name="language_region_title">Language &amp; Region</string>
+    <string name="language_current">Current Language</string>
+    <string name="language_available">Available Languages</string>
+    <string name="language_english">English</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_french">Français</string>
+    <string name="language_german">Deutsch</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_portuguese">Português</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_region_preferences">Region Preferences</string>
+    <string name="language_region_preferences_subtitle">Date and time format settings</string>
+    
+    <!-- About & Support Settings -->
+    <string name="about_support_title">About &amp; Support</string>
+    <string name="about_app_info">App Information</string>
+    <string name="about_version">Version</string>
+    <string name="about_build">Build</string>
+    <string name="about_copyright">© 2024 Synapse. All rights reserved.</string>
+    <string name="about_section_legal">Legal</string>
+    <string name="about_terms">Terms of Service</string>
+    <string name="about_terms_subtitle">Read our terms and conditions</string>
+    <string name="about_privacy_policy">Privacy Policy</string>
+    <string name="about_privacy_policy_subtitle">How we handle your data</string>
+    <string name="about_section_support">Support</string>
+    <string name="about_help_center">Help Center</string>
+    <string name="about_help_center_subtitle">FAQs and support resources</string>
+    <string name="about_report_problem">Report a Problem</string>
+    <string name="about_report_problem_subtitle">Send us feedback</string>
+    <string name="about_check_updates">Check for Updates</string>
+    <string name="about_check_updates_subtitle">See if a new version is available</string>
+    <string name="about_licenses">Open Source Licenses</string>
+    <string name="about_licenses_subtitle">Third-party library attributions</string>
+    <string name="update_available_title">Update Available</string>
+    <string name="update_available_message_version">Version %1$s is available.</string>
+    <string name="update_action">Update</string>
+    <string name="update_later">Later</string>
+    <string name="app_is_up_to_date">App is up to date</string>
+    <string name="update_check_failed">Failed to check for updates. Please try again later.</string>
+    <string name="update_check_failed_short">Failed to check for updates</string>
+    <string name="no_version_info">No version info found on server</string>
+    <string name="checking_updates">Checking for updates…</string>
+
+    <!-- Feedback Dialog -->
+    <string name="feedback_dialog_title">Report a Problem</string>
+    <string name="feedback_dialog_message">Help us improve by describing the issue you\'re experiencing.</string>
+    <string name="feedback_category">Category</string>
+    <string name="feedback_category_bug">Bug Report</string>
+    <string name="feedback_category_feature">Feature Request</string>
+    <string name="feedback_category_other">Other</string>
+    <string name="feedback_description">Description</string>
+    <string name="feedback_description_placeholder">Describe the issue or suggestion…</string>
+    <string name="feedback_submit">Submit</string>
+    <string name="feedback_submitting">Submitting…</string>
+    <string name="feedback_success">Feedback submitted successfully</string>
+    <string name="feedback_error">Failed to submit feedback</string>
+    
+    <!-- Common Settings Actions -->
+    <string name="settings_dismiss">Dismiss</string>
+    <string name="settings_cancel">Cancel</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_done">Done</string>
+    <string name="settings_loading">Loading…</string>
+    <string name="settings_error">Error</string>
+    <string name="settings_success">Success</string>
+    
+    <!-- Settings Error Messages -->
+    <string name="settings_error_load_profile">Failed to load profile</string>
+    <string name="settings_error_save_settings">Failed to save settings</string>
+    <string name="settings_error_network">Network error. Please check your connection.</string>
+    <string name="settings_error_generic">Something went wrong. Please try again.</string>
+    <string name="settings_error_permission">Permission denied</string>
+    <string name="settings_error_invalid_input">Invalid input</string>
+    
+    <!-- Accessibility Descriptions -->
+    <string name="settings_icon_description">Settings icon</string>
+    <string name="settings_back_description">Navigate back</string>
+    <string name="settings_profile_avatar_description">Profile picture</string>
+    <string name="settings_category_icon_description">Category icon</string>
+    <string name="settings_chevron_description">Navigate to details</string>
+    <string name="settings_toggle_description">Toggle setting</string>
+    <string name="settings_dropdown_description">Select option</string>
+    <string name="settings_slider_description">Adjust value</string>
+    <string name="settings_loading_description">Loading content</string>
+    <string name="settings_error_icon_description">Error indicator</string>
+    <string name="settings_success_icon_description">Success indicator</string>
+    <string name="settings_warning_icon_description">Warning indicator</string>
+
+    <!-- Poll Strings -->
+    <plurals name="poll_votes_count">
+        <item quantity="one">%d vote</item>
+        <item quantity="other">%d votes</item>
+    </plurals>
+    <string name="poll_vote_submitted">Vote submitted</string>
+    <string name="poll_vote_failed">Failed to vote: %1$s</string>
+    
+    <!-- Profile Screen Strings -->
+    <string name="profile_photos">Photos</string>
+    <string name="profile_posts">Posts</string>
+    <string name="profile_reels">Reels</string>
+    <string name="profile_more">More</string>
+    <string name="profile_loading_error">Failed to load profile</string>
+    <string name="profile_empty_photos">No photos yet</string>
+    <string name="profile_empty_posts">No posts yet</string>
+    <string name="profile_empty_reels">No reels yet</string>
+    <string name="profile_image">Profile image</string>
+
+    <!-- Search Screen Strings -->
+    <string name="search_media_type_video">Video</string>
+    <string name="search_media_type_photo">Photo</string>
+    <string name="recent_searches">Recent searches</string>
+    <string name="clear_all">Clear all</string>
+    <string name="remove">Remove</string>
+
+    <string name="tab_chats">Chats</string>
+    <string name="tab_calls">Calls</string>
+    <string name="tab_contacts">People</string>
+    <string name="cd_new_chat">New Chat</string>
+    <string name="cd_options_menu">Options Menu</string>
+    <string name="menu_mark_as_read">Mark all as read</string>
+    <string name="menu_chat_settings">Chat Settings</string>
+    <string name="menu_settings">Settings</string>
+    <string name="header_messages">Messages</string>
+
+    <!-- Chat Message Status & Accessibility -->
+    <string name="msg_status_sending">Sending</string>
+    <string name="msg_status_sent">Sent</string>
+    <string name="msg_status_delivered">Delivered</string>
+    <string name="msg_status_read">Read</string>
+    <string name="msg_status_failed">Failed to send</string>
+    <string name="msg_edited">edited</string>
+    <string name="msg_forwarded">Forwarded</string>
+    <string name="msg_deleted">This message was deleted</string>
+    <string name="cd_link_preview">Link preview image</string>
+    <string name="cd_media_attachment">Media attachment</string>
+    <string name="cd_play_video">Play video</string>
+    <string name="cd_pause_video">Pause video</string>
+    <string name="cd_play_audio">Play audio</string>
+    <string name="cd_pause_audio">Pause audio</string>
+    <string name="cd_message_options">Message options</string>
+    <string name="cd_deleted_message">Deleted message icon</string>
+    <string name="cd_typing_indicator">User is typing</string>
+    
+    <!-- Active Status Strings -->
+    <string name="status_online">Online</string>
+    <string name="status_away">Away</string>
+    <string name="status_typing">Typing</string>
+    <string name="status_recently_active">Recently active</string>
+    <string name="status_offline">Offline</string>
+    <string name="last_seen_just_now">Last seen just now</string>
+    <string name="last_seen_minutes_ago">Last seen %d minutes ago</string>
+    <string name="last_seen_hours_ago">Last seen %d hours ago</string>
+    <string name="last_seen_days_ago">Last seen %d days ago</string>
+
+    <!-- Navigation -->
+    <string name="home">Home</string>
+    <string name="inbox">Inbox</string>
+    <string name="profile">Profile</string>
+    <string name="reels">Reels</string>
+    <string name="notifications">Notifications</string>
+    
+    <!-- Action strings -->
+    <string name="action_attach">Attach</string>
+    <string name="action_send_message">Send message</string>
+    <string name="action_record_audio">Record audio</string>
+    
+    <!-- Error strings -->
+    <string name="error_network">Network error</string>
+    <string name="error_authentication">Authentication error</string>
+    <string name="error_permission">Permission error</string>
+    <string name="error_validation">Validation error</string>
+    <string name="error_server">Server error</string>
+    <string name="error_unknown">Unknown error</string>
+</resources>

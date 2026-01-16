@@ -1,0 +1,105 @@
+package com.synapse.social.studioasinc.util
+
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import androidx.navigation3.NavController
+import com.synapse.social.studioasinc.ui.navigation.AppDestination
+import com.synapse.social.studioasinc.core.ui.animation.ActivityTransitions
+
+/**
+ * Migration utility to help transition from activity-based navigation to Navigation 3
+ * This provides compatibility methods during the migration period
+ */
+object NavigationMigration {
+    
+    /**
+     * Replace ActivityTransitions.startActivityWithTransition calls
+     * Use this during migration to gradually replace activity navigation
+     */
+    fun navigateWithNavController(
+        context: Context,
+        navController: NavController?,
+        destination: AppDestination,
+        vararg params: Pair<String, String>
+    ) {
+        if (navController != null) {
+            // Use Navigation 3
+            val route = when (destination) {
+                is AppDestination.Profile -> {
+                    val userId = params.find { it.first == "userId" }?.second ?: "me"
+                    destination.createRoute(userId)
+                }
+                is AppDestination.PostDetail -> {
+                    val postId = params.find { it.first == "postId" }?.second ?: return
+                    destination.createRoute(postId)
+                }
+                else -> destination.route
+            }
+            navController.navigate(route)
+        } else {
+            // Fallback to activity navigation (for gradual migration)
+            fallbackToActivityNavigation(context, destination, *params)
+        }
+    }
+    
+    private fun fallbackToActivityNavigation(
+        context: Context,
+        destination: AppDestination,
+        vararg params: Pair<String, String>
+    ) {
+        val intent = when (destination) {
+            is AppDestination.Home -> Intent(context, com.synapse.social.studioasinc.HomeActivity::class.java)
+            is AppDestination.Search -> Intent(context, com.synapse.social.studioasinc.SearchActivity::class.java)
+            is AppDestination.Profile -> {
+                Intent(context, com.synapse.social.studioasinc.ProfileComposeActivity::class.java).apply {
+                    val userId = params.find { it.first == "userId" }?.second
+                    if (userId != null) putExtra("uid", userId)
+                }
+            }
+            is AppDestination.PostDetail -> {
+                Intent(context, com.synapse.social.studioasinc.PostDetailActivity::class.java).apply {
+                    val postId = params.find { it.first == "postId" }?.second
+                    if (postId != null) putExtra("postId", postId)
+                }
+            }
+            is AppDestination.CreatePost -> Intent(context, com.synapse.social.studioasinc.CreatePostActivity::class.java)
+            is AppDestination.Inbox -> Intent(context, com.synapse.social.studioasinc.InboxComposeActivity::class.java)
+            else -> return
+        }
+        
+        ActivityTransitions.startActivityWithTransition(context, intent)
+    }
+    
+    /**
+     * Replace Activity.finish() calls with Navigation 3 back navigation
+     */
+    fun finishWithNavController(
+        activity: Activity,
+        navController: NavController?
+    ) {
+        if (navController != null) {
+            navController.popBackStack()
+        } else {
+            ActivityTransitions.finishWithTransition(activity)
+        }
+    }
+}
+
+/**
+ * Extension function for easy migration
+ */
+fun Activity.navigateWithNav3(
+    navController: NavController?,
+    destination: AppDestination,
+    vararg params: Pair<String, String>
+) {
+    NavigationMigration.navigateWithNavController(this, navController, destination, *params)
+}
+
+/**
+ * Extension function for finishing with Navigation 3
+ */
+fun Activity.finishWithNav3(navController: NavController?) {
+    NavigationMigration.finishWithNavController(this, navController)
+}

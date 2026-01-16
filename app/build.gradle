@@ -1,0 +1,353 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
+    id 'org.jetbrains.kotlin.plugin.parcelize'
+    id 'org.jetbrains.kotlin.plugin.serialization'
+    id 'org.jetbrains.kotlin.plugin.compose'
+    id 'dagger.hilt.android.plugin'
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def getGitCommitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
+def getGitCommitCount = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-list', '--count', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim().toInteger()
+}
+
+android {
+    namespace = "com.synapse.social.studioasinc"
+    compileSdk = 36 // Keep 36
+
+    signingConfigs {
+        debug {
+            // Use default debug keystore
+        }
+        if (keystorePropertiesFile.exists() && keystoreProperties['storeFile'] != null) {
+            def keystoreFile = rootProject.file(keystoreProperties['storeFile'])
+            if (keystoreFile.exists()) {
+                release {
+                    storeFile keystoreFile
+                    storePassword keystoreProperties['storePassword']
+                    keyAlias keystoreProperties['keyAlias']
+                    keyPassword keystoreProperties['keyPassword']
+                }
+            }
+        }
+    }
+
+    defaultConfig {
+        applicationId = "com.synapse.social.studioasinc"
+        minSdk = 26
+        targetSdk = 34 // Updated to Android 14 for security and Play Store compliance
+        versionCode = 5
+        versionName = "0.1.0-alpha.5"
+        multiDexEnabled = true
+
+        vectorDrawables.useSupportLibrary = true
+
+        compileOptions {
+            coreLibraryDesugaringEnabled = true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = false
+            shrinkResources = false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (signingConfigs.hasProperty('release')) {
+                signingConfig = signingConfigs.release
+            } else {
+                signingConfig = signingConfigs.debug
+            }
+            buildConfigField "String", "DEVELOPER_EMAIL", "\"mashikahamed0@gmail.com\""
+            buildConfigField "String", "SUPABASE_URL", "\"${System.getenv('SUPABASE_URL') ?: project.findProperty('SUPABASE_URL') ?: ''}\""
+            buildConfigField "String", "SUPABASE_ANON_KEY", "\"${System.getenv('SUPABASE_ANON_KEY') ?: project.findProperty('SUPABASE_ANON_KEY') ?: ''}\""
+            buildConfigField "String", "SUPABASE_SYNAPSE_S3_ENDPOINT_URL", "\"${System.getenv('SUPABASE_SYNAPSE_S3_ENDPOINT_URL') ?: project.findProperty('SUPABASE_SYNAPSE_S3_ENDPOINT_URL') ?: ''}\""
+            buildConfigField "String", "SUPABASE_SYNAPSE_S3_ENDPOINT_REGION", "\"${System.getenv('SUPABASE_SYNAPSE_S3_ENDPOINT_REGION') ?: project.findProperty('SUPABASE_SYNAPSE_S3_ENDPOINT_REGION') ?: ''}\""
+            buildConfigField "String", "SUPABASE_SYNAPSE_S3_ACCESS_KEY_ID", "\"${System.getenv('SUPABASE_SYNAPSE_S3_ACCESS_KEY_ID') ?: project.findProperty('SUPABASE_SYNAPSE_S3_ACCESS_KEY_ID') ?: ''}\""
+            buildConfigField "String", "SUPABASE_SYNAPSE_S3_ACCESS_KEY", "\"${System.getenv('SUPABASE_SYNAPSE_S3_ACCESS_KEY') ?: project.findProperty('SUPABASE_SYNAPSE_S3_ACCESS_KEY') ?: ''}\""
+            buildConfigField "String", "GEMINI_API_KEY", "\"${System.getenv('GEMINI_API_KEY') ?: project.findProperty('GEMINI_API_KEY') ?: ''}\""
+            // OneSignal Configuration
+            buildConfigField "String", "ONESIGNAL_APP_ID", "\"${System.getenv('ONESIGNAL_APP_ID') ?: project.findProperty('ONESIGNAL_APP_ID') ?: ''}\""
+            buildConfigField "String", "ONESIGNAL_REST_API_KEY", "\"${System.getenv('ONESIGNAL_REST_API_KEY') ?: project.findProperty('ONESIGNAL_REST_API_KEY') ?: ''}\""
+            buildConfigField "String", "APP_DOMAIN", "\"${System.getenv('APP_DOMAIN') ?: 'https://synapse.app'}\""
+            
+            // Authentication configuration for production
+            buildConfigField "boolean", "AUTH_REQUIRE_EMAIL_VERIFICATION", "${project.findProperty('auth.require.email.verification') ?: 'true'}"
+            buildConfigField "boolean", "AUTH_ENABLE_DEBUG_LOGGING", "${project.findProperty('auth.enable.debug.logging') ?: 'false'}"
+            buildConfigField "boolean", "AUTH_DEVELOPMENT_MODE", "${project.findProperty('auth.development.mode') ?: 'false'}"
+            buildConfigField "int", "AUTH_RESEND_COOLDOWN_SECONDS", "${project.findProperty('auth.resend.cooldown.seconds') ?: '60'}"
+            buildConfigField "int", "AUTH_MAX_RESEND_ATTEMPTS", "${project.findProperty('auth.max.resend.attempts') ?: '5'}"
+            
+            // Media Storage Credentials
+            buildConfigField "String", "CLOUDINARY_API_KEY", "\"${System.getenv('CLOUDINARY_API_KEY') ?: project.findProperty('CLOUDINARY_API_KEY') ?: '577882927131931'}\""
+            buildConfigField "String", "CLOUDINARY_API_SECRET", "\"${System.getenv('CLOUDINARY_API_SECRET') ?: project.findProperty('CLOUDINARY_API_SECRET') ?: 'M_w_0uQKjnLRUe-u34driUBqUQU'}\""
+            buildConfigField "String", "CLOUDINARY_CLOUD_NAME", "\"${System.getenv('CLOUDINARY_CLOUD_NAME') ?: project.findProperty('CLOUDINARY_CLOUD_NAME') ?: 'djw3fgbls'}\""
+            buildConfigField "String", "IMGBB_API_KEY", "\"${System.getenv('IMGBB_API_KEY') ?: project.findProperty('IMGBB_API_KEY') ?: 'faa85ffbac0217ff67b5f3c4baa7fb29'}\""
+            buildConfigField "String", "POSTIMAGES_API_KEY", "\"${System.getenv('POSTIMAGES_API_KEY') ?: project.findProperty('POSTIMAGES_API_KEY') ?: '7746820ffe9cebd5769618ca22fc9ca8'}\""
+            buildConfigField "int", "AUTH_AUTO_RETRY_ATTEMPTS", "${project.findProperty('auth.auto.retry.attempts') ?: '3'}"
+            buildConfigField "long", "AUTH_RETRY_DELAY_MS", "${project.findProperty('auth.retry.delay.ms') ?: '1000L'}"
+        }
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            buildConfigField "String", "DEVELOPER_EMAIL", "\"mashikahamed0@gmail.com\""
+            buildConfigField "String", "SUPABASE_URL", "\"${System.getenv('SUPABASE_URL') ?: project.findProperty('SUPABASE_URL') ?: ''}\""
+            buildConfigField "String", "SUPABASE_ANON_KEY", "\"${System.getenv('SUPABASE_ANON_KEY') ?: project.findProperty('SUPABASE_ANON_KEY') ?: ''}\""
+            buildConfigField "String", "SUPABASE_SYNAPSE_S3_ENDPOINT_URL", "\"${System.getenv('SUPABASE_SYNAPSE_S3_ENDPOINT_URL') ?: project.findProperty('SUPABASE_SYNAPSE_S3_ENDPOINT_URL') ?: ''}\""
+            buildConfigField "String", "SUPABASE_SYNAPSE_S3_ENDPOINT_REGION", "\"${System.getenv('SUPABASE_SYNAPSE_S3_ENDPOINT_REGION') ?: project.findProperty('SUPABASE_SYNAPSE_S3_ENDPOINT_REGION') ?: ''}\""
+            buildConfigField "String", "SUPABASE_SYNAPSE_S3_ACCESS_KEY_ID", "\"${System.getenv('SUPABASE_SYNAPSE_S3_ACCESS_KEY_ID') ?: project.findProperty('SUPABASE_SYNAPSE_S3_ACCESS_KEY_ID') ?: ''}\""
+            buildConfigField "String", "SUPABASE_SYNAPSE_S3_ACCESS_KEY", "\"${System.getenv('SUPABASE_SYNAPSE_S3_ACCESS_KEY') ?: project.findProperty('SUPABASE_SYNAPSE_S3_ACCESS_KEY') ?: ''}\""
+            buildConfigField "String", "GEMINI_API_KEY", "\"${System.getenv('GEMINI_API_KEY') ?: project.findProperty('GEMINI_API_KEY') ?: ''}\""
+            buildConfigField "String", "ONESIGNAL_APP_ID", "\"${System.getenv('ONESIGNAL_APP_ID') ?: project.findProperty('ONESIGNAL_APP_ID') ?: ''}\""
+            buildConfigField "String", "ONESIGNAL_REST_API_KEY", "\"${System.getenv('ONESIGNAL_REST_API_KEY') ?: project.findProperty('ONESIGNAL_REST_API_KEY') ?: ''}\""
+            buildConfigField "String", "APP_DOMAIN", "\"${System.getenv('APP_DOMAIN') ?: 'https://synapse.app'}\""
+            
+            // Authentication configuration for development
+            buildConfigField "boolean", "AUTH_REQUIRE_EMAIL_VERIFICATION", "${project.findProperty('auth.require.email.verification') ?: 'false'}"
+            buildConfigField "boolean", "AUTH_ENABLE_DEBUG_LOGGING", "${project.findProperty('auth.enable.debug.logging') ?: 'true'}"
+            buildConfigField "boolean", "AUTH_DEVELOPMENT_MODE", "${project.findProperty('auth.development.mode') ?: 'true'}"
+            buildConfigField "int", "AUTH_RESEND_COOLDOWN_SECONDS", "${project.findProperty('auth.resend.cooldown.seconds') ?: '30'}"
+            buildConfigField "int", "AUTH_MAX_RESEND_ATTEMPTS", "${project.findProperty('auth.max.resend.attempts') ?: '5'}"
+            buildConfigField "int", "AUTH_AUTO_RETRY_ATTEMPTS", "${project.findProperty('auth.auto.retry.attempts') ?: '3'}"
+            buildConfigField "long", "AUTH_RETRY_DELAY_MS", "${project.findProperty('auth.retry.delay.ms') ?: '1000L'}"
+            
+            // Media Storage Credentials
+            buildConfigField "String", "CLOUDINARY_API_KEY", "\"${System.getenv('CLOUDINARY_API_KEY') ?: project.findProperty('CLOUDINARY_API_KEY') ?: '577882927131931'}\""
+            buildConfigField "String", "CLOUDINARY_API_SECRET", "\"${System.getenv('CLOUDINARY_API_SECRET') ?: project.findProperty('CLOUDINARY_API_SECRET') ?: 'M_w_0uQKjnLRUe-u34driUBqUQU'}\""
+            buildConfigField "String", "CLOUDINARY_CLOUD_NAME", "\"${System.getenv('CLOUDINARY_CLOUD_NAME') ?: project.findProperty('CLOUDINARY_CLOUD_NAME') ?: 'djw3fgbls'}\""
+            buildConfigField "String", "IMGBB_API_KEY", "\"${System.getenv('IMGBB_API_KEY') ?: project.findProperty('IMGBB_API_KEY') ?: 'faa85ffbac0217ff67b5f3c4baa7fb29'}\""
+            buildConfigField "String", "POSTIMAGES_API_KEY", "\"${System.getenv('POSTIMAGES_API_KEY') ?: project.findProperty('POSTIMAGES_API_KEY') ?: '7746820ffe9cebd5769618ca22fc9ca8'}\""
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+        freeCompilerArgs += [
+            '-opt-in=kotlin.time.ExperimentalTime'
+        ]
+    }
+
+    buildFeatures {
+        viewBinding = true
+        dataBinding = false
+        buildConfig = true
+        compose = true
+    }
+    
+    composeOptions {
+        kotlinCompilerExtensionVersion = '1.5.14'
+    }
+    
+
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
+
+    packaging {
+        resources.excludes.add("META-INF/*")
+        resources.excludes.add("META-INF/DEPENDENCIES")
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.jetbrains.kotlin:kotlin-stdlib:2.2.21'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.21'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.21'
+    }
+}
+
+ksp {
+    arg('room.schemaLocation', "$projectDir/schemas")
+}
+
+dependencies {
+    // Jetpack Compose
+    def composeBom = platform('androidx.compose:compose-bom:2024.11.00')
+    implementation composeBom
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.material3:material3:1.5.0-alpha01'
+    implementation 'androidx.compose.material:material-icons-extended'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.activity:activity-compose:1.12.1'
+    implementation 'androidx.compose.foundation:foundation'
+    implementation 'androidx.compose.animation:animation'
+    implementation 'androidx.compose.runtime:runtime-livedata'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+    
+    // ZXing for QR code generation
+    implementation 'com.google.zxing:core:3.5.3'
+    
+    // Coil for Compose image loading
+    implementation 'io.coil-kt:coil-compose:2.7.0'
+    implementation 'io.coil-kt:coil:2.7.0'
+    
+    // Accompanist for system UI controller
+    implementation 'com.google.accompanist:accompanist-systemuicontroller:0.32.0'
+    implementation 'com.google.accompanist:accompanist-swiperefresh:0.32.0'
+
+    // Hilt for dependency injection
+    implementation 'com.google.dagger:hilt-android:2.57.2'
+    ksp 'com.google.dagger:hilt-compiler:2.57.2'
+    implementation 'androidx.hilt:hilt-navigation-compose:1.2.0'
+
+    // Supabase BOM and dependencies (3.x uses auth-kt instead of gotrue-kt and requires Ktor 3.x)
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.6"))
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:auth-kt")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
+    implementation("io.github.jan-tennert.supabase:storage-kt")
+    implementation("io.github.jan-tennert.supabase:functions-kt")
+    implementation("io.ktor:ktor-client-android:3.2.2")
+    implementation("io.ktor:ktor-client-okhttp:3.2.2")
+    
+    // Serialization for Supabase
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("io.ktor:ktor-client-content-negotiation:3.2.2")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.2.2")
+    
+    // Firebase Vertex AI for Gemini
+    implementation("com.google.firebase:firebase-vertexai:16.0.2")
+    implementation("com.google.genai:google-genai:1.29.0")
+
+    // Room Database
+    def room_version = "2.7.1"
+    implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
+    implementation "androidx.room:room-paging:$room_version"
+    ksp "androidx.room:room-compiler:$room_version"
+
+
+    // Biometric authentication
+    implementation 'androidx.biometric:biometric:1.1.0'
+
+    // AndroidX Core & UI Components
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.activity:activity-ktx:1.12.1'
+    implementation 'androidx.fragment:fragment-ktx:1.8.8'
+    implementation 'com.google.android.material:material:1.14.0-alpha07'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.multidex:multidex:2.0.1'
+
+    // Common UI components
+    implementation 'androidx.recyclerview:recyclerview:1.4.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.viewpager2:viewpager2:1.1.0'
+    
+    // Image zoom functionality
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
+
+    // AndroidX Architecture Components
+    implementation 'androidx.lifecycle:lifecycle-process:2.10.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.10.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.10.0'
+    // Navigation Component 2.x
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.9.3'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.9.3'
+    implementation 'androidx.navigation:navigation-compose:2.9.3'
+    implementation 'androidx.work:work-runtime-ktx:2.10.3'
+    implementation 'androidx.paging:paging-runtime-ktx:3.3.6'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
+    
+    // DataStore for preferences
+    implementation 'androidx.datastore:datastore-preferences:1.1.1'
+
+    // Paging Compose - Added explicitly as per reviewer
+    implementation "androidx.paging:paging-compose:3.3.6"
+
+    // Media3 for Video
+    implementation "androidx.media3:media3-exoplayer:1.3.1"
+    implementation "androidx.media3:media3-ui:1.3.1"
+    implementation "androidx.media3:media3-common:1.3.1"
+
+    // Google Play services - Removed as not needed with Supabase
+    // implementation 'com.google.android.gms:play-services-auth:21.4.0'
+
+    // Networking
+    implementation 'com.squareup.okhttp3:okhttp:5.3.2'
+    implementation 'com.google.code.gson:gson:2.13.1'
+
+    // UI Components (Non-AndroidX)
+    implementation 'com.onesignal:OneSignal:[5.1.6, 5.1.99]'
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
+
+    // Local AARs
+
+    // Kotlin coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4'
+
+    // Desugaring for Java 8+ APIs
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+
+    // Misc / helpers
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.2.21"
+    implementation 'androidx.browser:browser:1.9.0'
+
+    // Markdown (Markwon + GFM)
+    implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'io.noties.markwon:linkify:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
+    implementation 'io.noties.markwon:ext-tasklist:4.6.2'
+    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
+    implementation 'io.noties.markwon:ext-latex:4.6.2'
+    implementation 'io.noties.markwon:html:4.6.2'
+
+    // Memory leak detection
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.12'
+
+    // CameraX
+    def camerax_version = "1.3.1"
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation "androidx.camera:camera-camera2:${camerax_version}"
+    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
+    implementation "androidx.camera:camera-view:${camerax_version}"
+    implementation "androidx.camera:camera-extensions:${camerax_version}"
+
+    // Exif Interface
+    implementation "androidx.exifinterface:exifinterface:1.4.0"
+
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.10.0'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.2.1'
+    testImplementation 'androidx.arch.core:core-testing:2.2.0'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0'
+    testImplementation 'org.robolectric:robolectric:4.11.1'
+}
+
+// Supabase configuration is handled through BuildConfig

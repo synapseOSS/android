@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium activity exit animation: subtle scale down and fade for background activity -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/accelerate_decelerate_interpolator">
+    
+    <!-- Subtle slide to left -->
+    <translate
+        android:fromXDelta="0"
+        android:toXDelta="-10%p"
+        android:duration="350" />
+    
+    <!-- Fade out slightly -->
+    <alpha
+        android:fromAlpha="1.0"
+        android:toAlpha="0.7"
+        android:duration="300" />
+    
+    <!-- Scale down subtly -->
+    <scale
+        android:fromXScale="1.0"
+        android:toXScale="0.95"
+        android:fromYScale="1.0"
+        android:toYScale="0.95"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:duration="350" />
+</set>

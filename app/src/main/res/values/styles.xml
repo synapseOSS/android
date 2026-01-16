@@ -1,0 +1,13 @@
+<resources>
+    <!-- Bottom Sheet Animation Style -->
+    <style name="BottomSheetAnimation">
+        <item name="android:windowEnterAnimation">@anim/fade_in</item>
+        <item name="android:windowExitAnimation">@anim/fade_out</item>
+    </style>
+    
+    <!-- Post Comments Bottom Sheet Style -->
+    <style name="PostCommentsBottomSheetDialogStyle" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+    </style>
+</resources>

@@ -1,0 +1,30 @@
+<resources>
+    <attr name="myAppPrimaryColor" format="color" />
+    <attr name="myAppPrimaryContainerColor" format="color" />
+    <attr name="myAppColorOnSurface" format="color" />
+    <attr name="myAppColorOnSurfaceVariant" format="color" />
+    
+    <!-- Material 3 Surface Container attributes -->
+    <attr name="colorOnSurfaceContainer" format="color" />
+    
+    <!-- Post Card Theme Attributes -->
+    <attr name="postCardBackgroundColor" format="color" />
+    <attr name="postCardContentColor" format="color" />
+    <attr name="postCardSecondaryContentColor" format="color" />
+    <attr name="postCardActionColor" format="color" />
+    <attr name="postCardLikeColor" format="color" />
+    <attr name="postCardLikedColor" format="color" />
+    <attr name="postCardShimmerColor" format="color" />
+    
+    <declare-styleable name="CustomView">
+        <attr name="bgColor" format="color" />
+        <attr name="cornerRadius" format="dimension" />
+        <attr name="maxLayoutWidth" format="dimension" />
+        <attr name="maxLayoutHeight" format="dimension" />
+    </declare-styleable>
+    <declare-styleable name="ShimmerFrameLayout">
+        <attr name="shimmer_auto_start" format="boolean" />
+        <attr name="shimmer_duration" format="integer" />
+        <attr name="shimmer_color" format="color" />
+    </declare-styleable>
+</resources>
